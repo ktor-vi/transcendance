@@ -1,0 +1,53 @@
+services:
+  frontend-dev:
+    build:
+      context: ./frontend
+      target: builder
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    command: npm run dev
+    depends_on:
+      - backend-dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  backend-dev:
+    build:
+      context: ./backend
+      target: development
+    container_name: backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - DATABASE_URL=/app/data/database.sqlite
+      - NODE_ENV=development
+    command: npm run dev
+
+  frontend-prod:
+    build:
+      context: ./frontend
+      target: production
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend-prod
+    volumes:
+      - /usr/share/nginx/html
+
+  backend-prod:
+    build:
+      context: ./backend
+      target: production
+    container_name: backend
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=/app/data/database.sqlite
+      - NODE_ENV=production
+    command: npm start
