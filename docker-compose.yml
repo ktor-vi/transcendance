@@ -1,5 +1,6 @@
 services:
   frontend-dev:
+    env_file: ".env"
     build:
       context: ./frontend
       target: builder
@@ -14,6 +15,7 @@ services:
       - /app/node_modules
 
   backend-dev:
+    env_file: ".env"
     build:
       context: ./backend
       target: development
@@ -24,11 +26,11 @@ services:
       - ./backend:/app
       - /app/node_modules
     environment:
-      - DATABASE_URL=/app/data/database.sqlite
       - NODE_ENV=development
     command: npm run dev
 
   frontend-prod:
+    env_file: ".env"
     build:
       context: ./frontend
       target: production
@@ -41,6 +43,7 @@ services:
       - /usr/share/nginx/html
 
   backend-prod:
+    env_file: ".env"
     build:
       context: ./backend
       target: production
@@ -48,6 +51,5 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=/app/data/database.sqlite
       - NODE_ENV=production
     command: npm start

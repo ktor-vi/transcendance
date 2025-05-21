@@ -1,7 +1,13 @@
 import './style.css'
-import { createBabylonScene } from './components/BabylonScene'
+const button = document.getElementById("google-sign-in");
 
-const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
-if (canvas) {
-  createBabylonScene(canvas);
+if (button) {
+  button.addEventListener("click", async () => {
+    try {
+      console.log("bite");
+      window.location.href = "/api/login/google"; // Pas de fetch !
+    } catch (error) {
+      console.error("Erreur lors de la requête :", error);
+    }
+  });
 }

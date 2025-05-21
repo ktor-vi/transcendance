@@ -1,32 +1,22 @@
 import Fastify from 'fastify';
-import sqlite3 from 'sqlite3';
+import registerCors from './plugins/cors.js';
+import registerWebSockets from './plugins/websocket.js';
+import registerSession from './plugins/session.js';
+import registerOAuth from './plugins/oauth.js';
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/user.js';
 
-// console.log("Starting backend server...");
 const fastify = Fastify({ logger: true });
-const db = new sqlite3.Database(process.env.DATABASE_URL);
-fastify.post('/api/create-message', async (request, reply) => {
-  const content = 'Hello from backend!';
-  const createdAt = new Date().toISOString();
 
-  db.run(
-    `CREATE TABLE IF NOT EXISTS testicules (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      content TEXT NOT NULL,
-      created_at TEXT NOT NULL
-    );`
-  );
+await registerSession(fastify);
+await registerCors(fastify);
+await registerOAuth(fastify);
+await registerWebSockets(fastify);
 
-  db.run(`INSERT INTO messages (content, created_at) VALUES (?, ?)`, [content, createdAt], function (err) {
-    if (err) {
-      console.error(err);
-      return reply.code(500).send({ error: 'Failed to insert message' });
-    }
+fastify.register(authRoutes);
+fastify.register(userRoutes);
 
-    return reply.send({ message: 'Message inserted', id: this.lastID });
-  });
-});
-// Make sure the Fastify server listens on a port
-fastify.listen(3000, '0.0.0.0', (err, address) => {
+fastify.listen({ port: 3000, host: '0.0.0.0' }, (err, address) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);

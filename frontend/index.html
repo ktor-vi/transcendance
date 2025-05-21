@@ -1,31 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-  <meta charset="UTF-8" />
-  <!-- files in public folder are served as root. Here the favicon is taken from the public folder. -->
-  <link rel="icon" type="image/png" href="favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1.0, minimum-scale=1.0">
-  <title>(Babylon.js + vite) boilerplate</title>
-  <style>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- files in public folder are served as root. Here the favicon is taken from the public folder. -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1.0, minimum-scale=1.0">
+    <title>Transcendance</title>
+    <style>
     body {
-      margin: 0px;
-      overflow: hidden;
-      position: absolute;
-      width: 100%;
-      height: 100%;
+    margin: 0px;
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    height: 100%;
     }
 
     #renderCanvas {
-      width: 100%;
-      height: 100%;
+    width: 100%;
+    height: 100%;
     }
-  </style>
-</head>
+    </style>
+  </head>
 
-<body>
-  <script type="module" src="/src/main.ts"></script>
-  <canvas id="renderCanvas" class="w-full h-screen block"></canvas>
-</body>
+  <body>
+    <script type="module" src="/src/main.ts"></script>
+    <section>
+      <div>
+        <h1>
+          Transcendance
+        </h1>
+        <h3>Made by vphilipp, rdendonc, jepatern and kdegryse</h3>
+        <button id="google-sign-in">
+          Google sign-in
+        </button>
+      </div>
+    </section>
+  </body>
 
 </html>
