@@ -10,8 +10,8 @@ export function createBabylonScene(canvas: HTMLCanvasElement) {
   const engine = new Engine(canvas, true);
   const scene = new Scene(engine);
 
-  let roomId: string | null = null;
-  let playerNum: number | null = null;
+  let roomId: string = '';
+  let playerNum: number = 0;
   const inputState = { left: false, right: false };
 
   // Création de la scène Babylon.js
@@ -39,8 +39,8 @@ export function createBabylonScene(canvas: HTMLCanvasElement) {
     const key = kb.event.key.toLowerCase();
     const isDown = kb.type === KeyboardEventTypes.KEYDOWN;
 
-    if (key === 'q') inputState.left = isDown;
-    if (key === 'd') inputState.right = isDown;
+    if (key === 'd') inputState.left = isDown;
+    if (key === 'q') inputState.right = isDown;
   });
 
   // Connexion WebSocket via module centralisé

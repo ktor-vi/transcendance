@@ -7,12 +7,14 @@
   },
   "dependencies": {
     "@babylonjs/inspector": "^8.2.0",
-    "@babylonjs/materials": "^8.2.0"
+    "@babylonjs/materials": "^8.2.0",
+    "page": "^1.11.6"
   },
   "devDependencies": {
     "@babylonjs/core": "^8.2.0",
     "@babylonjs/gui": "^8.2.0",
     "@babylonjs/loaders": "^8.2.0",
+    "@types/page": "^1.11.9",
     "autoprefixer": "^10.4.15",
     "postcss": "^8.4.24",
     "tailwindcss": "^3.3.2",

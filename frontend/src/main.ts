@@ -1,13 +1,28 @@
-import './style.css'
-const button = document.getElementById("google-sign-in");
+import page from "page";
+import { renderHome } from "./pages/home";
+import { renderDashboard } from "./pages/dashboard";
 
-if (button) {
-  button.addEventListener("click", async () => {
-    try {
-      console.log("bite");
-      window.location.href = "/api/login/google"; // Pas de fetch !
-    } catch (error) {
-      console.error("Erreur lors de la requête :", error);
-    }
-  });
+const app = document.getElementById("app");
+
+function render(html: string) {
+  if (app) app.innerHTML = html;
 }
+
+page("/", () => render(renderHome()));
+page("/dashboard", () => render(renderDashboard()));
+
+page();
+
+document.addEventListener("click", (e) => {
+  const target = e.target as HTMLElement;
+
+  if (target?.id === "google-sign-in") {
+    window.location.href = "/api/login/google";
+  }
+
+  if (target?.id === "logout") {
+    fetch("/logout", { method: "POST" }).then(() => {
+      page.redirect("/");
+    });
+  }
+});
