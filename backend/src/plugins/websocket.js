@@ -9,7 +9,6 @@ const PDL_SPD = 0.25;
 export default fp(async function (fastify) {
   await fastify.register(fastifyWebsocket);
 
-  // roomId -> { clients: Map<clientId, { socket, playerNum }>, gameState }
   const rooms = new Map();
 
   function createRoom() {
@@ -26,8 +25,7 @@ export default fp(async function (fastify) {
 
   // Game loop
   setInterval(() => {
-    for (const [roomId, { clients, gameState }] of rooms.entries()) {
-      // Ball physics
+    for (const { clients, gameState } of rooms.values()) {
       gameState.ball.x += gameState.ball.dx;
       gameState.ball.z += gameState.ball.dz;
 
@@ -63,39 +61,49 @@ export default fp(async function (fastify) {
 
     socket.on('message', (raw) => {
       let msg;
-      try { msg = JSON.parse(raw); }
-      catch { return; }
+      try {
+        msg = JSON.parse(raw);
+      } catch {
+        return;
+      }
 
       if (msg.type === 'joinRoom') {
         let roomId = msg.roomId;
+        if (roomId === 'auto') {
+          for (const [id, room] of rooms.entries()) {
+            if (room.clients.size === 1) {
+              roomId = id;
+              break;
+            }
+          }
+        }
+
         if (!roomId || !rooms.has(roomId)) {
           roomId = createRoom();
         }
-        const room = rooms.get(roomId);
 
-        // Check if room is full
+        const room = rooms.get(roomId);
         const takenNums = [...room.clients.values()].map(c => c.playerNum);
+
         if (takenNums.length >= 2) {
           socket.send(JSON.stringify({ type: 'error', message: 'Room full' }));
           socket.close();
           return;
         }
 
-        // Assign player 1 or 2
         if (!takenNums.includes(1)) playerNum = 1;
         else if (!takenNums.includes(2)) playerNum = 2;
 
-        // Register client
         room.clients.set(clientId, { socket, playerNum });
         joinedRoom = roomId;
 
         socket.send(JSON.stringify({ type: 'assign', roomId, player: playerNum }));
         console.log(`👤 Joueur ${playerNum} rejoint room ${roomId}`);
-        return;
       }
 
       if (msg.type === 'input' && joinedRoom) {
         const room = rooms.get(joinedRoom);
+        if (!room) return;
         const gs = room.gameState;
         const paddle = playerNum === 1 ? gs.paddleOne : gs.paddleTwo;
         if (msg.left) paddle.x -= PDL_SPD;

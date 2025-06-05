@@ -2,7 +2,7 @@ let socket: WebSocket;
 
 export function connectWebSocket(
   onMessage: (data: any) => void,
-  onOpenMessage?: () => any // fonction qui retourne un message à envoyer à l'ouverture
+  onOpenMessage?: () => any
 ) {
   socket = new WebSocket(`ws://${location.hostname}:3000/ws`);
 
@@ -23,13 +23,8 @@ export function connectWebSocket(
     }
   });
 
-  socket.addEventListener('close', () => {
-    console.warn('[WS] Déconnecté');
-  });
-
-  socket.addEventListener('error', (err) => {
-    console.error('[WS] Erreur :', err);
-  });
+  socket.addEventListener('close', () => console.warn('[WS] Déconnecté'));
+  socket.addEventListener('error', (err) => console.error('[WS] Erreur :', err));
 }
 
 export function sendMove(input: {
@@ -40,7 +35,5 @@ export function sendMove(input: {
 }) {
   if (socket?.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(input));
-  } else {
-    console.warn('[WS] Socket pas encore ouverte');
   }
 }
