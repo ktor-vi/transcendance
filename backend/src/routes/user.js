@@ -1,5 +1,5 @@
 export default async function userRoutes(fastify) {
-  fastify.get('/me', async (req, reply) => {
+  fastify.get('/api/me', async (req, reply) => {
     const user = req.session.get('user');
     console.log('Session user:', req.session.get('user'));
     if (!user) {

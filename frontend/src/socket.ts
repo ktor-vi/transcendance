@@ -4,7 +4,8 @@ export function connectWebSocket(
   onMessage: (data: any) => void,
   onOpenMessage?: () => any
 ) {
-  socket = new WebSocket(`ws://${location.hostname}:3000/ws`);
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  socket = new WebSocket(`${protocol}//${location.hostname}/ws`);
 
   socket.addEventListener('open', () => {
     console.log('[WS] Connecté');

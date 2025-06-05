@@ -9,7 +9,8 @@ fastify.register(secureSession, {
     path: '/',
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production'
+    secure: process.env.NODE_ENV === 'production',
+    domain: 'localhost'
   }
 });
 }

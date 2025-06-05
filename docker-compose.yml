@@ -7,12 +7,15 @@ services:
     container_name: frontend
     ports:
       - "5173:5173"
+      - "443:443"
     command: npm run dev
     depends_on:
       - backend-dev
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - ./ssl:/etc/ssl/certs:ro
+      - ./ssl:/etc/ssl/private:ro
 
   backend-dev:
     env_file: ".env"
@@ -25,6 +28,8 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - ./ssl:/etc/ssl/certs:ro
+      - ./ssl:/etc/ssl/private:ro
     environment:
       - NODE_ENV=development
     command: npm run dev
@@ -37,10 +42,13 @@ services:
     container_name: frontend
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - backend-prod
     volumes:
       - /usr/share/nginx/html
+      - ./ssl:/etc/ssl/certs:ro
+      - ./ssl:/etc/ssl/private:ro
 
   backend-prod:
     env_file: ".env"
@@ -50,6 +58,9 @@ services:
     container_name: backend
     ports:
       - "3000:3000"
+    volumes:
+      - ./ssl:/etc/ssl/certs:ro
+      - ./ssl:/etc/ssl/private:ro
     environment:
       - NODE_ENV=production
     command: npm start

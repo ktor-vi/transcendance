@@ -1,6 +1,8 @@
 import oauthPlugin from '@fastify/oauth2';
 
 export default async function registerOAuth(fastify) {
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+  
   fastify.register(oauthPlugin, {
     name: 'googleOAuth2',
     scope: ['profile', 'email'],
@@ -12,6 +14,6 @@ export default async function registerOAuth(fastify) {
       auth: oauthPlugin.GOOGLE_CONFIGURATION
     },
     startRedirectPath: '/api/login/google',
-    callbackUri: 'http://localhost:3000/api/login/google/callback'
+    callbackUri: `${baseUrl}/api/login/google/callback`
   });
 }

@@ -21,7 +21,7 @@ document.addEventListener("click", (e) => {
   }
 
   if (target?.id === "logout") {
-    fetch("/logout", { method: "POST" }).then(() => {
+    fetch("/api/logout", { method: "POST", credentials: "include" }).then(() => {
       page.redirect("/");
     });
   }

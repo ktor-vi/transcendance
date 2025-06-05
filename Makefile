@@ -19,11 +19,37 @@ dev:
 	@echo "$(GREEN)Frontend is running on http://localhost:5173$(RESET)"
 	@echo "$(GREEN)Backend is running on http://localhost:3000$(RESET)"
 
+# Commands for Development with HTTPS
+dev-https:
+	@echo "$(GREEN)Starting frontend and backend in development mode with HTTPS...$(RESET)"
+	@./toggle-https.sh enable
+	@docker-compose -f $(DOCKER_COMPOSE_FILE) up --build frontend-prod backend-prod
+	@echo "$(GREEN)Frontend is running on https://localhost$(RESET)"
+	@echo "$(GREEN)Backend is running on https://localhost/api$(RESET)"
+
 # Commands for Production
 prod:
 	@echo "$(YELLOW)Building frontend and backend for production...$(RESET)"
-	@docker-compose -f $(DOCKER_COMPOSE_FILE) -f  up --build frontend-prod backend-prod--detach
+	@docker-compose -f $(DOCKER_COMPOSE_FILE) up --build frontend-prod backend-prod --detach
 	@echo "$(YELLOW)Production environment is up.$(RESET)"
+
+# Enable HTTPS configuration
+enable-https:
+	@echo "$(YELLOW)Enabling HTTPS configuration...$(RESET)"
+	@./toggle-https.sh enable
+	@echo "$(GREEN)HTTPS enabled. Use 'make dev-https' or 'make prod' to run with HTTPS$(RESET)"
+
+# Disable HTTPS configuration
+disable-https:
+	@echo "$(YELLOW)Disabling HTTPS configuration...$(RESET)"
+	@./toggle-https.sh disable
+	@echo "$(GREEN)HTTPS disabled. Use 'make dev' to run with HTTP$(RESET)"
+
+# Generate SSL certificates
+ssl-certs:
+	@echo "$(YELLOW)Generating SSL certificates...$(RESET)"
+	@./generate-ssl.sh
+	@echo "$(GREEN)SSL certificates generated$(RESET)"
 
 # Docker Build
 build:
@@ -55,4 +81,4 @@ logs:
 	@echo "$(YELLOW)Showing logs for frontend and backend...$(RESET)"
 	@docker-compose -f $(DOCKER_COMPOSE_FILE) logs -f
 
-.PHONY: dev prod build up down clean logs
+.PHONY: dev dev-https prod build up down clean logs enable-https disable-https ssl-certs

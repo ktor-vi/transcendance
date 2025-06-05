@@ -3,7 +3,7 @@ import { connectWebSocket } from "../socket";
 
 export function renderDashboard() {
   setTimeout(() => {
-    fetch("/me", { credentials: "include" })
+    fetch("/api/me", { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error("Utilisateur non connecté");
         return res.json();
