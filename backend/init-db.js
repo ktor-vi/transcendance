@@ -16,7 +16,7 @@ function errorHandling(err) // ma variable err va "stocker" l'eventuel erreur qu
 // new sqlite3.Database(path, callback
 const db = new sqlite3.Database('./data/users.sqlite3', errorHandling) //cree ma db dans un fichier que je place dans data
 
-const createSQTable =
+const createSQTable = // je cree une table que je nomme "users" avec son formatage choisi
 `
 CREATE TABLE IF NOT EXISTS
 	users
@@ -24,8 +24,36 @@ CREATE TABLE IF NOT EXISTS
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		email TEXT UNIQUE NOT NULL,
 		name TEXT NOT NULL,
-		pseudo TEXT NOT NULL,
-		password TEXT NOT NULL,
+		pseudo TEXT,
+		password TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 `;
+
+db.run(createSQTable, (err) => //execute une commande sql
+{
+	if (err)
+	{
+		console.error("error when creating table");
+	}
+	else
+	{
+		console.log("users table created or already existing");
+	}
+	
+})
+
+db.close((err) => // ferme la connexion a la db car elle a ete ouverte automatiquement en la creeant
+{
+	if (err)
+	{
+		console.error("error when closing database");
+	}
+	else
+	{
+		console.log("database closed");
+	}
+	
+})
+
+// la fermeture evite des potentielles corruptions de donnees, de la consommation inutiles de ressources etc.
