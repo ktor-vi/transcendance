@@ -1,9 +1,9 @@
 export function renderHome() {
   return `
     <section style="text-align:center;margin-top:20vh">
-      <h1>Transcendance</h1>
-      <h3>Made by vphilipp, rdendonc, jepatern and kdegryse</h3>
-      <button id="google-sign-in">Google sign-in</button>
+      <h1>🌸 Transcendance 🌸</h1>
+      <h3>Made with love by vphilipp, rdendonc, jepatern, iait-ouf and kdegryse</h3>
+      <button id="google-sign-in">Se connecter avec Google</button>
     </section>
   `;
 }
