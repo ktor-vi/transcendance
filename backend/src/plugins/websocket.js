@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import fp from 'fastify-plugin';
 import fastifyWebsocket from '@fastify/websocket';
 
-const FIELD_WIDTH = 10;
+const FIELD_WIDTH = 13.5;
 const FIELD_DEPTH = 7.5;
 const PDL_SPD = 0.25;
 
@@ -22,12 +22,19 @@ export default fp(async function (fastify) {
     rooms.set(roomId, { clients, gameState });
     return roomId;
   }
-
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
   // Game loop
   setInterval(() => {
     for (const { clients, gameState } of rooms.values()) {
       gameState.ball.x += gameState.ball.dx;
       gameState.ball.z += gameState.ball.dz;
+
+      const halfWidth = FIELD_WIDTH / 2;
+
+      gameState.paddleOne.x = clamp(gameState.paddleOne.x, -halfWidth, halfWidth);
+      gameState.paddleTwo.x = clamp(gameState.paddleTwo.x, -halfWidth, halfWidth);
 
       if (gameState.ball.x <= -FIELD_WIDTH / 2 || gameState.ball.x >= FIELD_WIDTH / 2) {
         gameState.ball.dx *= -1;
