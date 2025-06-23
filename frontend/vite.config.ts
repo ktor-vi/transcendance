@@ -6,19 +6,19 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://backend:3000',
+        target: 'http://backend-dev:3000',
         changeOrigin: true,
       },
       '/login': {
-        target: 'http://backend:3000',
+        target: 'http://backend-dev:3000',
         changeOrigin: true
       },
       '/logout': {
-        target: 'http://backend:3000',
+        target: 'http://backend-dev:3000',
         changeOrigin: true
       },
       '/me': {
-        target: 'http://backend:3000',
+        target: 'http://backend-dev:3000',
         changeOrigin: true
       }
     },
