@@ -4,7 +4,6 @@ services:
     build:
       context: ./frontend
       target: builder
-    container_name: frontend
     ports:
       - "5173:5173"
     command: npm run dev
@@ -19,7 +18,6 @@ services:
     build:
       context: ./backend
       target: development
-    container_name: backend
     ports:
       - "3000:3000"
     volumes:
@@ -27,14 +25,13 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-    command: npm run dev
+    command: ["sh", "./entrypoint.sh"]
 
   frontend-prod:
     env_file: ".env"
     build:
       context: ./frontend
       target: production
-    container_name: frontend
     ports:
       - "80:80"
     depends_on:
@@ -47,9 +44,8 @@ services:
     build:
       context: ./backend
       target: production
-    container_name: backend
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-    command: npm start
+    # 👇 Pas besoin de `command`, le Dockerfile fait le boulot

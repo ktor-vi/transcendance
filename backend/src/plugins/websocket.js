@@ -70,7 +70,7 @@ export default fp(async function (fastify) {
       if (msg.type === 'joinRoom') {
         let roomId = msg.roomId;
         if (roomId === 'auto') {
-          for (const [id, room] of rooms.entries()) {
+          for (const [id, room] of rooms.entries()){
             if (room.clients.size === 1) {
               roomId = id;
               break;

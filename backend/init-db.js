@@ -1,4 +1,7 @@
-const sqlite3 = require('sqlite3').verbose(); //sqlite3 est un nom choisi, on "importe" ensuite sqlite3 avec require, verbose sert a avoir plus d'infos en cas d'erreurs
+import sqlite3pkg from 'sqlite3'
+const sqlite3 = sqlite3pkg.verbose(); //sqlite3 est un nom choisi, on "importe" ensuite sqlite3 avec require, verbose sert a avoir plus d'infos en cas d'erreurs
+
+console.log ("Opening or creating users database...");
 
 function errorHandling(err) // ma variable err va "stocker" l'eventuel erreur qu'il y aura dans la fonction Database (sinon elle sera null)
 {
@@ -40,7 +43,6 @@ db.run(createSQTable, (err) => //execute une commande sql
 	{
 		console.log("users table created or already existing");
 	}
-	
 })
 
 db.close((err) => // ferme la connexion a la db car elle a ete ouverte automatiquement en la creeant
@@ -55,5 +57,6 @@ db.close((err) => // ferme la connexion a la db car elle a ete ouverte automatiq
 	}
 	
 })
-
 // la fermeture evite des potentielles corruptions de donnees, de la consommation inutiles de ressources etc.
+console.log ("Closing users database...");
+
