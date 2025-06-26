@@ -1,3 +1,4 @@
+//HTML de la page d'accueil
 export function renderHome() {
   return `
     <section style="text-align:center;margin-top:20vh">
