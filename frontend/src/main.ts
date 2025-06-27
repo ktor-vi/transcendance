@@ -1,6 +1,7 @@
 import page from "page";
 import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
+import { renderProfile } from "./pages/profile";
 
 // l'objet "document" est un objet natif du navigateur (api du navigateur)
 // document est la page sur laquelle on se trouve actuellement
@@ -20,6 +21,9 @@ page("/", () =>
 // idem si on se retrouve sur la page /dashboard
 page("/dashboard", () => 
 	render(renderDashboard()));
+
+// page("/profile", () => 
+// 	renderProfile());
 
 // page a été importé sur ce fichier. il sert à "écouter" et à gérer la navigation
 // de notre appli sans recharger toute la page à chaque fois
@@ -46,10 +50,5 @@ document.addEventListener("click", (event) =>
 		});
 	}
 	if (target?.id === "profile")
-	{
-		fetch("/profile", { method: "GET" }).then(() =>
-		{
-			page.redirect("/profile");
-		});
-	}
+		renderProfile();
 });

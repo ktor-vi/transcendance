@@ -5,7 +5,7 @@ export function renderDashboard()
 {
 	setTimeout(() =>
 	{
-		fetch("/me", { credentials: "include" })
+		fetch("/profile", { credentials: "include" })
 			.then((res) =>
 			{
 				if (!res.ok) throw new Error("Utilisateur non connecté");

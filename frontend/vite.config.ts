@@ -17,7 +17,7 @@ export default defineConfig({
         target: 'http://backend-dev:3000',
         changeOrigin: true
       },
-      '/me': {
+      '/profile': {
         target: 'http://backend-dev:3000',
         changeOrigin: true
       }
