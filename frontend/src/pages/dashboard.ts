@@ -53,7 +53,7 @@ export function renderDashboard()
 	return `
 		<div class="w-full my-4 flex flex-row justify-between items-center px-4">
 			<h1 class="text-2xl font-bold">Transcendance</h1>
-			
+			<button id="profile">Profile</button>
 			<button id="logout" class="bg-red-500 text-white px-4 py-2 rounded">Déconnexion</button>
 		</div>
 
