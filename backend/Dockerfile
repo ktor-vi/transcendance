@@ -11,15 +11,19 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY . ./
+# COPY package*.json ./
 RUN npm install
+RUN npm rebuild sqlite3
 
 # --- Étape de développement ---
 FROM base AS development
 
-COPY . ./
+WORKDIR /app
+
+COPY --from=base /app /app
+
 RUN chmod +x ./entrypoint.sh
-RUN npm rebuild sqlite3
 RUN npm install -g nodemon
 
 CMD ["sh", "./entrypoint.sh"]
@@ -27,9 +31,11 @@ CMD ["sh", "./entrypoint.sh"]
 # --- Étape de production ---
 FROM base AS production
 
-COPY . ./
+WORKDIR /app
+
+COPY --from=base /app /app
+
 RUN chmod +x ./entrypoint.sh
-RUN npm rebuild sqlite3
 
 EXPOSE 3000
 
