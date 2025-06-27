@@ -45,4 +45,11 @@ document.addEventListener("click", (event) =>
 			page.redirect("/");
 		});
 	}
+	if (target?.id === "profile")
+	{
+		fetch("/profile", { method: "GET" }).then(() =>
+		{
+			page.redirect("/profile");
+		});
+	}
 });

@@ -1,7 +1,7 @@
 import sqlite3pkg from 'sqlite3'
 const sqlite3 = sqlite3pkg.verbose(); //sqlite3 est un nom choisi, on "importe" ensuite sqlite3 avec require, verbose sert a avoir plus d'infos en cas d'erreurs
 
-console.log ("Opening or creating users database...");
+console.log ("Opening or creating OAusers database...");
 
 function errorHandling(err) // ma variable err va "stocker" l'eventuel erreur qu'il y aura dans la fonction Database (sinon elle sera null)
 {
@@ -17,18 +17,19 @@ function errorHandling(err) // ma variable err va "stocker" l'eventuel erreur qu
 }
 
 // new sqlite3.Database(path, callback
-const db = new sqlite3.Database('./data/users.sqlite3', errorHandling) //cree ma db dans un fichier que je place dans data
+const db = new sqlite3.Database('./data/OAusers.sqlite3', errorHandling) //cree ma db dans un fichier que je place dans data
 
-const createSQTable = // je cree une table que je nomme "users" avec son formatage choisi
+const createSQTable = // je cree une table que je nomme "OAusers" avec son formatage choisi
 `
 CREATE TABLE IF NOT EXISTS
-	users
+	OAusers
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		email TEXT UNIQUE NOT NULL,
 		name TEXT NOT NULL,
-		pseudo TEXT,
-		password TEXT,
+		given_name TEXT NOT NULL,
+		family_name TEXT NOT NULL,
+		picture TEXT NOT NULL,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 `;
@@ -41,7 +42,7 @@ db.run(createSQTable, (err) => //execute une commande sql
 	}
 	else
 	{
-		console.log("users table created or already existing");
+		console.log("OAusers table created or already existing");
 	}
 })
 
@@ -58,5 +59,5 @@ db.close((err) => // ferme la connexion a la db car elle a ete ouverte automatiq
 	
 })
 // la fermeture evite des potentielles corruptions de donnees, de la consommation inutiles de ressources etc.
-console.log ("Closing users database...");
+console.log ("Closing OAusers database...");
 

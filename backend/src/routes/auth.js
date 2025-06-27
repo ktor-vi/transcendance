@@ -10,15 +10,24 @@ export default async function authRoutes(fastify)
 
 		request.session.set('user', userInfo);
 
-		// ouvrir et récupérer la db
+		// ouvrir et récupérer la db avec ma fonction openDB (db.js)
 		const db = await openDb();
 		// mettre l'adresse mail de l'user récupée par Google dans la db
 		const result = await db.run(
-			`INSERT OR IGNORE INTO users (email, name) VALUES (?, ?)`,
+			`INSERT OR IGNORE INTO OAusers (email, name, given_name, family_name, picture) VALUES (?, ?, ?, ?, ?)`,
 			userInfo.email,
-			userInfo.name
+			userInfo.name,
+			userInfo.given_name,
+			userInfo.family_name,
+			userInfo.picture
+
 		);
-		console.log('Résultat de l\'insertion du profil dans sqlite: ', result);
+		
+		if (result.changes > 0) {
+			console.log(`Nouvel utilisateur créé : ${userInfo.name}`);
+		}
+		else
+			console.log("L'utilisateur existait déjà dans la base de données.")
 
 		reply.redirect('http://localhost:5173/dashboard?logged=1');
 	});

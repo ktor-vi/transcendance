@@ -6,7 +6,7 @@ import { open } from 'sqlite';
 export async function openDb()
 {
 	return open({	
-	filename: './data/users.sqlite3',
+	filename: './data/OAusers.sqlite3',
 		driver: sqlite3.Database // sqlite3 = un objet, Database = une classe. Cette ligne indique a sqlite quel type de connexion utiliser pour gerer la db
 	});
 }
