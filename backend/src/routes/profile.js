@@ -10,7 +10,7 @@ export default async function profileRoutes(fastify)
 		}
 
 		const db = await openDb();
-		const user = db.get('SELECT * FROM OAUsers where email = ?', userSession.email);
+		const user = await db.get('SELECT * FROM OAUsers where email = ?', userSession.email);
 	
 		return reply.send(user);
   });

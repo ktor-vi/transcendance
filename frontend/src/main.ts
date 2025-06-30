@@ -22,8 +22,8 @@ page("/", () =>
 page("/dashboard", () => 
 	render(renderDashboard()));
 
-// page("/profile", () => 
-// 	renderProfile());
+page("/profile", () => 
+	renderProfile());
 
 // page a été importé sur ce fichier. il sert à "écouter" et à gérer la navigation
 // de notre appli sans recharger toute la page à chaque fois
