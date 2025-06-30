@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS
 		name TEXT NOT NULL,
 		given_name TEXT NOT NULL,
 		family_name TEXT NOT NULL,
+		password_hash TEXT,
 		picture TEXT NOT NULL,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);

@@ -15,7 +15,7 @@ function render(html: string)
 }
 
 // a la page de l'index (/) on va donc "génerer" la homepage définie dans pages/home.ts
-page("/", () => 
+page("/", () =>
 	render(renderHome()));
 
 // idem si on se retrouve sur la page /dashboard

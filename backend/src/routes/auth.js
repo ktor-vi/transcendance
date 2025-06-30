@@ -2,7 +2,8 @@ import { fetchUserInfo } from '../utils/fetchUserInfo.js';
 import { openDb } from '../utils/db.js';
 
 export default async function authRoutes(fastify)
-{
+{	
+	// GET pour connextion avec Google Authentification
 	fastify.get('/api/login/google/callback', async function (request, reply)
 	{
 		const { token } = await this.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
@@ -20,11 +21,10 @@ export default async function authRoutes(fastify)
 			userInfo.given_name,
 			userInfo.family_name,
 			userInfo.picture
-
 		);
 		
 		if (result.changes > 0) {
-			console.log(`Nouvel utilisateur créé : ${userInfo.name}`);
+			console.log(`NOUVEL UTILISATEUR CRÉÉ : ${userInfo.name}`);
 		}
 		else
 			console.log("L'utilisateur existait déjà dans la base de données.")
@@ -33,9 +33,16 @@ export default async function authRoutes(fastify)
 	});
 
 
+	// POST pour le logout
 	fastify.post('/logout', async (req, reply) =>
 	{
 		req.session.delete();
 		reply.send({ success: true });
 	});
+
+	// POST pour une nouvelle inscription
+	fastify.post('/api/register', async (req, reply) => {
+		
+	})
+
 }
