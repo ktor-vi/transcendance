@@ -41,8 +41,8 @@ export default async function authRoutes(fastify)
 	});
 
 	// POST pour une nouvelle inscription
-	fastify.post('/api/register', async (req, reply) => {
+	// fastify.post('/api/register', async (req, reply) => {
 		
-	})
+	// })
 
 }

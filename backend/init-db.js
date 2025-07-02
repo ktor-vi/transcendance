@@ -27,10 +27,10 @@ CREATE TABLE IF NOT EXISTS
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		email TEXT UNIQUE NOT NULL,
 		name TEXT NOT NULL,
-		given_name TEXT NOT NULL,
-		family_name TEXT NOT NULL,
+		given_name TEXT,
+		family_name TEXT,
 		password_hash TEXT,
-		picture TEXT NOT NULL,
+		picture TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 `;
