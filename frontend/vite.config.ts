@@ -4,30 +4,27 @@ import { resolve } from 'path';
 export default defineConfig({
   root: './',
   server: {
-    proxy: {
-      '/api': {
-        target: 'http://backend-dev:3000',
-        changeOrigin: true,
-      },
-      '/login': {
-        target: 'http://backend-dev:3000',
-        changeOrigin: true
-      },
-      '/logout': {
-        target: 'http://backend-dev:3000',
-        changeOrigin: true
-      },
-	   '/profile': {
-        target: 'http://backend-dev:3000',
-        changeOrigin: true
-      },
-	   '/register': {
-        target: 'http://backend-dev:3000',
-        changeOrigin: true
-      }
-    },
-    host: true,
-    port: 5173,
+	  proxy: {
+		  '/api': {
+			  target: 'http://backend-dev:3000',
+			  changeOrigin: true,
+			},
+			'/login': {
+				target: 'http://backend-dev:3000',
+				changeOrigin: true
+			},
+			'/logout': {
+				target: 'http://backend-dev:3000',
+				changeOrigin: true
+			},
+			'/profile': {
+				target: 'http://backend-dev:3000',
+				changeOrigin: true
+			},
+		},
+		historyApiFallback: true,
+		host: true,
+		port: 5173,
   },
   build: {
     outDir: 'dist',

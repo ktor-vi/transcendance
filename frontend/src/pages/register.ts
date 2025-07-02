@@ -7,7 +7,7 @@ export function renderRegister() {
 			<input type="text" id="name" placeholder="Pseudo" required />
 			<input type="email" id="email" placeholder="Email" required />
 			<input type="password" id="password" placeholder="Mot de passe" required />
-			<button type="submit">S'inscrire</button>
+			<a href="/register">S'inscrire</a>
 		</form>
 	`;
 
@@ -27,7 +27,6 @@ export function renderRegister() {
 		console.log("🟢 submit handler returned !!!!!!");
 		if (res.ok) {
 			alert("Compte créé, tu peux maintenant te connecter!");
-			// page.redirect("/");
 		} else {
 			const err = await res.json();
 			alert(err.error || "Erreur pendant l'inscription");

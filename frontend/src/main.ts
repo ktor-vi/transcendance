@@ -57,9 +57,4 @@ document.addEventListener("click", (event) =>
 	{
 		renderProfile();
 	}
-
-	if (target?.id === "register")
-	{
-		renderRegister();
-	}	
 });
