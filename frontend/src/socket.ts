@@ -11,11 +11,11 @@ export function connectWebSocket(
 ) {
   // Création d'une nouvelle connexion WebSocket vers le serveur à l'adresse spécifiée
   // Ici, on suppose que le serveur WebSocket écoute sur le port 3000, à la route "/ws"
-  socket = new WebSocket(`ws://${location.hostname}:3000/ws`);
+  socket = new WebSocket(`wss://${process.env.HOSTNAME}}:3000/ws`);
 
   // Événement déclenché une fois la connexion WebSocket établie
   socket.addEventListener('open', () => {
-    console.log('[WS] Connecté');
+    console.log('[WSS] Connecté');
 
     // Si une fonction onOpenMessage est fournie
     if (onOpenMessage) {

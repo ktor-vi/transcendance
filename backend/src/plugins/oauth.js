@@ -13,6 +13,6 @@ export default async function registerOAuth(fastify) {
       auth: oauthPlugin.GOOGLE_CONFIGURATION
     },
     startRedirectPath: '/api/login/google', // Quand l'utilisateur visite cette route, il est redirigé vers Google pour autoriser l'accès à son compte.
-    callbackUri: 'http://localhost:3000/api/login/google/callback' // C’est l’URL de retour : Google redirige l'utilisateur ici après qu'il a autorisé l'application.
+    callbackUri: `https://${process.env.HOSTNAME}:3000/api/login/google/callback`, // C’est l’URL de retour : Google redirige l'utilisateur ici après qu'il a autorisé l'application.
   });
 }

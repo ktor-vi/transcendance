@@ -18,7 +18,6 @@ COPY package*.json ./
 # Installation des dépendances
 RUN npm install
 
-
 # Étape de développement
 FROM base AS development
 

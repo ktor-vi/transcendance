@@ -3,7 +3,7 @@ export default async function userRoutes(fastify) {
   // On déclare une route GET sur le chemin '/me'
   // Cela signifie que lorsqu’un client envoie une requête GET à l'URL '/me', la fonction callback est exécutée.
   fastify.get('/me', async (req, reply) => {
-
+    console.log('Cookies reçus:', req.headers.cookie);
     // On tente de récupérer les informations de l'utilisateur stockées dans la session via req.session.
     const user = req.session.get('user');
 

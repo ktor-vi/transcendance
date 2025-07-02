@@ -1,6 +1,8 @@
 services:
   frontend-dev:
     env_file: ".env"
+    environment:
+      - HOSTNAME=${HOSTNAME}
     build:
       context: ./frontend
       target: builder
@@ -12,6 +14,7 @@ services:
       - backend-dev
     volumes:
       - ./frontend:/app
+      - ./certs:/app/certs:ro
       - /app/node_modules
 
   backend-dev:
@@ -25,9 +28,11 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - ./certs:/app/certs:ro
     environment:
       - NODE_ENV=development
     command: npm run dev
+
 
   frontend-prod:
     env_file: ".env"
@@ -41,6 +46,8 @@ services:
       - backend-prod
     volumes:
       - /usr/share/nginx/html
+      - ./certs:/app/certs:ro
+
 
   backend-prod:
     env_file: ".env"
@@ -48,6 +55,8 @@ services:
       context: ./backend
       target: production
     container_name: backend
+    volumes:
+      - ./certs:/app/certs:ro
     ports:
       - "3000:3000"
     environment:

@@ -8,11 +8,14 @@ export default async function registerSession(fastify) {
   //enregistrement du plugin
   fastify.register(secureSession, {
     key,
+    cookeName: 'sessionid',
     cookie: {
       path: '/',
       httpOnly: true,
-      sameSite: 'lax', // Pour eviter le csrf
-      secure: process.env.NODE_ENV === 'production'
+      sameSite: 'none', // Pour eviter le csrf
+      secure: true,
+      domain: undefined,
+      maxAge: 24 * 60 * 60 * 1000 // 24 heures
     }
   });
 }

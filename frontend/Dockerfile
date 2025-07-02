@@ -1,25 +1,32 @@
-# Build stage
 FROM node:18-alpine AS builder
 
 WORKDIR /app
+RUN apk add --no-cache openssl
 
-# Copy package files and install dependencies
+ARG HOSTNAME
+
 COPY package*.json ./
 RUN npm install
 RUN npm install -g vite  # Install vite globally
 
-# Copy all files and build the frontend
 COPY . ./
+
+RUN mkdir -p /app/certs && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+      -keyout /app/certs/localhost.key \
+      -out /app/certs/localhost.crt \
+      -subj "/CN=${HOSTNAME}"
+
 RUN npm run build
 
-# Production stage (Nginx)
 FROM nginx:stable-alpine AS production
 
-# Copy the built files into Nginx's directory
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy custom Nginx config (if needed)
-COPY ./nginx.conf /etc/nginx/nginx.conf
+COPY ./nginx-template.conf /etc/nginx/templates/nginx-template.conf
 
-# Expose port 80 for Nginx
+COPY ./entrypoint.sh /docker-entrypoint.d/10-generate-nginx.sh
+
+RUN chmod +x /docker-entrypoint.d/10-generate-nginx.sh
+
 EXPOSE 80

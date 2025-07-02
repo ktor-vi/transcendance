@@ -6,10 +6,18 @@ import registerOAuth from './plugins/oauth.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/user.js';
 
-const fastify = Fastify({ logger: true });
+import fs from 'fs';
 
-await registerSession(fastify);
+const fastify = Fastify({
+  logger: true,
+  https: {
+  key: fs.readFileSync("/app/certs/localhost.key"),
+  cert: fs.readFileSync("/app/certs/localhost.crt"),
+  }
+})
+
 await registerCors(fastify);
+await registerSession(fastify);
 await registerOAuth(fastify);
 await registerWebSockets(fastify);
 

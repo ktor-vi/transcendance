@@ -7,7 +7,9 @@ import fastifyCors from '@fastify/cors';
 // En gros il authorise les requetes provenant de l'adresse http://localhost:5173 (frontend)
 export default async function registerCors(fastify) {
   fastify.register(fastifyCors, {
-    origin: ['http://localhost:5173'], // Autorise uniquement ce frontend à faire des requêtes vers ton backend.
+    origin: [`https://${process.env.HOSTNAME}:5173`,
+      `https://${process.env.HOSTNAME}:3000`
+    ], // Autorise uniquement ce frontend à faire des requêtes vers ton backend.
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
