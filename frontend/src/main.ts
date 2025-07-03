@@ -23,8 +23,8 @@ page("/", () =>
 page("/dashboard", () => 
 	render(renderDashboard()));
 
-// page("/profile", () => 
-// 	renderProfile());
+page("/profile", () => 
+	renderProfile());
 
 page("/register", () => 
 	renderRegister());
@@ -52,9 +52,5 @@ document.addEventListener("click", (event) =>
 		{
 			page.redirect("/");
 		});
-	}
-	if (target?.id === "profile")
-	{
-		renderProfile();
 	}
 });
