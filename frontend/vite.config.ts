@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import fs from "fs";
-
 // Fonction pour ajouter la configuration de forwarding de cookies
 function cookieForwarding(proxy) {
   proxy.on('proxyReq', (proxyReq, req) => {
@@ -44,6 +43,10 @@ export default defineConfig({
         secure: false,
         configure: cookieForwarding,
       },
+    },
+    hmr: {
+      host: `${process.env.VITE_HOSTNAME}`, // doit correspondre à ce que tu utilises dans le navigateur
+      protocol: 'wss',          // si tu utilises HTTPS
     },
     https: {
       key: fs.readFileSync('/app/certs/localhost.key'),

@@ -1,65 +1,87 @@
 let socket: WebSocket;
+let isConnecting = false;
+let connectionId: string | null = null;
+let gameInstance = null;
 
-/**
- * Fonction pour établir une connexion WebSocket avec le serveur
- * @param onMessage - callback appelé à chaque réception de message du serveur
- * @param onOpenMessage - callback optionnel exécuté une fois la connexion ouverte. Il peut retourner un message à envoyer.
- */
 export function connectWebSocket(
   onMessage: (data: any) => void,
   onOpenMessage?: () => any
 ) {
-  // Création d'une nouvelle connexion WebSocket vers le serveur à l'adresse spécifiée
-  // Ici, on suppose que le serveur WebSocket écoute sur le port 3000, à la route "/ws"
-  socket = new WebSocket(`wss://${process.env.HOSTNAME}}:3000/ws`);
+  // Éviter les connexions multiples
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    console.warn("[WS] Connexion déjà active");
+    return socket;
+  }
 
-  // Événement déclenché une fois la connexion WebSocket établie
-  socket.addEventListener('open', () => {
-    console.log('[WSS] Connecté');
+  if (isConnecting) {
+    console.warn("[WS] Connexion déjà en cours");
+    return;
+  }
 
-    // Si une fonction onOpenMessage est fournie
+  // Fermer l'ancienne connexion si elle existe
+  if (socket) {
+    socket.close();
+  }
+
+  isConnecting = true;
+  connectionId = crypto.randomUUID();
+
+  const hostname = import.meta.env.VITE_HOSTNAME;
+  socket = new WebSocket(`wss://${hostname}:3000/ws`);
+
+  socket.addEventListener("open", () => {
+    console.log("[WSS] Connecté");
+    isConnecting = false;
+
     if (onOpenMessage) {
-      // On exécute cette fonction et récupère un message initial
       const msg = onOpenMessage();
-      // Si ce message est défini, on l'envoie au serveur sous forme JSON
-      if (msg) socket.send(JSON.stringify(msg));
+      if (msg) {
+        msg.connectionId = connectionId;
+        socket.send(JSON.stringify(msg));
+      }
     }
   });
 
-  // Événement déclenché à chaque réception de message depuis le serveur WebSocket
-  socket.addEventListener('message', (event) => {
+  socket.addEventListener("message", (event) => {
     try {
-      // On tente de parser les données reçues (sous forme de texte JSON) en objet JS
       const data = JSON.parse(event.data);
-      // On appelle la fonction onMessage avec les données
+      console.log("[WS] Message reçu:", data.type, data);
       onMessage(data);
     } catch (err) {
-      // En cas d'erreur de parsing JSON, on affiche un message dans la console
-      console.error('[WS] Message invalide :', err);
+      console.error("[WS] Message invalide :", err);
     }
   });
 
-  // Événement déclenché lorsque la connexion est fermée
-  socket.addEventListener('close', () => console.warn('[WS] Déconnecté'));
+  socket.addEventListener("close", () => {
+    console.warn("[WS] Déconnecté");
+    isConnecting = false;
+    connectionId = null;
+  });
 
-  // Événement déclenché en cas d'erreur de communication avec le serveur
-  socket.addEventListener('error', (err) => console.error('[WS] Erreur :', err));
+  socket.addEventListener("error", (err) => {
+    console.error("[WS] Erreur :", err);
+    isConnecting = false;
+    connectionId = null;
+  });
+
+  return socket;
 }
 
-/**
- * Fonction utilitaire pour envoyer les mouvements du joueur via WebSocket
- * @param input - un objet contenant l'état des contrôles du joueur
- * Exemple : { type: 'input', player: 1, left: true, right: false }
- */
 export function sendMove(input: {
-  type: 'input',
-  player: number,
-  left: boolean,
-  right: boolean
+  type: "input";
+  left: boolean;
+  right: boolean;
 }) {
-  // Vérifie que la connexion est bien ouverte avant d'envoyer le message
   if (socket?.readyState === WebSocket.OPEN) {
-    // Envoie l'objet "input" converti en JSON au serveur
     socket.send(JSON.stringify(input));
+  }
+}
+
+export function closeConnection() {
+  if (socket) {
+    socket.close();
+    socket = null;
+    isConnecting = false;
+    connectionId = null;
   }
 }

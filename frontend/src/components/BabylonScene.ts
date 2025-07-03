@@ -1,83 +1,149 @@
 import {
-  Engine, Scene, Vector3,
-  HemisphericLight, MeshBuilder,
-  FreeCamera, KeyboardEventTypes
+  Engine,
+  Scene,
+  Vector3,
+  HemisphericLight,
+  MeshBuilder,
+  FreeCamera,
+  KeyboardEventTypes,
 } from "@babylonjs/core";
+import { sendMove } from "../socket";
 
-import { connectWebSocket, sendMove } from '../socket';
+let currentScene = null;
+let currentEngine = null;
 
 export function createBabylonScene(canvas: HTMLCanvasElement) {
+  // Nettoyer l'ancienne scène si elle existe
+  if (currentScene) {
+    currentScene.dispose();
+  }
+  if (currentEngine) {
+    currentEngine.dispose();
+  }
+
   const engine = new Engine(canvas, true);
   const scene = new Scene(engine);
+  currentEngine = engine;
+  currentScene = scene;
 
-  let roomId: string = '';
-  let playerNum: number = 0;
+  let playerNum = 0;
   const inputState = { left: false, right: false };
 
-  // Création de la scène Babylon.js
-  const camera = new FreeCamera("cam", new Vector3(0, 10, 0), scene);
+  // Création de la scène
+  const camera = new FreeCamera("cam", new Vector3(0, 10, -8), scene);
   camera.setTarget(Vector3.Zero());
-  camera.rotation.x = Math.PI / 2;
   camera.attachControl(canvas, true);
 
   new HemisphericLight("light", new Vector3(0, 1, 0), scene);
 
-  const ground = MeshBuilder.CreateBox("ground", { width: 20, height: 0.05, depth: 10 }, scene);
+  // Terrain de jeu avec les bonnes dimensions
+  const ground = MeshBuilder.CreateBox(
+    "ground",
+    { width: 13.5, height: 0.1, depth: 7.5 }, // Utiliser les mêmes dimensions que le serveur
+    scene
+  );
   ground.position.y = -0.5;
 
-  const paddleOne = MeshBuilder.CreateBox("p1", { width: 2, height: 0.75, depth: 0.25 }, scene);
-  paddleOne.position.set(0, 0, -3.75);
+  // Palettes
+  const paddleOne = MeshBuilder.CreateBox(
+    "p1",
+    { width: 2, height: 0.75, depth: 0.25 },
+    scene
+  );
+  paddleOne.position.set(0, 0, -3.75); // Position joueur 1
 
-  const paddleTwo = MeshBuilder.CreateBox("p2", { width: 2, height: 0.75, depth: 0.25 }, scene);
-  paddleTwo.position.set(0, 0, 3.75);
+  const paddleTwo = MeshBuilder.CreateBox(
+    "p2",
+    { width: 2, height: 0.75, depth: 0.25 },
+    scene
+  );
+  paddleTwo.position.set(0, 0, 3.75); // Position joueur 2
 
   const ball = MeshBuilder.CreateSphere("ball", { diameter: 0.5 }, scene);
-  ball.position.y = 0;
+  ball.position.set(0, 0, 0);
 
   // Gestion du clavier
   scene.onKeyboardObservable.add((kb) => {
     const key = kb.event.key.toLowerCase();
     const isDown = kb.type === KeyboardEventTypes.KEYDOWN;
 
-    if (key === 'd') inputState.left = isDown;
-    if (key === 'q') inputState.right = isDown;
+    // Touches pour joueur 1 et 2
+    if (key === "arrowleft" || key === "q") {
+      inputState.left = isDown;
+    }
+    if (key === "arrowright" || key === "d") {
+      inputState.right = isDown;
+    }
   });
 
-  // Connexion WebSocket via module centralisé
-  connectWebSocket((msg) => {
-    if (msg.type === 'assign') {
-      playerNum = msg.player;
-      roomId = msg.roomId;
-      localStorage.setItem('pongRoom', roomId);
-      console.log(`✅ Rejoint room ${roomId}, joueur ${playerNum}`);
+  // Fonction pour mettre à jour la caméra selon le joueur
+  function updateCamera(player) {
+    if (player === 1) {
+      // Joueur 1 : vue depuis le bas du terrain
+      camera.position.set(0, 8, -10);
+      camera.setTarget(new Vector3(0, 0, 0));
+    } else if (player === 2) {
+      // Joueur 2 : vue depuis le haut du terrain
+      camera.position.set(0, 8, 10);
+      camera.setTarget(new Vector3(0, 0, 0));
     }
+    camera.attachControl(canvas, true);
+  }
 
-    if (msg.type === 'state') {
-      const gs = msg.gameState;
-      paddleOne.position.x = gs.paddleOne.x;
-      paddleTwo.position.x = gs.paddleTwo.x;
-      ball.position.x = gs.ball.x;
-      ball.position.z = gs.ball.z;
+  // Fonction pour mettre à jour l'état du jeu
+  function updateGameState(gameState) {
+    if (gameState.paddleOne) {
+      paddleOne.position.x = gameState.paddleOne.x;
     }
-  }, () => {
-    // À l’ouverture de la socket : tentative de rejoindre une room existante
-    const existing = localStorage.getItem('pongRoom');
-    return { type: 'joinRoom', roomId: existing };
-  });
+    if (gameState.paddleTwo) {
+      paddleTwo.position.x = gameState.paddleTwo.x;
+    }
+    if (gameState.ball) {
+      ball.position.x = gameState.ball.x;
+      ball.position.z = gameState.ball.z;
+    }
+  }
 
-  // Boucle de rendu + envoi des inputs
+  // Fonction pour définir le numéro du joueur
+  function setPlayerNumber(player) {
+    playerNum = player;
+    updateCamera(player);
+    console.log(`🎮 Joueur ${player} assigné, caméra mise à jour`);
+  }
+
+  // Boucle de rendu
   engine.runRenderLoop(() => {
-    if (playerNum !== null && (inputState.left || inputState.right)) {
+    if (playerNum > 0 && (inputState.left || inputState.right)) {
       sendMove({
-        type: 'input',
-        player: playerNum,
+        type: "input",
         left: inputState.left,
-        right: inputState.right
+        right: inputState.right,
       });
     }
-
     scene.render();
   });
 
-  window.addEventListener('resize', () => engine.resize());
+  // Redimensionnement
+  window.addEventListener("resize", () => engine.resize());
+
+  // Nettoyage
+  const cleanup = () => {
+    if (currentScene === scene) {
+      currentScene = null;
+    }
+    if (currentEngine === engine) {
+      currentEngine = null;
+    }
+    scene.dispose();
+    engine.dispose();
+  };
+
+  window.addEventListener("beforeunload", cleanup);
+
+  // Retourner les fonctions pour l'usage externe
+  return {
+    setPlayerNumber,
+    updateGameState,
+    cleanup,
+  };
 }
