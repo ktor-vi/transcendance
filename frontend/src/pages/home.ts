@@ -5,7 +5,7 @@ export function renderHome()
 		<h1>🌸 Transcendance 🌸</h1>
 		<h3>Made with love by vphilipp, rdendonc, jepatern, iait-ouf and kdegryse</h3>
 		<button id="google-sign-in">Se connecter avec Google</button>
-		<a href="register">S'inscrire</button>
+		<a href="register" data-nav>S'inscrire</button>
 	</section>
 	`;
 }

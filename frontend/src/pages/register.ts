@@ -7,7 +7,7 @@ export function renderRegister() {
 			<input type="text" id="name" placeholder="Pseudo" required />
 			<input type="email" id="email" placeholder="Email" required />
 			<input type="password" id="password" placeholder="Mot de passe" required />
-			<a href="/register">S'inscrire</a>
+			<a href="/register" data-nav>S'inscrire</a>
 		</form>
 	`;
 
@@ -19,7 +19,7 @@ export function renderRegister() {
 		const email = (document.getElementById("email") as HTMLInputElement).value;
 		const password = (document.getElementById("password") as HTMLInputElement).value;
 
-		const res = await fetch("/register", {
+		const res = await fetch("api/register", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ name, email, password }),

@@ -4,14 +4,14 @@ import { backButton, setupBackButton } from '../components/backButton.js';
 
 // renderProfile permet de créer la page liée au profile
 export async function renderProfile() {
+	console.log("renderProfile called");
 	try { //on tente de récupérer la route du backend
-		const res = await fetch("/profile", { method: "GET" });
+		const res = await fetch("/api/profile", { method: "GET" });
 
 		if (!res.ok) {
 			document.getElementById("app")!.innerHTML = "<p>Erreur</p>";
 			return ;
 		}
-
 		// quand on a récupéré la réponse du back (les infos de profile),
 		// on les met dans userData puis dans le html qui sera injecté
 		const userData = await res.json();
@@ -36,7 +36,7 @@ export async function renderProfile() {
 		document.getElementById("saveName")?.addEventListener("click", async() => {
 			const newName = (document.getElementById("nameInput") as HTMLInputElement).value;
 			// va faire une requete au back pour envoyer le nouveau pseudo
-			const res = await fetch("/profile", {
+			const res = await fetch("/api/profile", {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json"
@@ -46,7 +46,7 @@ export async function renderProfile() {
 
 			if (res.ok) {
 				alert("Pseudo mis à jour!");
-				page.redirect("/profile");
+				// page.redirect("/profile");
 			} else {
 				alert("Erreur lors du changement de pseudo");
 			}

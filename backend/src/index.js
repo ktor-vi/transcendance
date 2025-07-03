@@ -15,8 +15,8 @@ await registerOAuth(fastify);
 await registerWebSockets(fastify);
 
 fastify.register(authRoutes);
-fastify.register(profileRoutes);
-fastify.register(registerRoutes);
+fastify.register(profileRoutes, { prefix: '/api'});
+fastify.register(registerRoutes, { prefix: '/api'});
 
 await fastify.ready();
 fastify.printRoutes();
