@@ -53,4 +53,8 @@ document.addEventListener("click", (event) =>
 			page.redirect("/");
 		});
 	}
+	if (target?.id === "logout")
+	{
+		fetch("api/register", { method: "POST" });
+	}
 });

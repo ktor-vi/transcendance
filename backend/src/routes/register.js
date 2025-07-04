@@ -20,10 +20,10 @@ export default async function registerRoutes(fastify)
 		);
 		if (result.changes > 0) {
 			console.log(`NOUVEL UTILISATEUR CRÉÉ : ${name}`);
-		}
-		else
+			reply.code(201).send({ success: true });
+		} else {
 			console.log("L'utilisateur existait déjà dans la base de données.")
-	
-		reply.send({ success: true });
+			reply.code(409).send({ success: false, message: "Adresse mail déjà enregistrée" });
+		}
   });
 }
