@@ -16,8 +16,8 @@ export default async function loginRoutes(fastify) {
 			console.log(password);
 			if (password != user.password_hash)
 				reply.code(401).send({ success: false, message: "Mot de passe incorrect" });
+			req.session.set('user', user);
 			reply.code(201).send({ success: true });
-			request.session.set('user', user);
 		}
 	});
 }
