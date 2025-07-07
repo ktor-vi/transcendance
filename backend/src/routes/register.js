@@ -1,10 +1,6 @@
 import { openDb } from '../utils/db.js';
 
-console.log("🛠️  loading registerRoutes plugin");	
-export default async function registerRoutes(fastify)
-{
-	console.log("🛠️  registerRoutes() called");
-
+export default async function registerRoutes(fastify) {
 	fastify.post('/register', async (req, reply) => {
 
 

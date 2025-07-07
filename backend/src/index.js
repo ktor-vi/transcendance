@@ -6,6 +6,7 @@ import registerOAuth from './plugins/oauth.js';
 import authRoutes from './routes/auth.js';
 import profileRoutes from './routes/profile.js';
 import registerRoutes from './routes/register.js';
+import loginRoutes from './routes/login.js';
 
 const fastify = Fastify({ logger: true });
 
@@ -17,6 +18,7 @@ await registerWebSockets(fastify);
 fastify.register(authRoutes);
 fastify.register(profileRoutes, { prefix: '/api'});
 fastify.register(registerRoutes, { prefix: '/api'});
+fastify.register(loginRoutes, { prefix: '/api'});
 
 await fastify.ready();
 fastify.printRoutes();

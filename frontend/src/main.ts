@@ -3,6 +3,7 @@ import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
 import { renderProfile } from "./pages/profile";
 import { renderRegister } from "./pages/register";
+import { renderLogin } from "./pages/login";
 
 // l'objet "document" est un objet natif du navigateur (api du navigateur)
 // document est la page sur laquelle on se trouve actuellement
@@ -19,7 +20,7 @@ function render(html: string)
 page("/", () =>
 	render(renderHome()));
 
-// idem si on se retrouve sur la page /dashboard
+// idem si on se retrouve sur la page /dashboard etc.
 page("/dashboard", () => 
 	render(renderDashboard()));
 
@@ -28,6 +29,9 @@ page("/profile", () =>
 
 page("/register", () => 
 	renderRegister());
+
+page("/login", () => 
+	renderLogin());
 
 // page a été importé sur ce fichier. il sert à "écouter" et à gérer la navigation
 // de notre appli sans recharger toute la page à chaque fois
@@ -52,9 +56,5 @@ document.addEventListener("click", (event) =>
 		{
 			page.redirect("/");
 		});
-	}
-	if (target?.id === "logout")
-	{
-		fetch("api/register", { method: "POST" });
 	}
 });
