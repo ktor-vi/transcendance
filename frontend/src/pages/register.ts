@@ -1,5 +1,7 @@
 import page from "page";
 
+import { backButton, setupBackButton } from '../components/backButton.js';
+
 export function renderRegister() {
 	const html = `
 	<h1>Créer un compte</h1>
@@ -9,9 +11,12 @@ export function renderRegister() {
 			<input type="password" id="password" placeholder="Mot de passe" required />
 			<button id="register" data-nav>S'inscrire</a>
 		</form>
+		${backButton()}
 	`;
 
+	
 	document.getElementById("app")!.innerHTML = html;
+	setupBackButton();
 	document.getElementById("registerForm")?.addEventListener("submit", async (e) => {
 		e.preventDefault();
 		console.log("🟢 submit handler fired !!!!!!");
@@ -32,6 +37,8 @@ export function renderRegister() {
 		}
 		if (res.ok) {
 			alert("Compte créé, tu peux maintenant te connecter!");
+			// page.redirect("/api/home");
+			
 		} else {
 			const err = await res.json();
 			alert(err.error || "Erreur pendant l'inscription");
