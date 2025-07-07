@@ -30,7 +30,8 @@ export function renderLogin() {
 				alert(data.message);
 				return ;
 		} else {
-				alert("L'adresse mail existe");
+				alert("OKKKK");
+				page("/dashboard");
 		}
 	});
 }
