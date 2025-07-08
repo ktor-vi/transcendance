@@ -30,7 +30,7 @@ export function renderLogin() {
 				alert(data.message);
 				return ;
 		} else {
-				alert("OKKKK");
+				alert("✅");
 				page("/dashboard");
 		}
 	});
