@@ -1,5 +1,4 @@
 import { openDb } from '../utils/db.js';
-import bcrypt from "bcrypt";
 
 export default async function registerRoutes(fastify) {
 	fastify.post('/register', async (req, reply) => {
