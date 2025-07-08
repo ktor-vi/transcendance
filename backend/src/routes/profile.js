@@ -10,7 +10,7 @@ export default async function profileRoutes(fastify)
 		}
 
 		const db = await openDb();
-		const user = await db.get('SELECT * FROM OAUsers WHERE email = ?', userSession.email);
+		const user = await db.get('SELECT * FROM users WHERE email = ?', userSession.email);
 	
 		return reply.send(user);
   });
@@ -25,7 +25,7 @@ export default async function profileRoutes(fastify)
 		const { name } = req.body;
 
 		const db = await openDb();
-		await db.run('UPDATE OAUsers SET name = ? WHERE email = ?', name, userSession.email);
+		await db.run('UPDATE users SET name = ? WHERE email = ?', name, userSession.email);
 	
 		reply.send({ success: true });
   });

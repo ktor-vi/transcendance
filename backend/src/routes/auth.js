@@ -15,7 +15,7 @@ export default async function authRoutes(fastify)
 		const db = await openDb();
 		// mettre l'adresse mail de l'user récupée par Google dans la db
 		const result = await db.run(
-			`INSERT OR IGNORE INTO OAusers (email, name, given_name, family_name, picture) VALUES (?, ?, ?, ?, ?)`,
+			`INSERT OR IGNORE INTO users (email, name, given_name, family_name, picture) VALUES (?, ?, ?, ?, ?)`,
 			userInfo.email,
 			userInfo.name,
 			userInfo.given_name,

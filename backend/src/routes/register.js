@@ -1,4 +1,5 @@
 import { openDb } from '../utils/db.js';
+import bcrypt from "bcrypt";
 
 export default async function registerRoutes(fastify) {
 	fastify.post('/register', async (req, reply) => {
@@ -6,13 +7,14 @@ export default async function registerRoutes(fastify) {
 
 	   console.log("🔔 route POST /api/register reached");
 		const { email , name, password } = req.body;
+		const hashPassword =  await bcrypt.hash(password, 10);
 
 		const db = await openDb();
 		const result = await db.run(
-			`INSERT OR IGNORE INTO OAusers 
+			`INSERT OR IGNORE INTO users 
 	  		(email, name, given_name, family_name, password_hash, picture)
 	  		VALUES (?, ?, ?, ?, ?, ?)`,
-	  		[email, name, "", "", password, ""]
+	  		[email, name, "", "", hashPassword, ""]
 		);
 		if (result.changes > 0) {
 			console.log(`NOUVEL UTILISATEUR CRÉÉ : ${name}`);

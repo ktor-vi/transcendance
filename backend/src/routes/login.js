@@ -7,7 +7,7 @@ export default async function loginRoutes(fastify) {
 		const { email , password } = req.body;
 
 		const db = await openDb();
-		const user = await db.get(`SELECT * FROM OAusers WHERE email = ?`, email);
+		const user = await db.get(`SELECT * FROM users WHERE email = ?`, email);
 
 		if (!user)
 			reply.code(401).send({ success: false, message: "Aucun compte avec cette adresse mail" });
