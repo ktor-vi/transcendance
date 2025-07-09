@@ -45,43 +45,68 @@ export async function renderProfile() {
 			<input type="text" id="family_nameInput" value="${userData.family_name}" />
 			</div>
 
-			<div style="text-align: center;">
-			<h3>Photo de profil :</h3>
-			<img src="${userData.picture}" alt="default" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;" />
+			<label for="changePicture">Photo de profil :</label>
+			<input id="changePicture" type="file"/>
+			<div style="display: flex; align-items: center; gap: 8px;">
+			<img src="${userData.picture}" alt="default" style="display: flex; align-items: center; width: 100px; height: 100px; object-fit: cover; border-radius: 50%;" />
 			</div>
 
 			<button id="save">Enregistrer les modifications</button>
 			${backButton()}
-		</section>
-`;
+			</section>
+		`;
 
 		// injection du html
 		document.getElementById("app")!.innerHTML = html;
 		// créé le bouton de retour arriere
 		setupBackButton();
-		// va enregistrer si nouveau pseudo écrit
-		document.getElementById("save")?.addEventListener("click", async() =>
-		{
+		// va enregistrer si une modif d'information a été faite
+
+		document.getElementById("save")?.addEventListener("click", async() => {
 			const newName = (document.getElementById("nameInput") as HTMLInputElement).value;
 			const newGivenName = (document.getElementById("given_nameInput") as HTMLInputElement).value;
 			const newFamilyName = (document.getElementById("family_nameInput") as HTMLInputElement).value;
+			// const newPicture = (document.getElementById("changePicture") as HTMLInputElement).value;
+
 			// va faire une requete au back pour envoyer le nouveau pseudo
-			const res = await fetch("/api/profile", {
-				method: "PUT",
+			const textRes = await fetch("/api/profile", {
+				method: "POST",
 				headers: {
-					"Content-Type": "application/json"
+					// "Content-Type": "application/json"
 				},
 				body: JSON.stringify({ name: newName, given_name: newGivenName, family_name: newFamilyName }) //on transforme newName en json pour le backend
 			});
 
-			if (res.ok) {
+			if (textRes.ok) {
 				alert("Profil mis à jour!");
 				// page.redirect("/profile");
 			} else {
 				alert("Erreur lors des modifications");
 			}
-		});
-	}
+
+			const fileInput = document.getElementById("changePicture") as HTMLInputElement;
+	
+		
+			if (fileInput.files && fileInput.files.length > 0) {
+				const fileData = new FormData();
+				fileData.append("file", fileInput.files[0]);
+
+				const uploadRes = await fetch("/api/profile/picture", {
+					method: "POST",
+					body: fileData
+				});
+
+				if (uploadRes.ok) {
+					alert("Image mise à jour!");
+				} else {
+					alert("Erreur lors de l'upload de l'image");
+					}
+				}
+			else {
+				alert("Aucun fichier sélectionné");
+			}
+			});
+		}
 
 	catch (error) {
 		console.error("Erreur lors du chargement du profil :", error);
