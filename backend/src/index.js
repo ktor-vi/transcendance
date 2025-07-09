@@ -10,6 +10,7 @@ import loginRoutes from './routes/login.js';
 
 const fastify = Fastify({ logger: true });
 
+
 await registerSession(fastify);
 await registerCors(fastify);
 await registerOAuth(fastify);

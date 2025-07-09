@@ -15,6 +15,10 @@ export async function renderProfile() {
 		// quand on a récupéré la réponse du back (les infos de profile),
 		// on les met dans userData puis dans le html qui sera injecté
 		const userData = await res.json();
+
+		if (!userData.picture || userData.picture.trim() === "") {
+			userData.picture = "/default.jpg";
+		}
 		
 		const html = `
 		<h1 style="text-align: center;">Profil</h1>
