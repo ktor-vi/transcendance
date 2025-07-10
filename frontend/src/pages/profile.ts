@@ -84,27 +84,27 @@ export async function renderProfile() {
 				alert("Erreur lors des modifications");
 			}
 
-			const fileInput = document.getElementById("changePicture") as HTMLInputElement;
+			// const fileInput = document.getElementById("changePicture") as HTMLInputElement;
 	
 		
-			if (fileInput.files && fileInput.files.length > 0) {
-				const fileData = new FormData();
-				fileData.append("file", fileInput.files[0]);
+			// if (fileInput.files && fileInput.files.length > 0) {
+			// 	const fileData = new FormData();
+			// 	fileData.append("file", fileInput.files[0]);
 
-				const uploadRes = await fetch("/api/profile/picture", {
-					method: "POST",
-					body: fileData
-				});
+			// 	const uploadRes = await fetch("/api/profile/picture", {
+			// 		method: "POST",
+			// 		body: fileData
+			// 	});
 
-				if (uploadRes.ok) {
-					alert("Image mise à jour!");
-				} else {
-					alert("Erreur lors de l'upload de l'image");
-					}
-				}
-			else {
-				alert("Aucun fichier sélectionné");
-			}
+			// 	if (uploadRes.ok) {
+			// 		alert("Image mise à jour!");
+			// 	} else {
+			// 		alert("Erreur lors de l'upload de l'image");
+			// 		}
+			// 	}
+			// else {
+			// 	alert("Aucun fichier sélectionné");
+			// }
 			});
 		}
 
