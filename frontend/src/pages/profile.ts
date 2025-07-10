@@ -86,6 +86,18 @@ export async function renderProfile() {
 
 				if (uploadRes.ok) {
 					alert("Profil à jour!");
+
+					const profileRes = await fetch("/api/profile");
+
+					if (profileRes.ok) {
+						const updatedUserData = await profileRes.json();
+						const img = document.querySelector("img[alt='default']");
+						if (img) {
+							img.src = `${updatedUserData.picture}?t=${Date.now()}`;
+						}
+					} else {
+						alert("Erreur lors de la récupération des modifications");
+					}
 				} else {
 					alert("Erreur lors de l'upload des modifications");
 				}
