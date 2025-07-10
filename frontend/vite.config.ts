@@ -8,19 +8,11 @@ export default defineConfig({
 		  '/api': {
 			  target: 'http://backend-dev:3000',
 			  changeOrigin: true,
+			},
+			'/uploads' : {
+				target: 'http://backend-dev:3000',
+				changeOrigin: true,
 			}
-			// '/login': {
-			// 	target: 'http://backend-dev:3000',
-			// 	changeOrigin: true
-			// },
-			// '/logout': {
-			// 	target: 'http://backend-dev:3000',
-			// 	changeOrigin: true
-			// },
-			// '/profile': {
-			// 	target: 'http://backend-dev:3000',
-			// 	changeOrigin: true
-			// },
 		},
 		historyApiFallback: true,
 		host: true,

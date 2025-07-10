@@ -1,4 +1,6 @@
 import Fastify from 'fastify';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
 import registerCors from './plugins/cors.js';
 import registerWebSockets from './plugins/websocket.js';
 import registerSession from './plugins/session.js';
@@ -7,8 +9,13 @@ import authRoutes from './routes/auth.js';
 import profileRoutes from './routes/profile.js';
 import registerRoutes from './routes/register.js';
 import loginRoutes from './routes/login.js';
+import fastifyMultipart from '@fastify/multipart';
 
 const fastify = Fastify({ logger: true });
+
+await fastify.register(fastifyStatic, { root: path.join(process.cwd(), 'public'), prefix: '/' });
+
+await fastify.register(fastifyMultipart);
 
 
 await registerSession(fastify);

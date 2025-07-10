@@ -46,7 +46,7 @@ export async function renderProfile() {
 			</div>
 
 			<label for="changePicture">Photo de profil :</label>
-			<input id="changePicture" type="file"/>
+			<input id="changePicture" name="changePicture" type="file"/>
 			<div style="display: flex; align-items: center; gap: 8px;">
 			<img src="${userData.picture}" alt="default" style="display: flex; align-items: center; width: 100px; height: 100px; object-fit: cover; border-radius: 50%;" />
 			</div>
@@ -66,47 +66,32 @@ export async function renderProfile() {
 			const newName = (document.getElementById("nameInput") as HTMLInputElement).value;
 			const newGivenName = (document.getElementById("given_nameInput") as HTMLInputElement).value;
 			const newFamilyName = (document.getElementById("family_nameInput") as HTMLInputElement).value;
-			// const newPicture = (document.getElementById("changePicture") as HTMLInputElement).value;
+			
+			const fileData = new FormData();
 
-			// va faire une requete au back pour envoyer le nouveau pseudo
-			const textRes = await fetch("/api/profile", {
-				method: "POST",
-				headers: {
-					// "Content-Type": "application/json"
-				},
-				body: JSON.stringify({ name: newName, given_name: newGivenName, family_name: newFamilyName }) //on transforme newName en json pour le backend
-			});
+			fileData.append("name", newName);
+			fileData.append("given_name", newGivenName);
+			fileData.append("family_name", newFamilyName);
 
-			if (textRes.ok) {
-				alert("Profil mis à jour!");
-				// page.redirect("/profile");
-			} else {
-				alert("Erreur lors des modifications");
-			}
 
-			// const fileInput = document.getElementById("changePicture") as HTMLInputElement;
+			const fileInput = document.getElementById("changePicture") as HTMLInputElement;
+			
+			if (fileInput.files && fileInput.files.length > 0) {
+				fileData.append("changePicture", fileInput.files[0]);
 	
-		
-			// if (fileInput.files && fileInput.files.length > 0) {
-			// 	const fileData = new FormData();
-			// 	fileData.append("file", fileInput.files[0]);
+				const uploadRes = await fetch("/api/profile", {
+				method: "POST",
+				body: fileData
+				});
 
-			// 	const uploadRes = await fetch("/api/profile/picture", {
-			// 		method: "POST",
-			// 		body: fileData
-			// 	});
-
-			// 	if (uploadRes.ok) {
-			// 		alert("Image mise à jour!");
-			// 	} else {
-			// 		alert("Erreur lors de l'upload de l'image");
-			// 		}
-			// 	}
-			// else {
-			// 	alert("Aucun fichier sélectionné");
-			// }
-			});
-		}
+				if (uploadRes.ok) {
+					alert("Profil à jour!");
+				} else {
+					alert("Erreur lors de l'upload des modifications");
+				}
+			}
+		});
+	}
 
 	catch (error) {
 		console.error("Erreur lors du chargement du profil :", error);
