@@ -17,7 +17,7 @@ export function renderRegister() {
 				<option value="2">Quel est le premier jeu-vidéo auquel tu as joué ?</option>
 				<option value="3">Quel est le prénom de votre meilleur·e ami·e d'enfance ?</option>
 				<option value="4">Quel était le nom de votre école primaire ?</option>
-				<option value="5">Quel était le prénom de votre instituteur·trice préféré·e ?
+				<option value="5">Quel était le prénom de votre instituteur·trice préféré·e ?</option>
 			</select>
 			<input type="text" id="response" placeholder="Réponse" required />
 		</div>
