@@ -8,5 +8,6 @@ export function renderHome()
 		<a href="login" data-nav>Se connecter</button>
 		<a href="register" data-nav>S'inscrire</button>
 	</section>
+	<a href="forgotPassword" data-nav>Mot de passe oublié</button>
 	`;
 }

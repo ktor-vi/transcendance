@@ -3,7 +3,6 @@ import { openDb } from '../utils/db.js';
 export default async function registerRoutes(fastify) {
 	fastify.post('/register', async (req, reply) => {
 
-
 	   console.log("🔔 route POST /api/register reached");
 		const { email , name, password } = req.body;
 		const hashPassword =  await bcrypt.hash(password, 10);
