@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS
 		given_name TEXT,
 		family_name TEXT,
 		password_hash TEXT,
+		question TEXT,
+		response_hash TEXT,
 		picture TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
