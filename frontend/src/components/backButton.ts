@@ -13,6 +13,11 @@ export function backButton() {
 // le ? vérifie si l'élément existe (sinon getElementById renvoie null)
 export function setupBackButton() {
 	document.getElementById("goBack")?.addEventListener("click", () => {
-		page.back();
+		if (window.location.pathname === "/profile") {
+      		page("/dashboard");
+    	} else {
+			page.back();
+		}
 	});
+	
 }
