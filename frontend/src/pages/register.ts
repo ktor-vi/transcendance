@@ -14,7 +14,7 @@ export function renderRegister() {
 			<select id="questions">
 				<option></option>
 				<option value="1">Quel est le nom de ton premier animal de compagnie ?</option>
-				<option value="2">Quel est le premier jeu-vidéo auqel tu as joué ?</option>
+				<option value="2">Quel est le premier jeu-vidéo auquel tu as joué ?</option>
 				<option value="3">Quel est le prénom de votre meilleur·e ami·e d'enfance ?</option>
 				<option value="4">Quel était le nom de votre école primaire ?</option>
 				<option value="5">Quel était le prénom de votre instituteur·trice préféré·e ?

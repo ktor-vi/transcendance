@@ -17,8 +17,7 @@ export function renderLogin() {
 	setupBackButton();
 	document.getElementById("loginForm")?.addEventListener("submit", async (e) => {
 		e.preventDefault();
-		const email = (document.getElementById("email") as HTMLInputElement).value;
-		const password = (document.getElementById("password") as HTMLInputElement).value;
+		const email = (document.getElementById("email") as HTMLInputElement).value;	const password = (document.getElementById("password") as HTMLInputElement).value;
 
 		const res = await fetch("api/login", {
 			method: "POST",
