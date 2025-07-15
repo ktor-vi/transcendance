@@ -2,6 +2,8 @@ import { openDb } from '../utils/db.js';
 import path from 'path';
 import fs from 'fs/promises';
 import { mkdir } from 'fs/promises';
+import { fileTypeFromBuffer } from "file-type";
+import { v4 as uuidv4 } from 'uuid';
 
 export default async function profileRoutes(fastify)
 {
@@ -48,6 +50,8 @@ export default async function profileRoutes(fastify)
 		let given_name = "";
 		let family_name = "";
 		let picture = null;
+		let extension = "";
+		let type = "";
 
 		//ensuite nous devons lire la requête (data) qui est "découpée" en une variable
 		// ici nommée part. La loop "for... of..." permet d'itérer au sein d'une variable
@@ -57,42 +61,55 @@ export default async function profileRoutes(fastify)
 			if (part.type === 'file' && part.fieldname === 'changePicture') {
 				// on créé une variable vide chunks qui va stocker les chunk de la boucle
 				const chunks = [];
-				// on push tout dans nos chunks
+				// on push tout dans nos chunks en vérifiant la taille
+				let totalSize = 0;
 				for await (const chunk of part.file) {
+					totalSize += chunk.length;
+					if (totalSize > (2 * 1024 * 1024)) {// 2MB max
+						return reply.code(400).send({ error: 'Fichier trop volumineux (> 2MB)' });
+					}
 					chunks.push(chunk)
 				}
 				// fusionner les chunk du tableau
 				picture = Buffer.concat(chunks);
-				// on importe fs qui permet de lire/ écrire des fichiers
 
-				const uploadDir = path.resolve('./public/uploads');
-
-				await mkdir(uploadDir, { recursive: true });
-				// on upload l'image dans le dossier public/uploads avec comme nom l'email de l'user
-				await fs.writeFile(`./public/uploads/${userSession.email}.jpg`, picture)
-
-			} else {
-				if (part.fieldname === 'name')
-					name = part.value;
-				if (part.fieldname === 'given_name')
-					given_name = part.value;
-				if (part.fieldname === 'family_name')
-					family_name = part.value;
-			}
+				// vérification du type de fichier
+				type = await fileTypeFromBuffer(picture);
+				if (!type || !['image/jpeg', 'image/png', 'image/webp'].includes(type.mime)) {
+					return reply.code(400).send({ error: 'Type de fichier non accepté' });
+				}
+				} else {
+					if (part.fieldname === 'name')
+						name = part.value;
+					if (part.fieldname === 'given_name')
+						given_name = part.value;
+					if (part.fieldname === 'family_name')
+						family_name = part.value;
+				}
 		}
-			const db = await openDb();
-			// mise à jour de la DB avec les infos text
-			await db.run('UPDATE users SET name = ?, given_name = ?, family_name = ? WHERE email = ?', name, given_name, family_name, userSession.email);
-			// mise à jour de la pp
-			if (!picture) {
-				"LA PHOTO N A PAS ETE UPLOAD DANS LA DB";
-			}
-			if (picture) {
-				await db.run('UPDATE users SET picture = ? WHERE email = ?', `/uploads/${userSession.email}.jpg`, userSession.email);
+		const db = await openDb();
+		// mise à jour de la DB avec les infos text
+		await db.run('UPDATE users SET name = ?, given_name = ?, family_name = ? WHERE email = ?', name, given_name, family_name, userSession.email);
+		// mise à jour de la pp
+		if (!picture) {
+			"LA PHOTO N A PAS ETE UPLOAD DANS LA DB";
+		}
+		if (picture) {
+			extension = type.ext;
+			// création d'un nom généré aléatoirement
+			const safeName = `${uuidv4()}.${extension}`;
+			// on expose uniquement le dossier uploads
+			const uploadDir = path.resolve('public/uploads');
+				await mkdir(uploadDir, { recursive: true });
+				
+				const filePath = path.join(uploadDir, safeName);
+				await fs.writeFile(filePath, picture);
+				// mise à jour dans la db
+				await db.run('UPDATE users SET picture = ? WHERE email = ?', `/uploads/${safeName}`, userSession.email);
 			} else {
 				console.log("Y A PAS DE NEW PHOTO");
 			}
-		reply.send({ success: true });
-	});
-
+			reply.send({ success: true });
+		});
+		
 }
