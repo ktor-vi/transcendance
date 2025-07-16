@@ -104,8 +104,6 @@ export default async function profileRoutes(fastify)
 				const fileName = oldPicture.replace('/uploads/', '');
 				const filePath = path.join(uploadDir, fileName);
 
-				console.log("ICI REGARDE :");
-				console.log(`${filePath}`);
 				await fs.unlink(filePath);
 			}
 
@@ -120,8 +118,6 @@ export default async function profileRoutes(fastify)
 				await fs.writeFile(filePath, picture);
 				// mise à jour dans la db
 				await db.run('UPDATE users SET picture = ? WHERE email = ?', `/uploads/${safeName}`, userSession.email);
-			} else {
-				console.log("Y A PAS DE NEW PHOTO");
 			}
 			reply.send({ success: true });
 		});

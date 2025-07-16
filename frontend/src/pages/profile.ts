@@ -78,6 +78,7 @@ export async function renderProfile() {
 			
 			if (fileInput.files && fileInput.files.length > 0) {
 				fileData.append("changePicture", fileInput.files[0]);
+			}
 	
 				const uploadRes = await fetch("/api/profile", {
 				method: "POST",
@@ -98,7 +99,7 @@ export async function renderProfile() {
 					} else {
 						alert("Erreur lors de la récupération des modifications");
 					}
-				} else {
+					} else {
 					let errorRes = "Erreur lors de l'upload des modifications";
 					try {
 						const errorData = await uploadRes.json();
@@ -110,7 +111,6 @@ export async function renderProfile() {
 					}
 					alert(errorRes);
 				}
-			}
 		});
 	}
 
