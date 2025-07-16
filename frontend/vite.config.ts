@@ -49,8 +49,8 @@ export default defineConfig({
         secure: false,
         configure: cookieForwarding,
       },
-      historyApiFallback: true,
     },
+    historyApiFallback: true,
     hmr: {
       host: `${process.env.VITE_HOSTNAME}`, // doit correspondre à ce que tu utilises dans le navigateur
       protocol: "wss", // si tu utilises HTTPS
