@@ -2,6 +2,7 @@
 import page from "page";
 import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
+import { renderKeyboardPlay } from "./pages/keyboardPlay";
 
 // 🔽 Récupère la référence à l'élément HTML avec l'ID "app"
 // C'est dans cet élément que les pages seront affichées dynamiquement
@@ -20,6 +21,8 @@ page("/", () => render(renderHome()));
 // Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
 page("/dashboard", () => render(renderDashboard()));
 
+
+page("/keyboard-play", () => render(renderKeyboardPlay()))
 // Lance le routeur (écoute les changements de l'URL sans recharger la page)
 page();
 

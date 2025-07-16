@@ -17,68 +17,102 @@ export default fp(async function (fastify) {
       ball: { x: 0, z: 0, dx: 0.05, dz: 0.1 },
       paddleOne: { x: 0 },
       paddleTwo: { x: 0 },
+      score: { p1: 0, p2: 0 },
     };
     const clients = new Map();
-    rooms.set(roomId, { clients, gameState });
+
+    const room = { clients, gameState };
+    rooms.set(roomId, room);
+
+    room.loop = setInterval(() => updateRoom(roomId), 1000 / 60);
+
     return roomId;
   }
-
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
   }
 
   // Game loop 60 FPS
-  setInterval(() => {
-    for (const { clients, gameState } of rooms.values()) {
-      gameState.ball.x += gameState.ball.dx;
-      gameState.ball.z += gameState.ball.dz;
+  function updateRoom(roomId) {
+    const room = rooms.get(roomId);
+    if (!room) return;
+    const gameState = room.gameState;
+    gameState.ball.x += gameState.ball.dx;
+    gameState.ball.z += gameState.ball.dz;
 
-      gameState.paddleOne.x = clamp(
-        gameState.paddleOne.x,
-        -FIELD_WIDTH / 2,
-        FIELD_WIDTH / 2
-      );
-      gameState.paddleTwo.x = clamp(
-        gameState.paddleTwo.x,
-        -FIELD_WIDTH / 2,
-        FIELD_WIDTH / 2
-      );
+    gameState.paddleOne.x = clamp(
+      gameState.paddleOne.x,
+      -FIELD_WIDTH / 2,
+      FIELD_WIDTH / 2
+    );
+    gameState.paddleTwo.x = clamp(
+      gameState.paddleTwo.x,
+      -FIELD_WIDTH / 2,
+      FIELD_WIDTH / 2
+    );
 
-      // Rebond sur murs gauche/droite
-      if (
-        gameState.ball.x <= -FIELD_WIDTH / 2 ||
-        gameState.ball.x >= FIELD_WIDTH / 2
-      ) {
-        gameState.ball.dx *= -1;
-      }
-
-      // Rebond sur palettes
-      if (
-        Math.abs(gameState.ball.z + FIELD_DEPTH / 2) < 0.4 &&
-        Math.abs(gameState.ball.x - gameState.paddleOne.x) < 1.1
-      ) {
-        gameState.ball.dz *= -1;
-      }
-
-      if (
-        Math.abs(gameState.ball.z - FIELD_DEPTH / 2) < 0.4 &&
-        Math.abs(gameState.ball.x - gameState.paddleTwo.x) < 1.1
-      ) {
-        gameState.ball.dz *= -1;
-      }
-
-      // Reset balle si sortie du terrain
-      if (Math.abs(gameState.ball.z) >= FIELD_DEPTH) {
-        Object.assign(gameState.ball, { x: 0, z: 0, dx: 0.05, dz: 0.1 });
-      }
-
-      // Broadcast état aux clients prêts
-      const payload = JSON.stringify({ type: "state", gameState });
-      for (const { socket } of clients.values()) {
-        if (socket.readyState === 1) socket.send(payload);
-      }
+    // Rebond sur murs gauche/droite
+    if (
+      gameState.ball.x <= -FIELD_WIDTH / 2 ||
+      gameState.ball.x >= FIELD_WIDTH / 2
+    ) {
+      gameState.ball.dx *= -1;
     }
-  }, 1000 / 60);
+
+    // Rebond sur palettes
+    // Paddle 1 collision
+    if (
+      gameState.ball.z <= -FIELD_DEPTH / 2 + 0.5 &&
+      gameState.ball.z >= -FIELD_DEPTH / 2 - 0.5 && // tolérance plus large
+      Math.abs(gameState.ball.x - gameState.paddleOne.x) < 1.1
+    ) {
+      gameState.ball.z = -FIELD_DEPTH / 2 + 0.5; // corriger position pour éviter le clip
+      gameState.ball.dz *= -1;
+    }
+
+    // Paddle 2 collision
+    if (
+      gameState.ball.z >= FIELD_DEPTH / 2 - 0.5 &&
+      gameState.ball.z <= FIELD_DEPTH / 2 + 0.5 && // tolérance plus large
+      Math.abs(gameState.ball.x - gameState.paddleTwo.x) < 1.1
+    ) {
+      gameState.ball.z = FIELD_DEPTH / 2 - 0.5; // corriger position
+      gameState.ball.dz *= -1;
+    }
+
+    // Reset balle si sortie du terrain
+    if (Math.abs(gameState.ball.z) >= FIELD_DEPTH) {
+      if (gameState.ball.z > FIELD_DEPTH) {
+        gameState.score.p1++;
+        gameState.ball.dz = -Math.abs(gameState.ball.dz);
+      }
+      if (gameState.ball.z < 0) {
+        gameState.score.p2++;
+        gameState.ball.dz = Math.abs(gameState.ball.dz);
+      }
+
+      if (gameState.score.p1 >= 11 || gameState.score.p2 >= 11) {
+        clearInterval(room.loop);
+        setInterval(() => {
+          for (const { socket } of room.clients.values()) {
+            if (socket.readyState === 1) socket.close();
+          }
+          rooms.delete(roomId);
+        }, 5000);
+      }
+      Object.assign(gameState.ball, {
+        x: 0,
+        z: 0,
+        dx: 0.05,
+        dz: gameState.ball.dz,
+      });
+    }
+    // Broadcast état aux clients prêts
+    const payload = JSON.stringify({ type: "state", gameState });
+    for (const { socket } of room.clients.values()) {
+      if (socket.readyState === 1) socket.send(payload);
+    }
+  }
 
   // Trouve une room avec < 2 joueurs ou crée-en une nouvelle
   function findOrCreateRoom() {
@@ -140,8 +174,10 @@ export default fp(async function (fastify) {
 
         const gs = room.gameState;
         const paddle = client.playerNum === 1 ? gs.paddleOne : gs.paddleTwo;
-        if (msg.left) paddle.x -= PDL_SPD;
-        if (msg.right) paddle.x += PDL_SPD;
+        if (msg.left && client.playerNum === 1) paddle.x -= PDL_SPD;
+        if (msg.right && client.playerNum === 1) paddle.x += PDL_SPD;
+        if (msg.left && client.playerNum === 2) paddle.x += PDL_SPD;
+        if (msg.right && client.playerNum === 2) paddle.x -= PDL_SPD;
       }
     });
 

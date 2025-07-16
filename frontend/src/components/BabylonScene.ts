@@ -7,10 +7,11 @@ import {
   FreeCamera,
   KeyboardEventTypes,
 } from "@babylonjs/core";
-import { sendMove } from "../socket";
 
-let currentScene = null;
-let currentEngine = null;
+import { sendMove } from "../socket";
+import { GameState } from "../types/GameTypes";
+let currentScene: Scene | null = null;
+let currentEngine: Engine | null = null;
 
 export function createBabylonScene(canvas: HTMLCanvasElement) {
   // Nettoyer l'ancienne scène si elle existe
@@ -68,7 +69,7 @@ export function createBabylonScene(canvas: HTMLCanvasElement) {
     const isDown = kb.type === KeyboardEventTypes.KEYDOWN;
 
     // Touches pour joueur 1 et 2
-    if (key === "arrowleft" || key === "q") {
+    if (key === "arrowleft" || key === "a") {
       inputState.left = isDown;
     }
     if (key === "arrowright" || key === "d") {
@@ -77,7 +78,7 @@ export function createBabylonScene(canvas: HTMLCanvasElement) {
   });
 
   // Fonction pour mettre à jour la caméra selon le joueur
-  function updateCamera(player) {
+  function updateCamera(player: number) {
     if (player === 1) {
       // Joueur 1 : vue depuis le bas du terrain
       camera.position.set(0, 8, -10);
@@ -91,7 +92,7 @@ export function createBabylonScene(canvas: HTMLCanvasElement) {
   }
 
   // Fonction pour mettre à jour l'état du jeu
-  function updateGameState(gameState) {
+  function updateGameState(gameState: GameState) {
     if (gameState.paddleOne) {
       paddleOne.position.x = gameState.paddleOne.x;
     }
@@ -105,7 +106,7 @@ export function createBabylonScene(canvas: HTMLCanvasElement) {
   }
 
   // Fonction pour définir le numéro du joueur
-  function setPlayerNumber(player) {
+  function setPlayerNumber(player: number) {
     playerNum = player;
     updateCamera(player);
     console.log(`🎮 Joueur ${player} assigné, caméra mise à jour`);
