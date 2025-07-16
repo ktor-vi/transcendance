@@ -99,7 +99,16 @@ export async function renderProfile() {
 						alert("Erreur lors de la récupération des modifications");
 					}
 				} else {
-					alert("Erreur lors de l'upload des modifications");
+					let errorRes = "Erreur lors de l'upload des modifications";
+					try {
+						const errorData = await uploadRes.json();
+						if (errorData.error) {
+							errorRes = errorData.error;
+						}
+					} catch (err) {
+						console.log("Erreur innatendue: ", err);
+					}
+					alert(errorRes);
 				}
 			}
 		});

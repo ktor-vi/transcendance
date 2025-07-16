@@ -95,11 +95,25 @@ export default async function profileRoutes(fastify)
 			"LA PHOTO N A PAS ETE UPLOAD DANS LA DB";
 		}
 		if (picture) {
+			//suppression de l'ancien fichier pour ne pas surcharger le serveur inutilement
+			let uploadDir = path.resolve('public/uploads');
+			const oldPictureRow = await db.get('SELECT picture FROM users WHERE email = ?', userSession.email);
+			const oldPicture = oldPictureRow.picture;
+
+			if (oldPicture && oldPicture.startsWith('/uploads/')) {
+				const fileName = oldPicture.replace('/uploads/', '');
+				const filePath = path.join(uploadDir, fileName);
+
+				console.log("ICI REGARDE :");
+				console.log(`${filePath}`);
+				await fs.unlink(filePath);
+			}
+
 			extension = type.ext;
+			uploadDir = path.resolve('public/uploads');
 			// création d'un nom généré aléatoirement
 			const safeName = `${uuidv4()}.${extension}`;
 			// on expose uniquement le dossier uploads
-			const uploadDir = path.resolve('public/uploads');
 				await mkdir(uploadDir, { recursive: true });
 				
 				const filePath = path.join(uploadDir, safeName);
