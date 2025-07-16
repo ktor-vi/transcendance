@@ -3,7 +3,10 @@ import page from "page";
 import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
 import { renderKeyboardPlay } from "./pages/keyboardPlay";
-
+import { renderProfile } from "./pages/profile";
+import { renderRegister } from "./pages/register";
+import { renderLogin } from "./pages/login";
+import { renderForgotPwd } from "./pages/forgotPassword";
 // 🔽 Récupère la référence à l'élément HTML avec l'ID "app"
 // C'est dans cet élément que les pages seront affichées dynamiquement
 const app = document.getElementById("app");
@@ -20,29 +23,44 @@ page("/", () => render(renderHome()));
 
 // Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
 page("/dashboard", () => render(renderDashboard()));
+page("/profile", () => 
+	renderProfile());
 
+page("/register", () => 
+	renderRegister());
 
+page("/login", () => 
+	renderLogin());
+
+page("/forgotPassword", () => 
+	renderForgotPwd());
 page("/keyboard-play", () => render(renderKeyboardPlay()))
 // Lance le routeur (écoute les changements de l'URL sans recharger la page)
+// a la page de l'index (/) on va donc "génerer" la homepage définie dans pages/home.ts
+
+
+// page a été importé sur ce fichier. il sert à "écouter" et à gérer la navigation
+// de notre appli sans recharger toute la page à chaque fois
 page();
 
-// 🖱️ Gestion globale des clics sur le document
-document.addEventListener("click", (e) => {
-  // Cast explicite de la cible de l’événement comme élément HTML
-  const target = e.target as HTMLElement;
+// document est la page sur laquelle on se trouve actuellement. ici, comme on est passé
+// de index.html à main.ts, qui lui même a chargé home.ts, document = home.ts
+// on va donc "surveiller" la page home.ts pour savoir si on a cliqué sur le bouton 
+// pour se connecter avec Google, ou sur dashboard si on a cliqué sur un des boutons
+document.addEventListener("click", (event) =>
+{
+	const target = event.target as HTMLElement;
 
-  // Si l'utilisateur clique sur le bouton de connexion Google
-  if (target?.id === "google-sign-in") {
-    // Redirige vers l'API backend qui déclenche l'authentification Google
-    window.location.href = "/api/login/google";
-  }
+	if (target?.id === "google-sign-in")
+	{
+		window.location.href = "/api/login/google";
+	}
 
-  // Si l'utilisateur clique sur le bouton de déconnexion
-  if (target?.id === "logout") {
-    // Envoie une requête POST au backend pour déconnecter l'utilisateur
-    fetch("/logout", { method: "POST" }).then(() => {
-      // Une fois la session supprimée, redirige vers la page d’accueil
-      page.redirect("/");
-    });
-  }
+	if (target?.id === "logout")
+	{
+		fetch("/logout", { method: "POST" }).then(() =>
+		{
+			page.redirect("/");
+		});
+	}
 });

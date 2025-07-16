@@ -1,49 +1,42 @@
-
-# Étape de base
+# --- Étape de base ---
 FROM node:20-alpine AS base
 
-# Installation des dépendances nécessaires pour SQLite3 et autres outils
 RUN apk add --no-cache \
     sqlite \
     python3 \
+    py3-pip \
     make \
     g++ \
     libc6-compat
 
 WORKDIR /app
 
-# Copie des fichiers de dépendances
-COPY package*.json ./
-
-# Installation des dépendances
+COPY . ./
+# COPY package*.json ./
 RUN npm install
+RUN npm rebuild sqlite3
 
-# Étape de développement
+# --- Étape de développement ---
 FROM base AS development
 
-# Copie du reste des fichiers de l'application
-COPY . ./
+WORKDIR /app
 
-# Reconstruction de SQLite3 pour l'environnement Alpine
-RUN npm rebuild sqlite3
+COPY --from=base /app /app
 
-# Installation de nodemon pour le développement
+RUN chmod +x ./entrypoint.sh
 RUN npm install -g nodemon
 
-# Commande de démarrage pour le développement
-CMD ["npm", "run", "dev"]
+CMD ["sh", "./entrypoint.sh"]
 
-# Étape de production
+# --- Étape de production ---
 FROM base AS production
 
-# Copie du reste des fichiers de l'application
-COPY . ./
+WORKDIR /app
 
-# Reconstruction de SQLite3 pour l'environnement Alpine
-RUN npm rebuild sqlite3
+COPY --from=base /app /app
 
-# Exposition du port de l'application
+RUN chmod +x ./entrypoint.sh
+
 EXPOSE 3000
 
-# Commande de démarrage pour la production
-CMD ["npm", "start"]
+CMD ["sh", "./entrypoint.sh"]

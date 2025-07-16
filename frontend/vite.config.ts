@@ -16,51 +16,58 @@ function cookieForwarding(proxy) {
 }
 
 export default defineConfig({
-  root: './',
+  root: "./",
   server: {
     proxy: {
-      '/api': {
+      "/api": {
         target: `https://${process.env.HOSTNAME}:3000`,
         changeOrigin: true,
         secure: false,
         configure: cookieForwarding,
       },
-      '/login': {
+      "/login": {
         target: `https://${process.env.HOSTNAME}:3000`,
         changeOrigin: true,
         secure: false,
         configure: cookieForwarding,
       },
-      '/logout': {
+      "/logout": {
         target: `https://${process.env.HOSTNAME}:3000`,
         changeOrigin: true,
         secure: false,
         configure: cookieForwarding,
       },
-      '/me': {
+      "/me": {
         target: `https://${process.env.HOSTNAME}:3000`,
         changeOrigin: true,
         secure: false,
         configure: cookieForwarding,
       },
+      "/uploads": {
+        target: `https://${process.env.HOSTNAME}:3000`,
+        changeOrigin: true,
+        secure: false,
+        configure: cookieForwarding,
+      },
+      historyApiFallback: true,
     },
     hmr: {
       host: `${process.env.VITE_HOSTNAME}`, // doit correspondre à ce que tu utilises dans le navigateur
-      protocol: 'wss',          // si tu utilises HTTPS
+      protocol: "wss", // si tu utilises HTTPS
     },
     https: {
-      key: fs.readFileSync('/app/certs/localhost.key'),
-      cert: fs.readFileSync('/app/certs/localhost.crt'),
+      key: fs.readFileSync("/app/certs/localhost.key"),
+      cert: fs.readFileSync("/app/certs/localhost.crt"),
     },
     host: true,
     port: 5173,
   },
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
+        main: resolve(__dirname, "index.html"),
       },
     },
   },

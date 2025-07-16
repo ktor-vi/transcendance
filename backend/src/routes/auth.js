@@ -1,20 +1,48 @@
 import { fetchUserInfo } from '../utils/fetchUserInfo.js';
+import { openDb } from '../utils/db.js';
 
-export default async function authRoutes(fastify) {
-  fastify.get('/api/login/google/callback', async function (request, reply) {
-    console.log('Session avant token:', request.session.get('state')); // devrait exister
-    const { token } = await this.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
-      console.log('Token obtenu:', token);
-    const userInfo = await fetchUserInfo(token.access_token);
-    console.log(userInfo);
-    request.session.set('user', userInfo);
-    console.log('Session après sauvegarde:', request.session.get('user'));
-    const frontendUrl = `https://${process.env.HOSTNAME}:5173`;
-    reply.redirect(`${frontendUrl}/dashboard?logged=1`);
-  });
+export default async function authRoutes(fastify)
+{	
+	// GET pour connextion avec Google Authentification
+	fastify.get('/api/login/google/callback', async function (request, reply)
+	{
+		const { token } = await this.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
+		const userInfo = await fetchUserInfo(token.access_token);
 
-  fastify.post('/logout', async (req, reply) => {
-    req.session.delete();
-    reply.send({ success: true });
-  });
+		request.session.set('user', userInfo);
+
+		// ouvrir et récupérer la db avec ma fonction openDB (db.js)
+		const db = await openDb();
+		// mettre l'adresse mail de l'user récupée par Google dans la db
+		const result = await db.run(
+			`INSERT OR IGNORE INTO users (email, name, given_name, family_name, picture) VALUES (?, ?, ?, ?, ?)`,
+			userInfo.email,
+			userInfo.name,
+			userInfo.given_name,
+			userInfo.family_name,
+			userInfo.picture
+		);
+		
+		if (result.changes > 0) {
+			console.log(`NOUVEL UTILISATEUR CRÉÉ : ${userInfo.name}`);
+		}
+		else
+			console.log("L'utilisateur existait déjà dans la base de données.")
+
+		reply.redirect(`https://${process.env.HOSTNAME}:5173/dashboard?logged=1`);
+	});
+
+
+	// POST pour le logout
+	fastify.post('/logout', async (req, reply) =>
+	{
+		req.session.delete();
+		reply.send({ success: true });
+	});
+
+	// POST pour une nouvelle inscription
+	// fastify.post('/api/register', async (req, reply) => {
+		
+	// })
+
 }
