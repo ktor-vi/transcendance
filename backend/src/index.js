@@ -15,11 +15,11 @@ import fastifyMultipart from '@fastify/multipart';
 import fs from 'fs';
 
 const fastify = Fastify({
-  logger: true,
-  https: {
-  key: fs.readFileSync("/app/certs/localhost.key"),
-  cert: fs.readFileSync("/app/certs/localhost.crt"),
-  }
+	logger: true,
+	https: {
+	key: fs.readFileSync("/app/certs/localhost.key"),
+	cert: fs.readFileSync("/app/certs/localhost.crt"),
+	}
 })
 
 await fastify.register(fastifyStatic, { root: path.join(process.cwd(), 'public'), prefix: '/' });

@@ -28,7 +28,8 @@ export async function renderForgotPwd() {
 			</select>
 			<input type="text" id="response" placeholder="Réponse" required />
 			<button type="submit">Envoyer</button>
-		</form>
+			</form>
+			${backButton()}
 
 		<form id="resetPwdSection" style="display:none;">
 		<h2>Créer un nouveau mot de passe</h2>
@@ -39,10 +40,12 @@ export async function renderForgotPwd() {
 		`;
 
 		document.getElementById("app")!.innerHTML = html;
+		setupBackButton();
+		
 		
 		document.getElementById("forgotForm")?.addEventListener("submit", async (e) => {
-		e.preventDefault();
-
+			e.preventDefault();
+			
 			const email = (document.getElementById("email") as HTMLInputElement).value;
 			const question = (document.getElementById("questions") as HTMLInputElement).value;
 			const response = (document.getElementById("response") as HTMLInputElement).value;

@@ -86,7 +86,7 @@ export async function renderProfile() {
 				});
 
 				if (uploadRes.ok) {
-					alert("Profil à jour!");
+					alert("Profil mis à jour!");
 
 					const profileRes = await fetch("/api/profile");
 
@@ -97,10 +97,10 @@ export async function renderProfile() {
 							img.src = `${updatedUserData.picture}?t=${Date.now()}`;
 						}
 					} else {
-						alert("Erreur lors de la récupération des modifications");
+							alert("Erreur lors de la récupération des modifications");
 					}
 					} else {
-					let errorRes = "Erreur lors de l'upload des modifications";
+						let errorRes = "Le pseudo existe déjà, merci d'en choisir un autre";
 					try {
 						const errorData = await uploadRes.json();
 						if (errorData.error) {

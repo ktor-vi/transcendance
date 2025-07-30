@@ -49,7 +49,7 @@ export function renderRegister() {
 		}
 		if (res.ok) {
 			alert("Compte créé, tu peux maintenant te connecter!");
-			// page.redirect("/api/home");
+			page.redirect("/");
 			
 		} else {
 			const err = await res.json();
