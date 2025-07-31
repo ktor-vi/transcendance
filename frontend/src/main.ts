@@ -4,7 +4,8 @@ import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
 import { renderKeyboardPlay } from "./pages/keyboardPlay";
 import { renderProfile } from "./pages/profile";
-import { renderUsers } from "./pages/allusers";
+import { renderUsersList } from "./pages/usersList";
+import { renderUserProfile } from "./pages/usersProfile";
 import { renderRegister } from "./pages/register";
 import { renderLogin } from "./pages/login";
 import { renderForgotPwd } from "./pages/forgotPassword";
@@ -29,8 +30,11 @@ page("/dashboard", () =>
 page("/profile", () => 
 	renderProfile());
 
-page("/allusers", () => 
-	renderUsers());
+page("/users-list", () => 
+	renderUsersList());
+
+page("/user/:name", (ctx) =>
+	renderUserProfile(ctx));
 
 page("/register", () => 
 	renderRegister());
@@ -40,7 +44,9 @@ page("/login", () =>
 
 page("/forgotPassword", () => 
 	renderForgotPwd());
-page("/keyboard-play", () => render(renderKeyboardPlay()))
+
+page("/keyboard-play", () => 
+	render(renderKeyboardPlay()))
 // Lance le routeur (écoute les changements de l'URL sans recharger la page)
 // a la page de l'index (/) on va donc "génerer" la homepage définie dans pages/home.ts
 
