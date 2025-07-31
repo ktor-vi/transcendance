@@ -31,6 +31,11 @@ export async function renderProfile() {
 		min-height: 50vh;
 		">
 			<div style="display: flex; align-items: center; gap: 8px;">
+			<label for="emailInput">Adresse mail :</label>
+			<input type="text" id="emailInput" value="${userData.email}" disabled tabindex=-1/>
+			</div>
+
+			<div style="display: flex; align-items: center; gap: 8px;">
 			<label for="nameInput">Pseudo :</label>
 			<input type="text" id="nameInput" value="${userData.name}" />
 			</div>

@@ -4,6 +4,7 @@ import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
 import { renderKeyboardPlay } from "./pages/keyboardPlay";
 import { renderProfile } from "./pages/profile";
+import { renderUsers } from "./pages/allusers";
 import { renderRegister } from "./pages/register";
 import { renderLogin } from "./pages/login";
 import { renderForgotPwd } from "./pages/forgotPassword";
@@ -22,9 +23,14 @@ function render(html: string) {
 page("/", () => render(renderHome()));
 
 // Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
-page("/dashboard", () => render(renderDashboard()));
+page("/dashboard", () => 
+	render(renderDashboard()));
+
 page("/profile", () => 
 	renderProfile());
+
+page("/allusers", () => 
+	renderUsers());
 
 page("/register", () => 
 	renderRegister());
