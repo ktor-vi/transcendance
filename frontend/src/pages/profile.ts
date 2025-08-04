@@ -84,38 +84,35 @@ export async function renderProfile() {
 			if (fileInput.files && fileInput.files.length > 0) {
 				fileData.append("changePicture", fileInput.files[0]);
 			}
-	
-				const uploadRes = await fetch("/api/profile", {
-				method: "POST",
-				body: fileData
-				});
 
-				if (uploadRes.ok) {
-					alert("Profil mis à jour!");
+			const uploadRes = await fetch("/api/profile", {
+			method: "POST",
+			body: fileData
+		});
 
-					const profileRes = await fetch("/api/profile");
-
-					if (profileRes.ok) {
-						const updatedUserData = await profileRes.json();
-						const img = document.querySelector("img[alt='default']");
-						if (img) {
-							img.src = `${updatedUserData.picture}?t=${Date.now()}`;
-						}
-					} else {
-							alert("Erreur lors de la récupération des modifications");
-					}
-					} else {
-						let errorRes = "Le pseudo existe déjà, merci d'en choisir un autre";
-					try {
-						const errorData = await uploadRes.json();
-						if (errorData.error) {
-							errorRes = errorData.error;
-						}
-					} catch (err) {
-						console.log("Erreur innatendue: ", err);
-					}
-					alert(errorRes);
+			if (uploadRes.ok) {
+				const updatedUserData = await uploadRes.json();
+				alert("Profil mis à jour!");
+			
+				const img = document.querySelector("img[alt='default']");
+				if (img && updatedUserData.picture) {
+					img.src = `${updatedUserData.picture}?t=${Date.now()}`;
 				}
+			} else {
+				let errorMsg = "Erreur lors de la mise à jour du profil.";
+			
+				try {
+					const errorData = await uploadRes.json();
+					if (errorData.error || errorData.message) {
+						errorMsg = errorData.error || errorData.message;
+					}
+				} catch (err) {
+					console.error("Erreur inattendue lors du parsing JSON :", err);
+				}
+			
+				alert(errorMsg);
+			}
+
 		});
 	}
 

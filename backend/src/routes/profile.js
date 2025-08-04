@@ -46,7 +46,6 @@ export default async function profileRoutes(fastify)
 		// parts vient de fastify/multipart et sert à "parser" la requête contenant texte/ fichier (image)
 		const data = await req.parts();
 		// ces variables vont récupérer les infos de la requête
-		let email = "";
 		let name = "";
 		let given_name = "";
 		let family_name = "";
@@ -99,7 +98,8 @@ export default async function profileRoutes(fastify)
 			await db.run('UPDATE users SET name = ?, given_name = ?, family_name = ? WHERE email = ?', name, given_name, family_name, userSession.email);
 		// mise à jour de la pp
 		if (!picture) {
-			"LA PHOTO N A PAS ETE UPLOAD DANS LA DB";
+			console.log("LA PHOTO N'A PAS ÉTÉ UPLOAD DANS LA DB");
+
 		}
 		if (picture) {
 			//suppression de l'ancien fichier pour ne pas surcharger le serveur inutilement
@@ -126,7 +126,9 @@ export default async function profileRoutes(fastify)
 				// mise à jour dans la db
 				await db.run('UPDATE users SET picture = ? WHERE email = ?', `/uploads/${safeName}`, userSession.email);
 			}
-			reply.send({ success: true });
+			const updatedUser = await db.get('SELECT * FROM users WHERE email = ?', userSession.email);
+			reply.send(updatedUser);
+
 		});
 		
 }
