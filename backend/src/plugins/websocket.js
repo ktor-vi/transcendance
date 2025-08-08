@@ -1,7 +1,7 @@
-// ===== SOLUTION : websocketHandler.js avec fastify-plugin =====
+// ===== SOLUTION : websocketHandler.js avec distinction Dashboard/Tournament =====
 
 import websocketPlugin from "@fastify/websocket";
-import fastifyPlugin from "fastify-plugin"; // 🔥 AJOUT CRITIQUE
+import fastifyPlugin from "fastify-plugin";
 import crypto from "crypto";
 
 async function websocketHandler(fastify) {
@@ -17,13 +17,6 @@ async function websocketHandler(fastify) {
   }
 
   function broadcastTournamentUpdate() {
-    console.log("📡 broadcastTournamentUpdate appelé");
-    console.log("🔍 État de fastify.tournaments:", {
-      exists: !!fastify.tournaments,
-      isMap: fastify.tournaments instanceof Map,
-      size: fastify.tournaments ? fastify.tournaments.size : "N/A",
-      keys: fastify.tournaments ? Array.from(fastify.tournaments.keys()) : [],
-    });
 
     if (!fastify.tournaments) {
       console.error("❌ fastify.tournaments non initialisé");
@@ -63,13 +56,7 @@ async function websocketHandler(fastify) {
       data: tournamentData,
     });
 
-    console.log("📡 BROADCASTING UPDATE:", {
-      exists: tournamentData.exists,
-      state: tournamentData.state,
-      playersCount: tournamentData.players.length,
-      players: tournamentData.players.map((p) => p.name),
-      clientsConnected: tournamentClients.size,
-    });
+
 
     let successCount = 0;
     let failCount = 0;
@@ -147,7 +134,6 @@ async function websocketHandler(fastify) {
   }
 
   function broadcastToGameRoom(roomId, message) {
-    console.log("📡 broadcastToGameRoom appelé");
 
     const connections = gameRoomConnections.get(roomId);
     if (!connections) {
@@ -156,10 +142,7 @@ async function websocketHandler(fastify) {
     }
 
     const messageStr = JSON.stringify(message);
-    console.log(
-      `📡 Broadcasting to room ${roomId} (${connections.size} clients):`,
-      message.type
-    );
+
 
     for (const conn of connections) {
       if (conn.readyState === 1) {
@@ -292,11 +275,7 @@ async function websocketHandler(fastify) {
       let msg;
       try {
         msg = JSON.parse(message.toString());
-        console.log(
-          "📨 Message reçu:",
-          msg.type,
-          msg.connectionId || msg.playerName || ""
-        );
+       
       } catch (e) {
         console.warn("Message WS non JSON", message.toString());
         return;
@@ -325,6 +304,187 @@ async function websocketHandler(fastify) {
     });
 
     function handleJoinRoom(msg) {
+      const { connectionId, playerName: msgPlayerName, roomId } = msg;
+      playerName = msgPlayerName || connectionId;
+
+      console.log(`🎮 Demande de joinRoom:`, {
+        connectionId,
+        playerName,
+        roomId,
+        clientId,
+      });
+
+      // 🔧 DISTINCTION CRITIQUE: Dashboard vs Tournament
+      const isDashboardConnection =
+        connectionId && connectionId.startsWith("dashboard-");
+
+      if (isDashboardConnection) {
+        // 🎮 CONNEXION DASHBOARD - Utiliser le système de rooms 1v1
+        console.log(`🎮 Connexion Dashboard détectée pour ${playerName}`);
+        handleDashboardJoinRoom(msg);
+      } else {
+        // 🏆 CONNEXION TOURNOI - Utiliser le système de tournoi
+        console.log(`🏆 Connexion Tournoi détectée pour ${playerName}`);
+        handleTournamentJoinRoom(msg);
+      }
+    }
+
+    // 🔧 NOUVELLE FONCTION: Gérer les connexions Dashboard (1v1)
+    function handleDashboardJoinRoom(msg) {
+      const { playerName: msgPlayerName, roomId } = msg;
+
+      console.log(`🎮 Dashboard - Recherche de room pour ${msgPlayerName}`);
+
+      // Créer ou rejoindre une room via le système de jeu
+      let targetRoomId = roomId;
+
+      if (!targetRoomId || targetRoomId === "auto") {
+        // Chercher d'abord une room existante avec seulement 1 joueur
+        let availableRoom = null;
+        for (const [
+          existingRoomId,
+          connections,
+        ] of gameRoomConnections.entries()) {
+          if (connections.size === 1) {
+            availableRoom = existingRoomId;
+            console.log(`🔍 Room disponible trouvée: ${availableRoom}`);
+            break;
+          }
+        }
+
+        if (availableRoom) {
+          targetRoomId = availableRoom;
+        } else {
+          // Créer une nouvelle room seulement si aucune n'est disponible
+          if (fastify.createRoom) {
+            targetRoomId = fastify.createRoom();
+            console.log(`🆕 Nouvelle room créée: ${targetRoomId}`);
+          } else {
+            console.error("❌ fastify.createRoom non disponible");
+            conn.send(
+              JSON.stringify({
+                type: "error",
+                message: "Impossible de créer une room de jeu",
+              })
+            );
+            return;
+          }
+        }
+      } else {
+        // S'assurer que la room existe
+        if (fastify.ensureRoom) {
+          fastify.ensureRoom(targetRoomId, msgPlayerName, null);
+          console.log(`✅ Room ${targetRoomId} assurée pour ${msgPlayerName}`);
+        }
+      }
+
+      playerName = msgPlayerName;
+      joinedRoom = targetRoomId;
+
+      // Déterminer le numéro de joueur (1 ou 2)
+      if (!gameRoomConnections.has(joinedRoom)) {
+        gameRoomConnections.set(joinedRoom, new Set());
+      }
+
+      const roomConnections = gameRoomConnections.get(joinedRoom);
+      playerNumber = roomConnections.size + 1; // 1 ou 2
+
+      if (playerNumber > 2) {
+        conn.send(
+          JSON.stringify({
+            type: "error",
+            message: "Room complète (2 joueurs maximum)",
+          })
+        );
+        return;
+      }
+
+      roomConnections.add(conn);
+      conn.roomId = joinedRoom;
+      conn.playerName = playerName;
+      conn.playerNumber = playerNumber;
+
+      // 🔧 NOUVEAU: Informer le serveur de jeu de la connexion du joueur
+      if (fastify.handlePlayerConnection) {
+        fastify.handlePlayerConnection(joinedRoom, playerNumber, playerName);
+      }
+
+      // Envoyer l'assignation avec le nom du joueur
+      conn.send(
+        JSON.stringify({
+          type: "assign",
+          player: playerNumber,
+          roomId: joinedRoom,
+          playerName: playerName, // 🔧 NOUVEAU: Inclure le nom du joueur
+        })
+      );
+
+      // 🔧 NOUVEAU: Envoyer l'état d'attente si on est le premier joueur
+      if (playerNumber === 1) {
+        conn.send(
+          JSON.stringify({
+            type: "waiting",
+            message: "En attente du second joueur...",
+            playersCount: 1,
+            maxPlayers: 2,
+          })
+        );
+        console.log(
+          `⏳ ${playerName} en attente du second joueur dans ${joinedRoom}`
+        );
+      } else if (playerNumber === 2) {
+        // 🔧 NOUVEAU: Récupérer les noms des deux joueurs
+        const roomStatus = fastify.getRoomStatus
+          ? fastify.getRoomStatus(joinedRoom)
+          : null;
+        const playersNames = roomStatus ? roomStatus.players : {};
+
+        // 🔧 NOUVEAU: Informer les deux joueurs que la partie peut commencer
+        setTimeout(() => {
+          broadcastToGameRoom(joinedRoom, {
+            type: "gameReady",
+            message: "Tous les joueurs sont connectés! La partie commence...",
+            playersCount: 2,
+            maxPlayers: 2,
+            players: playersNames, // 🔧 NOUVEAU: Inclure les noms des joueurs
+          });
+
+          // 🔧 IMPORTANT: Envoyer l'état initial du jeu après un court délai
+          setTimeout(() => {
+            const updatedRoomStatus = fastify.getRoomStatus
+              ? fastify.getRoomStatus(joinedRoom)
+              : null;
+            if (updatedRoomStatus && updatedRoomStatus.gameState.gameActive) {
+              broadcastToGameRoom(joinedRoom, {
+                type: "state",
+                gameState: {
+                  ball: updatedRoomStatus.gameState.ball,
+                  paddleOne: updatedRoomStatus.gameState.paddleOne,
+                  paddleTwo: updatedRoomStatus.gameState.paddleTwo,
+                  scoreP1: updatedRoomStatus.gameState.score.p1,
+                  scoreP2: updatedRoomStatus.gameState.score.p2,
+                  gameEnded: updatedRoomStatus.gameState.gameEnded,
+                  gameActive: updatedRoomStatus.gameState.gameActive,
+                },
+              });
+            }
+          }, 500);
+        }, 1000); // Délai pour que le client soit prêt
+
+        console.log(
+          `🚀 Partie prête à démarrer dans ${joinedRoom} avec ${Object.values(
+            playersNames
+          ).join(" vs ")}`
+        );
+      }
+
+      console.log(
+        `✅ Dashboard - Joueur ${playerName} assigné à ${joinedRoom} (Joueur ${playerNumber})`
+      );
+    }
+
+    // 🔧 FONCTION EXISTANTE: Gérer les connexions Tournoi
+    function handleTournamentJoinRoom(msg) {
       const { connectionId, playerName: msgPlayerName } = msg;
       playerName = msgPlayerName || connectionId;
 
@@ -381,7 +541,7 @@ async function websocketHandler(fastify) {
       conn.playerName = playerName;
       conn.playerNumber = playerNumber;
 
-      // 🔧 CORRECTION: S'assurer que la room existe avec les bons joueurs
+      // S'assurer que la room existe avec les bons joueurs
       if (fastify.ensureRoom) {
         fastify.ensureRoom(joinedRoom, match.player1, match.player2);
       }
@@ -415,7 +575,7 @@ async function websocketHandler(fastify) {
       }
 
       console.log(
-        `✅ Joueur ${playerName} assigné à ${joinedRoom} (Joueur ${playerNumber})`
+        `✅ Tournoi - Joueur ${playerName} assigné à ${joinedRoom} (Joueur ${playerNumber})`
       );
     }
 
@@ -475,20 +635,12 @@ async function websocketHandler(fastify) {
       }
     }
 
-    // Dans websocketHandler.js, fonction handleInput :
     function handleInput(msg) {
-      // 🔧 CORRECTION : Utiliser le playerNumber du message ou de la connexion
       const effectivePlayerNumber =
         msg.playerNumber || conn.playerNumber || playerNumber;
 
       if (fastify.handleGameInput && joinedRoom && effectivePlayerNumber) {
-        console.log(
-          `🎮 Transmission input: Room ${joinedRoom}, P${effectivePlayerNumber}`,
-          {
-            left: msg.left,
-            right: msg.right,
-          }
-        );
+
 
         fastify.handleGameInput(joinedRoom, effectivePlayerNumber, msg);
       } else {
@@ -510,12 +662,25 @@ async function websocketHandler(fastify) {
     });
 
     function handleDisconnection() {
+      // 🔧 NOUVEAU: Informer le serveur de jeu de la déconnexion
+      if (
+        conn.roomId &&
+        conn.playerNumber &&
+        fastify.handlePlayerDisconnection
+      ) {
+        fastify.handlePlayerDisconnection(conn.roomId, conn.playerNumber);
+      }
+
       for (const [roomId, connections] of gameRoomConnections.entries()) {
         if (connections.has(conn)) {
           connections.delete(conn);
           if (connections.size === 0) {
             gameRoomConnections.delete(roomId);
             console.log(`🗑️ Room ${roomId} supprimée (plus de connexions)`);
+          } else {
+            console.log(
+              `👋 Joueur déconnecté de ${roomId} (${connections.size} restants)`
+            );
           }
         }
       }
@@ -535,11 +700,10 @@ async function websocketHandler(fastify) {
   console.log("  - broadcastTournamentUpdate");
 
   console.log(
-    "🌐 Gestionnaire WebSocket unifié initialisé avec fastify-plugin"
+    "🌐 Gestionnaire WebSocket unifié initialisé avec distinction Dashboard/Tournament"
   );
 }
 
 export default fastifyPlugin(websocketHandler, {
   name: "websocket-handler",
 });
-

@@ -1,4 +1,4 @@
-// 🎮 SERVEUR DE JEU PROPRE ET CORRIGÉ
+// 🎮 SERVEUR DE JEU AVEC ATTENTE DE 2 JOUEURS
 import crypto from "crypto";
 import fp from "fastify-plugin";
 
@@ -38,6 +38,8 @@ export default fp(async function (fastify) {
       gameEnded: false,
       winner: null,
       players: new Map(), // playerNumber -> playerName
+      playersReady: 0, // 🔧 NOUVEAU: Compteur de joueurs connectés
+      gameActive: false, // 🔧 NOUVEAU: Jeu actif ou en attente
     };
 
     // Créer la room
@@ -45,14 +47,46 @@ export default fp(async function (fastify) {
       gameState,
       roomId,
       lastUpdateTime: Date.now(),
+      loop: null, // 🔧 MODIFICATION: Pas de boucle au début
     };
 
     rooms.set(roomId, room);
+    console.log(`✅ Room ${roomId} créée - en attente de joueurs`);
+
+    return roomId;
+  }
+
+  // 🔧 NOUVELLE FONCTION: Démarrer la boucle de jeu
+  function startGameLoop(roomId) {
+    const room = rooms.get(roomId);
+    if (!room) {
+      console.warn(`⚠️ Impossible de démarrer - room ${roomId} inexistante`);
+      return;
+    }
+
+    if (room.loop) {
+      console.log(`⚠️ Boucle de jeu déjà active pour ${roomId}`);
+      return;
+    }
+
+    console.log(`🚀 Démarrage de la boucle de jeu pour ${roomId}`);
+    room.gameState.gameActive = true;
 
     // Démarrer la boucle de jeu à 60 FPS
     room.loop = setInterval(() => updateRoom(roomId), 1000 / 60);
+  }
 
-    return roomId;
+  // 🔧 NOUVELLE FONCTION: Arrêter la boucle de jeu
+  function stopGameLoop(roomId) {
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    if (room.loop) {
+      clearInterval(room.loop);
+      room.loop = null;
+      room.gameState.gameActive = false;
+      console.log(`⏹️ Boucle de jeu arrêtée pour ${roomId}`);
+    }
   }
 
   function updateRoom(roomId) {
@@ -66,8 +100,13 @@ export default fp(async function (fastify) {
 
     const gs = room.gameState;
 
-    // Ignorer si le jeu est terminé
-    if (gs.gameEnded) {
+    // 🔧 NOUVEAU: Ne pas mettre à jour si le jeu n'est pas actif
+    if (!gs.gameActive || gs.gameEnded) {
+      return;
+    }
+
+    // 🔧 NOUVEAU: Vérifier qu'il y a bien 2 joueurs
+    if (gs.playersReady < 2) {
       return;
     }
 
@@ -137,7 +176,7 @@ export default fp(async function (fastify) {
       gs.ball.dx = (Math.random() - 0.5) * 0.1; // Direction horizontale aléatoire
       gs.ball.dz = scoringPlayer === 1 ? 0.1 : -0.1; // Direction vers l'adversaire
 
-      // Informer le système de tournoi
+      // Informer le système de tournoi (si applicable)
       if (fastify.updateMatchScore) {
         fastify.updateMatchScore(roomId, gs.score.p1, gs.score.p2);
       }
@@ -160,6 +199,7 @@ export default fp(async function (fastify) {
           scoreP1: gs.score.p1,
           scoreP2: gs.score.p2,
           gameEnded: gs.gameEnded,
+          gameActive: gs.gameActive,
         },
       });
     }
@@ -170,6 +210,7 @@ export default fp(async function (fastify) {
 
     // Marquer le jeu comme terminé
     gs.gameEnded = true;
+    gs.gameActive = false;
     gs.winner = winningPlayerNumber;
 
     // Récupérer les noms des joueurs
@@ -182,7 +223,7 @@ export default fp(async function (fastify) {
       `🏁 Fin de partie ${room.roomId}: ${winnerName} bat ${loserName} ${gs.score.p1}-${gs.score.p2}`
     );
 
-    // Informer le système de tournoi du résultat final
+    // Informer le système de tournoi du résultat final (si applicable)
     if (fastify.updateMatchScore) {
       fastify.updateMatchScore(
         room.roomId,
@@ -205,10 +246,7 @@ export default fp(async function (fastify) {
     }
 
     // Arrêter la boucle de mise à jour
-    if (room.loop) {
-      clearInterval(room.loop);
-      room.loop = null;
-    }
+    stopGameLoop(room.roomId);
 
     // Programmer la suppression de la room
     setTimeout(() => {
@@ -225,7 +263,7 @@ export default fp(async function (fastify) {
 
     const room = rooms.get(roomId);
 
-    // Configurer les joueurs
+    // 🔧 MODIFICATION: Configurer les joueurs et démarrer si 2 joueurs
     if (player1Name) {
       room.gameState.players.set(1, player1Name);
     }
@@ -233,16 +271,68 @@ export default fp(async function (fastify) {
       room.gameState.players.set(2, player2Name);
     }
 
+    // 🔧 NOUVEAU: Compter les joueurs connectés
+    room.gameState.playersReady = room.gameState.players.size;
+
     console.log(
       `🎮 Room ${roomId} configurée: ${player1Name || "Player1"} vs ${
         player2Name || "Player2"
-      }`
+      } (${room.gameState.playersReady}/2 joueurs)`
     );
+
+    // 🔧 NOUVEAU: Démarrer le jeu si 2 joueurs sont prêts
+    if (room.gameState.playersReady >= 2 && !room.loop) {
+      console.log(`🚀 2 joueurs connectés - démarrage du jeu ${roomId}`);
+      startGameLoop(roomId);
+    }
 
     return room;
   }
 
-  // Dans gameServer.js, modifier handleGameInput :
+  // 🔧 MODIFICATION: Gérer la connexion/déconnexion des joueurs
+  function handlePlayerConnection(roomId, playerNumber, playerName) {
+    const room = rooms.get(roomId);
+    if (!room) {
+      console.warn(`⚠️ Room ${roomId} non trouvée pour connexion joueur`);
+      return false;
+    }
+
+    // Ajouter le joueur
+    room.gameState.players.set(playerNumber, playerName);
+    room.gameState.playersReady = room.gameState.players.size;
+
+    console.log(
+      `👋 Joueur ${playerNumber} (${playerName}) connecté à ${roomId} (${room.gameState.playersReady}/2)`
+    );
+
+    // Démarrer le jeu si 2 joueurs sont connectés
+    if (room.gameState.playersReady >= 2 && !room.loop) {
+      console.log(`🚀 2 joueurs connectés - démarrage du jeu ${roomId}`);
+      setTimeout(() => startGameLoop(roomId), 1000); // Petit délai pour que les clients soient prêts
+    }
+
+    return true;
+  }
+
+  function handlePlayerDisconnection(roomId, playerNumber) {
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    // Retirer le joueur
+    room.gameState.players.delete(playerNumber);
+    room.gameState.playersReady = room.gameState.players.size;
+
+    console.log(
+      `👋 Joueur ${playerNumber} déconnecté de ${roomId} (${room.gameState.playersReady}/2)`
+    );
+
+    // Arrêter le jeu si moins de 2 joueurs
+    if (room.gameState.playersReady < 2) {
+      console.log(`⏹️ Moins de 2 joueurs - arrêt du jeu ${roomId}`);
+      stopGameLoop(roomId);
+    }
+  }
+
   function handleGameInput(roomId, playerNumber, inputMsg) {
     const room = rooms.get(roomId);
 
@@ -251,11 +341,16 @@ export default fp(async function (fastify) {
       return;
     }
 
-    if (room.gameState.gameEnded) {
+    // 🔧 NOUVEAU: Ignorer les inputs si le jeu n'est pas actif
+    if (!room.gameState.gameActive || room.gameState.gameEnded) {
       return;
     }
 
-    // 🔧 CORRECTION : Utiliser le playerNumber du message si disponible
+    // 🔧 NOUVEAU: Ignorer si pas assez de joueurs
+    if (room.gameState.playersReady < 2) {
+      return;
+    }
+
     const actualPlayerNumber = inputMsg.playerNumber || playerNumber;
 
     if (actualPlayerNumber !== 1 && actualPlayerNumber !== 2) {
@@ -270,12 +365,7 @@ export default fp(async function (fastify) {
 
     const PADDLE_SPEED = 0.3; // Augmenté pour plus de réactivité
 
-    // Log pour debug
-    console.log(
-      `🎮 Input P${actualPlayerNumber}: L:${inputMsg.left} R:${
-        inputMsg.right
-      } Pos:${paddle.x.toFixed(2)}`
-    );
+
 
     // Appliquer le mouvement
     if (inputMsg.left) {
@@ -294,6 +384,8 @@ export default fp(async function (fastify) {
         roomId,
         score: { ...room.gameState.score },
         gameEnded: room.gameState.gameEnded,
+        gameActive: room.gameState.gameActive,
+        playersReady: room.gameState.playersReady,
         winner: room.gameState.winner,
         players: Object.fromEntries(room.gameState.players),
         lastUpdate: room.lastUpdateTime,
@@ -303,15 +395,39 @@ export default fp(async function (fastify) {
     return roomList;
   }
 
-  
+  // 🔧 NOUVELLE FONCTION: Obtenir le statut d'une room spécifique
+  function getRoomStatus(roomId) {
+    const room = rooms.get(roomId);
+    if (!room) {
+      return null;
+    }
 
-  
+    return {
+      roomId,
+      gameState: {
+        ball: { ...room.gameState.ball },
+        paddleOne: { ...room.gameState.paddleOne },
+        paddleTwo: { ...room.gameState.paddleTwo },
+        score: { ...room.gameState.score },
+        gameEnded: room.gameState.gameEnded,
+        gameActive: room.gameState.gameActive,
+        playersReady: room.gameState.playersReady,
+        winner: room.gameState.winner,
+      },
+      players: Object.fromEntries(room.gameState.players),
+      lastUpdate: room.lastUpdateTime,
+    };
+  }
 
   // ===== EXPOSER LES FONCTIONS PUBLIQUES =====
 
   fastify.decorate("createRoom", createRoom);
   fastify.decorate("ensureRoom", ensureRoom);
   fastify.decorate("handleGameInput", handleGameInput);
+  fastify.decorate("getRoomStatus", getRoomStatus);
+  fastify.decorate("getAllRoomsStatus", getAllRoomsStatus);
+  fastify.decorate("handlePlayerConnection", handlePlayerConnection);
+  fastify.decorate("handlePlayerDisconnection", handlePlayerDisconnection);
 
   // ===== NETTOYAGE À L'ARRÊT =====
 
@@ -328,5 +444,5 @@ export default fp(async function (fastify) {
     console.log("✅ Serveur de jeu nettoyé");
   });
 
-  console.log("🎮 Serveur de jeu initialisé (architecture propre)");
+  console.log("🎮 Serveur de jeu initialisé avec attente de 2 joueurs");
 });

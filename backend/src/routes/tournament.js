@@ -74,7 +74,6 @@ export default async function tournamentRoutes(fastify) {
 
         // Diffuser la mise à jour
         if (fastify.broadcastTournamentUpdate) {
-          console.log("📡 Diffusion mise à jour tournoi...");
           try {
             fastify.broadcastTournamentUpdate();
             console.log("✅ Diffusion réussie");
