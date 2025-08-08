@@ -7,6 +7,7 @@ import { renderProfile } from "./pages/profile";
 import { renderRegister } from "./pages/register";
 import { renderLogin } from "./pages/login";
 import { renderForgotPwd } from "./pages/forgotPassword";
+import { renderTournamentPage } from "./pages/tournament";
 // 🔽 Récupère la référence à l'élément HTML avec l'ID "app"
 // C'est dans cet élément que les pages seront affichées dynamiquement
 const app = document.getElementById("app");
@@ -35,6 +36,7 @@ page("/login", () =>
 page("/forgotPassword", () => 
 	renderForgotPwd());
 page("/keyboard-play", () => render(renderKeyboardPlay()))
+page("/tournament", () => renderTournamentPage());
 // Lance le routeur (écoute les changements de l'URL sans recharger la page)
 // a la page de l'index (/) on va donc "génerer" la homepage définie dans pages/home.ts
 

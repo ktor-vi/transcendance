@@ -22,7 +22,7 @@ dev:
 # Commands for Production
 prod:
 	@echo "$(YELLOW)Building frontend and backend for production...$(RESET)"
-	@docker-compose -f $(DOCKER_COMPOSE_FILE) -f  up --build  frontend-prod backend-prod --detach
+	@docker-compose -f $(DOCKER_COMPOSE_FILE) up --build  frontend-prod backend-prod 
 	@echo "$(YELLOW)Production environment is up.$(RESET)"
 
 # Docker Build

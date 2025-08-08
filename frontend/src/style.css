@@ -13,3 +13,18 @@ h1 {
 button {
     @apply mt-5 px-4 py-2 bg-blue-500 text-white rounded;
 }
+
+
+ /* canvas {
+  background: #f0f0f0 !important;  
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 400px !important;
+}
+
+.game-container {
+  position: relative;
+  overflow: visible;
+ } */
+ 

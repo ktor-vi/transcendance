@@ -2,15 +2,17 @@ import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
 import registerCors from './plugins/cors.js';
-import registerWebSockets from './plugins/websocket.js';
+import websocketHandler from "./plugins/websocket.js";
 import registerSession from './plugins/session.js';
 import registerOAuth from './plugins/oauth.js';
-import authRoutes from './routes/auth.js';
+import authRoutes from "./routes/auth.js";
+import tournamentRoutes from "./routes/tournament.js";
 import profileRoutes from './routes/profile.js';
 import registerRoutes from './routes/register.js';
 import loginRoutes from './routes/login.js';
 import forgotPwdRoutes from './routes/forgotPassword.js';
 import fastifyMultipart from '@fastify/multipart';
+import gameServer from "./plugins/gameServer.js";
 
 import fs from 'fs';
 
@@ -30,7 +32,10 @@ await fastify.register(fastifyMultipart);
 await registerCors(fastify);
 await registerSession(fastify);
 await registerOAuth(fastify);
-await registerWebSockets(fastify);
+
+await fastify.register(websocketHandler);
+await fastify.register(tournamentRoutes);
+await fastify.register(gameServer);
 
 fastify.register(authRoutes);
 fastify.register(profileRoutes, { prefix: '/api'});

@@ -49,6 +49,10 @@ export default defineConfig({
         secure: false,
         configure: cookieForwarding,
       },
+      "/ws": {
+        target: `wss://${process.env.HOSTNAME}:3000`,
+        ws: true
+      }
     },
     historyApiFallback: true,
     hmr: {

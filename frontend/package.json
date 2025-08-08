@@ -8,12 +8,13 @@
   "dependencies": {
     "@babylonjs/core": "^8.15.1",
     "@babylonjs/gui": "^8.15.1",
-    "@babylonjs/loaders": "^8.15.1",
     "@babylonjs/inspector": "^8.15.1",
+    "@babylonjs/loaders": "^8.15.1",
     "@babylonjs/materials": "^8.15.1",
     "page": "^1.11.6"
   },
   "devDependencies": {
+    "@types/node": "^24.0.14",
     "@types/page": "^1.11.9",
     "autoprefixer": "^10.4.15",
     "postcss": "^8.4.24",
