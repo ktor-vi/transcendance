@@ -16,7 +16,7 @@ export function renderDashboard() {
     let opponentPlayerName = "";
 
     // 🔧 CHARGEMENT DU PROFIL
-    fetch("api/profile", { credentials: "include" })
+    fetch("api/session", { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error("Utilisateur non connecté");
         return res.json();

@@ -178,7 +178,16 @@ export default fp(async function (fastify) {
 
       // Informer le système de tournoi (si applicable)
       if (fastify.updateMatchScore) {
-        fastify.updateMatchScore(roomId, gs.score.p1, gs.score.p2);
+        const player1Name = gs.players.get(1) || "Player1";
+        const player2Name = gs.players.get(2) || "Player2";
+
+        fastify.updateMatchScore(
+          roomId,
+          player1Name,
+          player2Name,
+          gs.score.p1,
+          gs.score.p2
+        );
       }
 
       // Vérifier la condition de fin de partie
@@ -224,14 +233,19 @@ export default fp(async function (fastify) {
     );
 
     // Informer le système de tournoi du résultat final (si applicable)
-    if (fastify.updateMatchScore) {
-      fastify.updateMatchScore(
-        room.roomId,
-        gs.score.p1,
-        gs.score.p2,
-        winnerName
-      );
-    }
+    // if (fastify.updateMatchScore) {
+    //   const player1Name = gs.players.get(1) || "Player1";
+    //   const player2Name = gs.players.get(2) || "Player2";
+
+    //   fastify.updateMatchScore(
+    //     room.roomId,
+    //     player1Name,
+    //     player2Name,
+    //     gs.score.p1,
+    //     gs.score.p2,
+    //     winnerName
+    //   );
+    // }
 
     // Diffuser la fin de partie
     if (fastify.broadcastToGameRoom) {

@@ -3,6 +3,7 @@
 import websocketPlugin from "@fastify/websocket";
 import fastifyPlugin from "fastify-plugin";
 import crypto from "crypto";
+import { openDb, openDbHistory } from "../utils/db.js";
 
 async function websocketHandler(fastify) {
   await fastify.register(websocketPlugin);
@@ -17,7 +18,6 @@ async function websocketHandler(fastify) {
   }
 
   function broadcastTournamentUpdate() {
-
     if (!fastify.tournaments) {
       console.error("❌ fastify.tournaments non initialisé");
       return;
@@ -56,8 +56,6 @@ async function websocketHandler(fastify) {
       data: tournamentData,
     });
 
-
-
     let successCount = 0;
     let failCount = 0;
 
@@ -82,59 +80,163 @@ async function websocketHandler(fastify) {
     );
   }
 
-  function updateMatchScore(roomId, scoreP1, scoreP2, winner = null) {
-    console.log("📊 updateMatchScore appelé");
+  async function updateMatchScore(
+    roomId,
+    P1Name,
+    P2Name,
+    scoreP1,
+    scoreP2,
+    winner = null
+  ) {
+    const db = await openDbHistory();
+    console.log("📊 updateMatchScore appelé avec:", {
+      roomId,
+      P1Name,
+      P2Name,
+      scoreP1,
+      scoreP2,
+      winner,
+    });
 
-    if (!fastify.tournaments) {
-      console.error(`❌ fastify.tournaments non initialisé`);
+    if (!roomId || P1Name === undefined || P2Name === undefined) {
+      console.error("❌ Paramètres manquants:", { roomId, P1Name, P2Name });
       return false;
     }
 
     const tournament = fastify.tournaments.get("default");
-    if (!tournament) {
-      console.error(`❌ Tournoi par défaut non trouvé`);
-      return false;
-    }
 
-    const match = tournament.matches
-      ? tournament.matches.find((m) => m.roomId === roomId)
-      : null;
-    if (!match) {
-      console.error(`❌ Match non trouvé pour roomId: ${roomId}`);
-      return false;
-    }
+    const score1 = parseInt(scoreP1) || 0;
+    const score2 = parseInt(scoreP2) || 0;
 
-    console.log(
-      `📊 Mise à jour score pour ${roomId}: ${scoreP1}-${scoreP2}${
-        winner ? ` (Gagnant: ${winner})` : ""
-      }`
-    );
+    console.log(`🎯 Scores convertis: ${score1} - ${score2}`);
 
-    match.scoreP1 = parseInt(scoreP1) || 0;
-    match.scoreP2 = parseInt(scoreP2) || 0;
-
-    if (winner) {
-      match.winner = winner;
-      match.status = "finished";
-      console.log(`🏆 Match terminé: ${winner} gagne ${scoreP1}-${scoreP2}!`);
-
-      const allFinished = tournament.matches.every(
-        (m) => m.status === "finished" && m.winner
-      );
-      if (allFinished && tournament.state === "running") {
-        console.log(`✅ Tous les matchs du round ${tournament.round} terminés`);
-        tournament.state = "completed_round";
+    // Si aucun winner n'est passé en paramètre, on le détermine
+    if (!winner) {
+      if (score1 >= 11 && score1 - score2 >= 2) {
+        winner = P1Name;
+        console.log(`🏆 P1 gagne: ${P1Name} (${score1}-${score2})`);
+      } else if (score2 >= 11 && score2 - score1 >= 2) {
+        winner = P2Name;
+        console.log(`🏆 P2 gagne: ${P2Name} (${score1}-${score2})`);
       }
-    } else {
-      match.status = "playing";
     }
 
-    broadcastTournamentUpdate();
-    return true;
+    if (!tournament) {
+      console.log(
+        `💾 Match simple - Gagnant: ${winner}, Scores: ${score1}-${score2}`
+      );
+
+      if (winner) {
+        try {
+          await db.run(
+            `INSERT OR IGNORE INTO history
+             (type, player_1, player_2, scores, winner)
+             VALUES (?, ?, ?, ?, ?)`,
+            ["match", P1Name, P2Name, `${score1} - ${score2}`, winner]
+          );
+          console.log(
+            `✅ Match simple sauvegardé: ${P1Name} vs ${P2Name} - ${winner} gagne`
+          );
+        } catch (error) {
+          console.error(
+            "❌ Erreur lors de la sauvegarde du match simple:",
+            error
+          );
+        }
+      } else {
+        console.log(
+          `⏸️ Match simple en cours: ${P1Name} vs ${P2Name} - ${score1}:${score2}`
+        );
+      }
+      return true;
+    }
+
+    if (tournament) {
+      const match = tournament.matches
+        ? tournament.matches.find((m) => m.roomId === roomId)
+        : null;
+
+      if (!match) {
+        console.log(`⚠️ Match non trouvé pour roomId: ${roomId}`);
+        return false;
+      }
+
+      console.log(
+        `📊 Mise à jour score pour ${roomId}: ${score1}-${score2}${
+          winner ? ` (Gagnant: ${winner})` : ""
+        }`
+      );
+
+      // Mise à jour du match
+      match.scoreP1 = score1;
+      match.scoreP2 = score2;
+
+      if (winner) {
+        match.winner = winner;
+        match.status = "finished";
+
+        console.log(`🏆 Match terminé: ${winner} gagne ${score1}-${score2}!`);
+
+        let matchType = "tournament match";
+
+        // Pour un tournoi à 3 joueurs :
+        // Round 1 = match éliminatoire → "tournament match"
+        // Round 2 = finale → "tournament final"
+        const totalPlayers = tournament.players.length;
+        const finalRound = Math.ceil(Math.log2(totalPlayers)); // Round final théorique
+
+        if (tournament.round >= finalRound) {
+          matchType = "tournament final";
+        }
+
+        console.log(
+          `🎯 Type de match déterminé: ${matchType} (Round ${tournament.round}/${finalRound})`
+        );
+
+        // Sauvegarder ce match immédiatement
+        try {
+          await db.run(
+            `INSERT OR IGNORE INTO history
+             (type, player_1, player_2, scores, winner)
+             VALUES (?, ?, ?, ?, ?)`,
+            [
+              matchType,
+              match.player1,
+              match.player2,
+              `${score1} - ${score2}`,
+              winner,
+            ]
+          );
+
+          console.log(`💾 Match sauvegardé comme: ${matchType}`);
+        } catch (error) {
+          console.error("❌ Erreur lors de la sauvegarde:", error);
+        }
+
+        // Vérifier si tous les matches du round actuel sont terminés
+        const allRoundFinished = tournament.matches.every(
+          (m) => m.status === "finished" && m.winner
+        );
+
+        if (allRoundFinished && tournament.state === "running") {
+          console.log(
+            `✅ Tous les matchs du round ${tournament.round} terminés`
+          );
+          tournament.state = "completed_round";
+        }
+      } else {
+        // Match en cours, pas de gagnant encore
+        match.status = "playing";
+      }
+
+      broadcastTournamentUpdate();
+      return true;
+    }
+
+    return false;
   }
-
+  
   function broadcastToGameRoom(roomId, message) {
-
     const connections = gameRoomConnections.get(roomId);
     if (!connections) {
       console.warn(`⚠️ Aucune connexion trouvée pour room ${roomId}`);
@@ -142,7 +244,6 @@ async function websocketHandler(fastify) {
     }
 
     const messageStr = JSON.stringify(message);
-
 
     for (const conn of connections) {
       if (conn.readyState === 1) {
@@ -275,7 +376,6 @@ async function websocketHandler(fastify) {
       let msg;
       try {
         msg = JSON.parse(message.toString());
-       
       } catch (e) {
         console.warn("Message WS non JSON", message.toString());
         return;
@@ -483,7 +583,6 @@ async function websocketHandler(fastify) {
       );
     }
 
-    // 🔧 FONCTION EXISTANTE: Gérer les connexions Tournoi
     function handleTournamentJoinRoom(msg) {
       const { connectionId, playerName: msgPlayerName } = msg;
       playerName = msgPlayerName || connectionId;
@@ -640,8 +739,6 @@ async function websocketHandler(fastify) {
         msg.playerNumber || conn.playerNumber || playerNumber;
 
       if (fastify.handleGameInput && joinedRoom && effectivePlayerNumber) {
-
-
         fastify.handleGameInput(joinedRoom, effectivePlayerNumber, msg);
       } else {
         console.warn(`⚠️ Input ignoré - Manque d'info:`, {
