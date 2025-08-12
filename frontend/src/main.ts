@@ -13,12 +13,12 @@ import { renderForgotPwd } from "./pages/forgotPassword";
 import { startPingLoop } from "./components/pingLoop";
 import { getUserStatut } from "./components/auth";
 
-// fonction anonume juste pour démarrer ma boucle ping
-// (async() => {
-// 	const res = await getUserStatut();
-// 	if (res.loggedIn)
-// 		startPingLoop();
-// })();
+// fonction anonyme juste pour démarrer ma boucle ping
+(async() => {
+	const res = await getUserStatut();
+	if (res.loggedIn)
+		startPingLoop();
+})();
 
 // 🔽 Récupère la référence à l'élément HTML avec l'ID "app"
 // C'est dans cet élément que les pages seront affichées dynamiquement

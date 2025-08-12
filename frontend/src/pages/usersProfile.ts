@@ -57,7 +57,24 @@ export async function renderUserProfile(ctx: any) {
 		document.getElementById("app")!.innerHTML = html;
 		const statut = document.getElementById("userStatut");
 		if (statut)
-			statut.textContent = "[?]";
+		{
+			try {
+				const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`, { method: "GET" });
+				if (!statutRes.ok)
+				    throw new Error(`Error with http status`);
+				const data = await statutRes.json();
+				console.log("Réponse statut : ", data);
+				
+				if (data.online)
+				    statut.textContent = "Connecté";
+				else
+				    statut.textContent = "Déconnecté";
+				
+			} catch (err) {
+				console.error("Erreur avec le statut: ", err);
+			}
+
+		}
 		setupBackButton();
 	} catch (error) {
 		console.error("Erreur lors du chargement du profil :", error);
