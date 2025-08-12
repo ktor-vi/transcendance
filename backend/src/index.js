@@ -9,7 +9,9 @@ import authRoutes from './routes/auth.js';
 import profileRoutes from './routes/profile.js';
 import usersListRoutes from './routes/usersList.js';
 import userProfileRoutes from './routes/usersProfile.js';
+import pingRoutes from './routes/ping.js';
 import registerRoutes from './routes/register.js';
+import userRoutes from './routes/user.js';
 import loginRoutes from './routes/login.js';
 import forgotPwdRoutes from './routes/forgotPassword.js';
 import fastifyMultipart from '@fastify/multipart';
@@ -35,12 +37,14 @@ await registerOAuth(fastify);
 await registerWebSockets(fastify);
 
 fastify.register(authRoutes);
+fastify.register(userRoutes, { prefix: '/api'});
 fastify.register(profileRoutes, { prefix: '/api'});
 fastify.register(usersListRoutes, { prefix: '/api'});
 fastify.register(userProfileRoutes, { prefix: '/api'});
 fastify.register(registerRoutes, { prefix: '/api'});
 fastify.register(loginRoutes, { prefix: '/api'});
 fastify.register(forgotPwdRoutes, { prefix: '/api'});
+fastify.register(pingRoutes, { prefix: '/api'});
 
 // gestion manuelle de certains messages d'erreurs
 fastify.setErrorHandler(function (error, request, reply) {

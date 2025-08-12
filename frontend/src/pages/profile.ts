@@ -1,5 +1,5 @@
 import page from "page";
-
+import { getUserStatut } from '../components/auth';
 import { backButton, setupBackButton } from '../components/backButton.js';
 
 // renderProfile permet de créer la page liée au profile
@@ -19,6 +19,8 @@ export async function renderProfile() {
 		if (!userData.picture || userData.picture.trim() === "") {
 			userData.picture = "/default.jpg";
 		}
+
+		
 		
 		const html = `
 		<h1 style="text-align: center;">Profil</h1>
@@ -30,39 +32,50 @@ export async function renderProfile() {
 		gap: 16px;
 		min-height: 50vh;
 		">
-			<div style="display: flex; align-items: center; gap: 8px;">
-			<label for="emailInput">Adresse mail :</label>
-			<input type="text" id="emailInput" value="${userData.email}" disabled tabindex=-1/>
-			</div>
+		<div style="display: flex; align-items: center; gap: 8px;">
+		<label for="emailInput">Adresse mail :</label>
+		<input type="text" id="emailInput" value="${userData.email}" disabled tabindex=-1/>
+		</div>
 
-			<div style="display: flex; align-items: center; gap: 8px;">
-			<label for="nameInput">Pseudo :</label>
-			<input type="text" id="nameInput" value="${userData.name}" />
+		<div style="display: flex; align-items: center; gap: 8px;">
+		<label for="nameInput">Pseudo :</label>
+		<input type="text" id="nameInput" value="${userData.name}" />
 			</div>
 
 			<div style="display: flex; align-items: center; gap: 8px;">
 			<label for="given_nameInput">Prénom :</label>
 			<input type="text" id="given_nameInput" value="${userData.given_name}" />
 			</div>
-
+			
 			<div style="display: flex; align-items: center; gap: 8px;">
 			<label for="family_nameInput">Nom :</label>
 			<input type="text" id="family_nameInput" value="${userData.family_name}" />
 			</div>
-
+			
 			<label for="changePicture">Photo de profil :</label>
 			<input id="changePicture" name="changePicture" type="file"/>
 			<div style="display: flex; align-items: center; gap: 8px;">
 			<img src="${userData.picture}" alt="default" style="display: flex; align-items: center; width: 100px; height: 100px; object-fit: cover; border-radius: 50%;" />
 			</div>
-
+			
 			<button id="save">Enregistrer les modifications</button>
+			<span id="userStatut"></span>
 			${backButton()}
 			</section>
-		`;
-
-		// injection du html
-		document.getElementById("app")!.innerHTML = html;
+			`;
+			
+			// injection du html
+			document.getElementById("app")!.innerHTML = html;
+			
+			const resStatut = await getUserStatut();
+			let statut;
+			if (resStatut.loggedIn)
+				statut = "Connecté";
+			else
+				statut = "Non connecté";
+			const statutElement = document.getElementById("userStatut");
+			if (statutElement)
+				statutElement.textContent = statut;
 		// créé le bouton de retour arriere
 		setupBackButton();
 		// va enregistrer si une modif d'information a été faite

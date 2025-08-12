@@ -140,22 +140,39 @@ export function renderDashboard() {
 
   return `
     <div class="w-full my-4 flex flex-row justify-between items-center px-4">
-      <h1 class="text-2xl font-bold">Transcendance</h1>
+      <h1 class>Transcendance</h1>
       <a href="/profile" data-nav>Profil</a>
       <a href="/users-list" data-nav>Utilisateurs</a>
       <button id="logout" class="bg-red-500 text-white px-4 py-2 rounded">Déconnexion</button>
     </div>
     <div class="px-4">
-      <h2 id="welcome" class="text-xl mb-4 font-semibold"></h2>
-      <div class="mb-4 flex flex-col md:flex-row gap-2 items-start md:items-center">
-        <input id="roomIdInput" placeholder="ID de la room (laisser vide pour créer)" class="border px-3 py-2 rounded w-full md:w-64" />
-        <button id="joinRoomBtn" class="bg-blue-500 text-white px-4 py-2 rounded">Rejoindre / Créer</button>
-        <button id="matchmakeBtn" class="bg-green-500 text-white px-4 py-2 rounded">Matchmaking</button>
-        <button id="keyboardPlayBtn" class="bg-purple-600 text-white px-4 py-2 rounded">Keyboard Play</button>
+	<h2 id="welcome" class="text-xl mb-4 font-semibold"></h2>
+	<h1 id="launch" class="text-5xl">Lancez une partie !</h1>
+      <div class="mb-4 flex flex-col md:flex-row gap-0 items-start md:items-center">
+		<input id="roomIdInput" placeholder="ID de la room (laisser vide pour créer)" class="border px-3 py-2 rounded w-full md:w-64" />
+		<button id="joinRoomBtn" class="relative w-60 h-60 bg-transparent">
+			<img src="images/cloud2.svg" class="w-full h-full scale-110" />
+				<span class="absolute inset-0 flex items-center justify-center text-primary font-bold mt-6">
+					Créer / Rejoindre
+				</span>
+		</button>
+
+        <button id="matchmakeBtn" class="relative w-60 h-60 bg-transparent">
+			<img src="images/cloud3.svg" class="w-full h-full scale-110" />
+  				<span class="absolute inset-0 flex items-center justify-center text-primary font-bold mt-6">
+					Matchmaking
+				</span>
+		</button>
+
+        <button id="keyboardPlayBtn" class="relative w-60 h-60 bg-transparent">
+  			<img src="images/cloud4.svg" class="w-full h-full scale-110" />
+				<span class="absolute inset-0 flex items-center justify-center text-primary font-bold mt-6">
+					Keyboard
+				</span>
+		</button>
       </div>
       <div id="roomInfo" class="text-sm text-gray-600 mb-2 italic"></div>
       <h2 id="score" class="text-2xl font-bold"></h2>
-      <h1 id="launch" class="text-5xl">Lancez une partie !</h1>
       <canvas id="renderCanvas" class="border w-full h-[80vh]"></canvas>
     </div>
   `;

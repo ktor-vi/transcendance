@@ -44,5 +44,5 @@ export default async function authRoutes(fastify)
 	// fastify.post('/api/register', async (req, reply) => {
 		
 	// })
-
 }
+

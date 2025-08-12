@@ -19,7 +19,7 @@ export async function renderUsersList() {
 		const html = `
 		<input type="text" id="searchInput" placeholder="Rechercher un utilisateur..." />
 		<h1 style="text-align: center;">Liste des utilisateurs</h1>
-		<ul id="userList"></ul>
+		<ul id="userList" style="background: none;"></ul>
 		${backButton()}
 		`;
 	
@@ -38,6 +38,7 @@ export async function renderUsersList() {
 				const li = document.createElement("li");
 				const a = document.createElement("a");
 				a.href = `/user/${encodeURIComponent(user.name)}`;
+				a.className = "link-user";
 				a.textContent = user.name;
 				li.appendChild(a);
 				listUsers.appendChild(li);

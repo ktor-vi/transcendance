@@ -7,7 +7,10 @@ export async function renderUserProfile(ctx: any) {
 	try {
 		const userName = ctx.params.name;
 		const historyRes = await fetch(`api/user/${encodeURIComponent(userName)}`, { method: "GET" });
-
+		
+		const res = await fetch("/api/profile", { method: "GET" });
+		const userData = await res.json();
+		
 		if (!historyRes.ok) {
 			document.getElementById("app")!.innerHTML = "<p>Cet utilisateur n'existe pas</p>";
 			return;
@@ -15,7 +18,15 @@ export async function renderUserProfile(ctx: any) {
 		const history = await historyRes.json();
 
 		const html = `
-		<h1 style="text-align: center;">Profile de ${userName}</h1>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+	<h1 style="text-align: center;">Profile de ${userName}</h1>
+	<span id="userStatut"></span>
+	<img 
+		src="${userData.picture}" 
+		alt="default" 
+		style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
+	</div>
+
 		<table border="1" style="width: 100%; text-align: center;">
 			<thead>
 				<tr>
@@ -44,9 +55,12 @@ export async function renderUserProfile(ctx: any) {
 		`;
 
 		document.getElementById("app")!.innerHTML = html;
+		const statut = document.getElementById("userStatut");
+		if (statut)
+			statut.textContent = "[?]";
 		setupBackButton();
 	} catch (error) {
 		console.error("Erreur lors du chargement du profil :", error);
-		document.getElementById("app")!.innerHTML = "<p>Erreur</p>";
+		document.getElementById("app")!.innerHTML = "<p>Erreur lors du chargement de la page</p>";
 	}
 }
