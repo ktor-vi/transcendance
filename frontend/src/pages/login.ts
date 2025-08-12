@@ -29,8 +29,7 @@ export function renderLogin() {
 				alert(data.message);
 				return ;
 		} else {
-				alert("✅");
-				page("/dashboard");
+			page("/dashboard");
 		}
 	});
 }

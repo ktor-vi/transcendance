@@ -23,6 +23,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/node": "^24.0.14",
     "nodemon": "^2.0.0",
     "sqlite": "^4.2.1"
   }

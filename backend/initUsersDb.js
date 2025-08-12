@@ -6,14 +6,9 @@ console.log ("Opening or creating users database...");
 function errorHandling(err) // ma variable err va "stocker" l'eventuel erreur qu'il y aura dans la fonction Database (sinon elle sera null)
 {
 	if (err)
-	{
 		console.error("error when creating database");
-	}
 	else
-	{
 		console.log("database opened");
-	}
-
 }
 
 // new sqlite3.Database(path, callback
@@ -26,7 +21,7 @@ CREATE TABLE IF NOT EXISTS
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		email TEXT UNIQUE NOT NULL,
-		name TEXT NOT NULL,
+		name TEXT UNIQUE NOT NULL,
 		given_name TEXT,
 		family_name TEXT,
 		password_hash TEXT,
@@ -40,25 +35,17 @@ CREATE TABLE IF NOT EXISTS
 db.run(createSQTable, (err) => //execute une commande sql
 {
 	if (err)
-	{
-		console.error("error when creating table");
-	}
+		console.error("error when creating users table");
 	else
-	{
 		console.log("users table created or already existing");
-	}
 })
 
 db.close((err) => // ferme la connexion a la db car elle a ete ouverte automatiquement en la creeant
 {
 	if (err)
-	{
-		console.error("error when closing database");
-	}
+		console.error("error when closing users database");
 	else
-	{
-		console.log("database closed");
-	}
+		console.log("users database closed");
 	
 })
 // la fermeture evite des potentielles corruptions de donnees, de la consommation inutiles de ressources etc.

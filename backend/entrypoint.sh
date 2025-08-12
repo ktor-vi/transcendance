@@ -1,8 +1,13 @@
 #!/bin/sh
 
-echo "🛠 Initialisation de la base de donnees avec sqlite3..."
-if ! node ./initDb.js; then
-  echo "❌ Erreur lors de l'initialisation de la base"
+echo "🛠 Initialisation des bases de donnees avec sqlite3..."
+if ! node ./initUsersDb.js; then
+  echo "❌ Erreur lors de l'initialisation de users DB"
+  exit 1
+fi
+
+if ! node ./initHistoryDb.js; then
+  echo "❌ Erreur lors de l'initialisation de History DB"
   exit 1
 fi
 
