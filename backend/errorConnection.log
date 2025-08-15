@@ -1,0 +1,12 @@
+frontend-dev  | 11:10:45 AM [vite] http proxy error: /api/login
+frontend-dev  | Error: getaddrinfo EAI_AGAIN $(echo
+frontend-dev  |     at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:107:26)
+frontend-dev  | 11:10:47 AM [vite] http proxy error: /api/login
+frontend-dev  | Error: getaddrinfo EAI_AGAIN $(echo
+frontend-dev  |     at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:107:26)
+frontend-dev  | 11:10:50 AM [vite] http proxy error: /api/session
+frontend-dev  | Error: getaddrinfo EAI_AGAIN $(echo
+frontend-dev  |     at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:107:26)
+frontend-dev  | 11:10:52 AM [vite] http proxy error: /api/session
+frontend-dev  | Error: getaddrinfo EAI_AGAIN $(echo
+frontend-dev  |     at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:107:26)
