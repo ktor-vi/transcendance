@@ -1,0 +1,125 @@
+backend-dev             Built                                                                                                                               0.0s 
+ ✔ frontend-dev            Built                                                                                                                               0.0s 
+ ✔ Container backend-dev   Recreated                                                                                                                           1.3s 
+ ✔ Container frontend-dev  Recreated                                                                                                                           0.7s 
+Attaching to backend-dev, frontend-dev
+backend-dev   | 🛠 Initialisation des bases de donnees avec sqlite3...
+backend-dev   | Opening or creating users database...
+backend-dev   | Closing users database...
+backend-dev   | database opened
+backend-dev   | users table created or already existing
+backend-dev   | users database closed
+backend-dev   | Opening or creating history database...
+backend-dev   | Closing history database...
+backend-dev   | histiry database opened
+backend-dev   | history table created or already existing
+backend-dev   | history database closed
+backend-dev   | ✅ Base de données initialisée
+backend-dev   | 🚀 Lancement...
+backend-dev   | 
+backend-dev   | > backend@1.0.0 dev
+backend-dev   | > nodemon src/index.js
+backend-dev   | 
+backend-dev   | [nodemon] 2.0.22
+backend-dev   | [nodemon] to restart at any time, enter `rs`
+backend-dev   | [nodemon] watching path(s): *.*
+backend-dev   | [nodemon] watching extensions: js,mjs,json
+backend-dev   | [nodemon] starting `node src/index.js`
+backend-dev   | 🏗️ Initialisation du Map tournaments
+backend-dev   | ✅ Fonctions WebSocket exposées:
+backend-dev   |   - updateMatchScore
+backend-dev   |   - broadcastToGameRoom
+backend-dev   |   - broadcastTournamentUpdate
+backend-dev   | 🌐 Gestionnaire WebSocket unifié initialisé avec distinction Dashboard/Tournament
+backend-dev   | 🏆 Routes de tournoi initialisées avec succès
+backend-dev   | 🎮 Serveur de jeu initialisé avec attente de 2 joueurs
+backend-dev   | {"level":30,"time":1755254126521,"pid":52,"hostname":"305969f3f8a9","msg":"Server listening at https://127.0.0.1:3000"}
+backend-dev   | {"level":30,"time":1755254126522,"pid":52,"hostname":"305969f3f8a9","msg":"Server listening at https://172.18.0.2:3000"}
+backend-dev   | {"level":30,"time":1755254126522,"pid":52,"hostname":"305969f3f8a9","msg":"Server listening at https://127.0.0.1:3000"}
+frontend-dev  | 
+frontend-dev  | > frontend@1.0.0 dev
+frontend-dev  | > vite
+frontend-dev  | 
+frontend-dev  | The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+frontend-dev  | 
+frontend-dev  |   VITE v5.4.19  ready in 222 ms
+frontend-dev  | 
+frontend-dev  |   ➜  Local:   https://localhost:5173/
+frontend-dev  |   ➜  Network: https://172.18.0.3:5173/
+backend-dev   | {"level":30,"time":1755254197671,"pid":52,"hostname":"305969f3f8a9","reqId":"req-1","req":{"method":"GET","url":"/api/login/google","host":"mi-r3-p3.s19.be:3000","remoteAddress":"172.18.0.1","remotePort":52122},"msg":"incoming request"}
+backend-dev   | {"level":30,"time":1755254197701,"pid":52,"hostname":"305969f3f8a9","reqId":"req-1","res":{"statusCode":302},"responseTime":26.533270001411438,"msg":"request completed"}
+backend-dev   | {"level":30,"time":1755254212708,"pid":52,"hostname":"305969f3f8a9","reqId":"req-2","req":{"method":"GET","url":"/api/login/google/callback?error=access_denied&state=xD8l0F4WZ9ucWHr-hrmSCg","host":"mi-r3-p3.s19.be:3000","remoteAddress":"172.18.0.1","remotePort":50096},"msg":"incoming request"}
+backend-dev   | Error: Response Error: 400 Bad Request
+backend-dev   |     at internals.Client._shortcut (/app/node_modules/@hapi/wreck/lib/index.js:574:15)
+backend-dev   |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+backend-dev   |     at async Client.request (/app/node_modules/simple-oauth2/lib/client/client.js:39:22)
+backend-dev   |     at async AuthorizationCode.getToken (/app/node_modules/simple-oauth2/lib/authorization-code-grant-type.js:53:22) {
+backend-dev   |   data: {
+backend-dev   |     isResponseError: true,
+backend-dev   |     headers: {
+backend-dev   |       date: 'Fri, 15 Aug 2025 10:36:52 GMT',
+backend-dev   |       expires: 'Mon, 01 Jan 1990 00:00:00 GMT',
+backend-dev   |       pragma: 'no-cache',
+backend-dev   |       'cache-control': 'no-cache, no-store, max-age=0, must-revalidate',
+backend-dev   |       'content-type': 'application/json; charset=utf-8',
+backend-dev   |       vary: 'X-Origin, Referer, Origin,Accept-Encoding',
+backend-dev   |       server: 'scaffolding on HTTPServer2',
+backend-dev   |       'x-xss-protection': '0',
+backend-dev   |       'x-frame-options': 'SAMEORIGIN',
+backend-dev   |       'x-content-type-options': 'nosniff',
+backend-dev   |       'alt-svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000',
+backend-dev   |       'accept-ranges': 'none',
+backend-dev   |       connection: 'close',
+backend-dev   |       'transfer-encoding': 'chunked'
+backend-dev   |     },
+backend-dev   |     res: IncomingMessage {
+backend-dev   |       _events: [Object],
+backend-dev   |       _readableState: [ReadableState],
+backend-dev   |       _maxListeners: undefined,
+backend-dev   |       socket: [TLSSocket],
+backend-dev   |       httpVersionMajor: 1,
+backend-dev   |       httpVersionMinor: 1,
+backend-dev   |       httpVersion: '1.1',
+backend-dev   |       complete: true,
+backend-dev   |       rawHeaders: [Array],
+backend-dev   |       rawTrailers: [],
+backend-dev   |       joinDuplicateHeaders: undefined,
+backend-dev   |       aborted: false,
+backend-dev   |       upgrade: false,
+backend-dev   |       url: '',
+backend-dev   |       method: null,
+backend-dev   |       statusCode: 400,
+backend-dev   |       statusMessage: 'Bad Request',
+backend-dev   |       client: [TLSSocket],
+backend-dev   |       _consuming: true,
+backend-dev   |       _dumped: false,
+backend-dev   |       req: [ClientRequest],
+backend-dev   |       _eventsCount: 2,
+backend-dev   |       [Symbol(shapeMode)]: true,
+backend-dev   |       [Symbol(kCapture)]: false,
+backend-dev   |       [Symbol(kHeaders)]: [Object],
+backend-dev   |       [Symbol(kHeadersCount)]: 32,
+backend-dev   |       [Symbol(kTrailers)]: null,
+backend-dev   |       [Symbol(kTrailersCount)]: 0
+backend-dev   |     },
+backend-dev   |     payload: {
+backend-dev   |       error: 'invalid_request',
+backend-dev   |       error_description: 'Missing required parameter: code'
+backend-dev   |     }
+backend-dev   |   },
+backend-dev   |   isBoom: true,
+backend-dev   |   isServer: false,
+backend-dev   |   output: {
+backend-dev   |     statusCode: 400,
+backend-dev   |     payload: {
+backend-dev   |       statusCode: 400,
+backend-dev   |       error: 'Bad Request',
+backend-dev   |       message: 'Response Error: 400 Bad Request'
+backend-dev   |     },
+backend-dev   |     headers: {}
+backend-dev   |   }
+backend-dev   | }
+backend-dev   | {"level":30,"time":1755254212770,"pid":52,"hostname":"305969f3f8a9","reqId":"req-2","res":{"statusCode":500},"responseTime":61.506575018167496,"msg":"request completed"}
+backend-dev   | {"level":30,"time":1755254212992,"pid":52,"hostname":"305969f3f8a9","reqId":"req-3","req":{"method":"GET","url":"/favicon.ico","host":"mi-r3-p3.s19.be:3000","remoteAddress":"172.18.0.1","remotePort":50098},"msg":"incoming request"}
+backend-dev   | {"level":30,"time":1755254213001,"pid":52,"hostname":"305969f3f8a9","reqId":"req-3","msg":"Route GET:/favicon.ico not found"}
+backend-dev   | {"level":30,"time":1755254213004,"pid":52,"hostname":"305969f3f8a9","reqId":"req-3","res":{"statusCode":404},"responseTime":11.30391600728035,"msg":"request completed"}
