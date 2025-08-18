@@ -21,9 +21,9 @@ export default async function registerRoutes(fastify) {
 
 		const result = await db.run(
 			`INSERT OR IGNORE INTO users 
-	  		(email, name, given_name, family_name, password_hash, question, response_hash, picture)
-	  		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-	  		[email, name, "", "", hashPassword, question, hashResponse, ""]
+	  		(email, name, password_hash, question, response_hash, picture)
+	  		VALUES (?, ?, ?, ?, ?, ?)`,
+	  		[email, name, hashPassword, question, hashResponse, ""]
 		);
 		if (result.changes > 0) {
 			console.log(`NOUVEL UTILISATEUR CRÉÉ : ${name}`);

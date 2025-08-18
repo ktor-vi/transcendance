@@ -27,10 +27,10 @@ export default async function profileRoutes(fastify)
 			return reply.code(401).send({ error: 'Non connecté' });
 		}
 		// le body = le nouveau nom passé depuis la requete enovoyee du frontend
-		const { name, given_name, family_name } = req.body;
+		const { name } = req.body;
 
 		const db = await openDb();
-		await db.run('UPDATE users SET name = ?, given_name = ?, family_name = ? WHERE email = ?', name, given_name, family_name, userSession.email);
+		await db.run('UPDATE users SET name = ? WHERE email = ?', name, userSession.email);
 	
 		reply.send({ success: true });
   });
@@ -47,8 +47,6 @@ export default async function profileRoutes(fastify)
 		const data = await req.parts();
 		// ces variables vont récupérer les infos de la requête
 		let name = "";
-		let given_name = "";
-		let family_name = "";
 		let picture = null;
 		let extension = "";
 		let type = "";
@@ -81,10 +79,6 @@ export default async function profileRoutes(fastify)
 				} else {
 					if (part.fieldname === 'name')
 						name = part.value;
-					if (part.fieldname === 'given_name')
-						given_name = part.value;
-					if (part.fieldname === 'family_name')
-						family_name = part.value;
 				}
 		}
 		const db = await openDb();
@@ -95,7 +89,7 @@ export default async function profileRoutes(fastify)
 			return reply.code(409).send({ success: false, message: "Name déjà pris" });
 
 		else
-			await db.run('UPDATE users SET name = ?, given_name = ?, family_name = ? WHERE email = ?', name, given_name, family_name, userSession.email);
+			await db.run('UPDATE users SET name = ? WHERE email = ?', name, userSession.email);
 		// mise à jour de la pp
 		if (!picture) {
 			console.log("LA PHOTO N'A PAS ÉTÉ UPLOAD DANS LA DB");

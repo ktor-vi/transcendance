@@ -22,8 +22,6 @@ CREATE TABLE IF NOT EXISTS
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		email TEXT UNIQUE NOT NULL,
 		name TEXT UNIQUE NOT NULL,
-		given_name TEXT,
-		family_name TEXT,
 		password_hash TEXT,
 		question TEXT,
 		response_hash TEXT,

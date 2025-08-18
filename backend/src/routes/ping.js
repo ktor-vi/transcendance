@@ -4,7 +4,7 @@ export default async function pingRoutes(fastify) {
 	fastify.post('/ping', async (req, reply) => {
 		const user = req.session.get('user');
 		if (!user) {
-			console.log('Ping reçu mais pas connecté');
+			console.log('Ping reçu mais pas de user connecté');
 			return reply.code(401).send({ error: 'Non connecté' });
 		}
 		console.log('Ping reçu de', user.name);

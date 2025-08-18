@@ -13,7 +13,7 @@ import { renderForgotPwd } from "./pages/forgotPassword";
 import { startPingLoop } from "./components/pingLoop";
 import { getUserStatut } from "./components/auth";
 
-// fonction anonyme juste pour démarrer ma boucle ping
+// fonction anonume juste pour démarrer ma boucle ping
 (async() => {
 	const res = await getUserStatut();
 	if (res.loggedIn)

@@ -42,16 +42,6 @@ export async function renderProfile() {
 		<input type="text" id="nameInput" value="${userData.name}" />
 			</div>
 
-			<div style="display: flex; align-items: center; gap: 8px;">
-			<label for="given_nameInput">Prénom :</label>
-			<input type="text" id="given_nameInput" value="${userData.given_name}" />
-			</div>
-			
-			<div style="display: flex; align-items: center; gap: 8px;">
-			<label for="family_nameInput">Nom :</label>
-			<input type="text" id="family_nameInput" value="${userData.family_name}" />
-			</div>
-			
 			<label for="changePicture">Photo de profil :</label>
 			<input id="changePicture" name="changePicture" type="file"/>
 			<div style="display: flex; align-items: center; gap: 8px;">
@@ -82,15 +72,10 @@ export async function renderProfile() {
 
 		document.getElementById("save")?.addEventListener("click", async() => {
 			const newName = (document.getElementById("nameInput") as HTMLInputElement).value;
-			const newGivenName = (document.getElementById("given_nameInput") as HTMLInputElement).value;
-			const newFamilyName = (document.getElementById("family_nameInput") as HTMLInputElement).value;
 			
 			const fileData = new FormData();
 
 			fileData.append("name", newName);
-			fileData.append("given_name", newGivenName);
-			fileData.append("family_name", newFamilyName);
-
 
 			const fileInput = document.getElementById("changePicture") as HTMLInputElement;
 			
