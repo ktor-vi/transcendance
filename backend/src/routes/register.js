@@ -23,7 +23,7 @@ export default async function registerRoutes(fastify) {
 			`INSERT OR IGNORE INTO users 
 	  		(email, name, password_hash, question, response_hash, picture)
 	  		VALUES (?, ?, ?, ?, ?, ?)`,
-	  		[email, name, hashPassword, question, hashResponse, ""]
+	  		[email, name, hashPassword, question, hashResponse, "/uploads/default.jpg"]
 		);
 		if (result.changes > 0) {
 			console.log(`NOUVEL UTILISATEUR CRÉÉ : ${name}`);

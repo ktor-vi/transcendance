@@ -17,11 +17,16 @@ export async function renderProfile() {
 		const userData = await res.json();
 
 		if (!userData.picture || userData.picture.trim() === "") {
-			userData.picture = "/default.jpg";
+			userData.picture = "/uploads/default.jpg";
 		}
 
-		
-		
+		const historyRes = await fetch(`api/user/${encodeURIComponent(userData.name)}`, { method: "GET" });
+		if (!historyRes.ok) {
+			document.getElementById("app")!.innerHTML = "<p>Cet utilisateur n'existe pas</p>";
+			return;
+		}
+		const history = await historyRes.json();
+
 		const html = `
 		<h1 style="text-align: center;">Profil</h1>
 		<section style="
@@ -50,6 +55,33 @@ export async function renderProfile() {
 			
 			<button id="save">Enregistrer les modifications</button>
 			<span id="userStatut"></span>
+
+			<table border="1" style="width: 100%; text-align: center;">
+			<h3>Historique des matchs</h3>
+			<thead>
+				<tr>
+					<th>Type</th>
+					<th>Joueur 1</th>
+					<th>Joueur 2</th>
+					<th>Score</th>
+					<th>Vainqueur</th>
+					<th>Date</th>
+				</tr>
+			</thead>
+			<tbody>
+				${history.map((entry: any) => `
+					<tr>
+						<td>${entry.type}</td>
+						<td>${entry.player_1}</td>
+						<td>${entry.player_2}</td>
+						<td>${entry.scores}</td>
+						<td>${entry.winner}</td>
+						<td>${new Date(entry.created_at).toLocaleString()}</td>
+					</tr>
+				`).join("")}
+			</tbody>
+			</table>
+
 			${backButton()}
 			</section>
 			`;

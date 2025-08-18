@@ -21,7 +21,7 @@ export default async function userRoutes(fastify) {
 
 	fastify.get('/user/:name/online', async (req, reply) => {
 		const online = isUserOnline(req.params.name);
-		console.log(`userId DANS FESTIFY GET = ${req.params.name}`);
+		console.log(`userId DANS FASTIFY GET = ${req.params.name}`);
 		return ({ online });
 	});
 }
