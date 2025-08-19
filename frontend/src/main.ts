@@ -7,6 +7,7 @@ import { renderProfile } from "./pages/profile";
 import { renderRegister } from "./pages/register";
 import { renderLogin } from "./pages/login";
 import { renderForgotPwd } from "./pages/forgotPassword";
+import { renderChat } from "./pages/chat"; // jai juste ajoute cela sur le meme modele que ce que Rachel avait fait
 // 🔽 Récupère la référence à l'élément HTML avec l'ID "app"
 // C'est dans cet élément que les pages seront affichées dynamiquement
 const app = document.getElementById("app");
@@ -37,7 +38,7 @@ page("/forgotPassword", () =>
 page("/keyboard-play", () => render(renderKeyboardPlay()))
 // Lance le routeur (écoute les changements de l'URL sans recharger la page)
 // a la page de l'index (/) on va donc "génerer" la homepage définie dans pages/home.ts
-
+page("/chat", () => render(renderChat())); // idem ici, les explications de Rachel ont deja ete faites pour guider
 
 // page a été importé sur ce fichier. il sert à "écouter" et à gérer la navigation
 // de notre appli sans recharger toute la page à chaque fois

@@ -49,16 +49,25 @@ export default defineConfig({
         secure: false,
         configure: cookieForwarding,
       },
+      proxy: { // jai rajoute ca mais c'est du chipotage, besoin de plus d'explications !
+       "/chat": {
+    target: `http://${process.env.HOSTNAME}:3000`,
+    ws: true,
+        },
+      }
     },
     historyApiFallback: true,
+    https: false,
     hmr: {
-      host: `${process.env.VITE_HOSTNAME}`, // doit correspondre à ce que tu utilises dans le navigateur
-      protocol: "wss", // si tu utilises HTTPS
+      host: `${process.env.VITE_HOSTNAME}`,
+      protocol: "ws", // protocole http sinon "wss"
+      port: 5173
     },
-    https: {
+    // j'arrivais pas autrement pour le moment sans enlever le https
+    /*https: {
       key: fs.readFileSync("/app/certs/localhost.key"),
       cert: fs.readFileSync("/app/certs/localhost.crt"),
-    },
+    },*/
     host: true,
     port: 5173,
   },

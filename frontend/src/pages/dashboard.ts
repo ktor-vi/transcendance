@@ -126,6 +126,13 @@ export function renderDashboard() {
       if (isJoining) return;
       joinRoom("auto");
     });
+    
+    // document = obj global = page html chargee dans le browser -> DOM = Document Obj Model
+    // getElmtById = method de DOM qui selectionne un element HTML par son ID
+    // eventListener = surveillance de l'evenement clique rattache au bouton
+    document.getElementById("liveChatBtn")?.addEventListener("click", () => {
+	    page("/chat");
+    });
 
     // Nettoyage à la fermeture
     window.addEventListener("beforeunload", () => {
@@ -151,6 +158,7 @@ export function renderDashboard() {
         <button id="joinRoomBtn" class="bg-blue-500 text-white px-4 py-2 rounded">Rejoindre / Créer</button>
         <button id="matchmakeBtn" class="bg-green-500 text-white px-4 py-2 rounded">Matchmaking</button>
         <button id="keyboardPlayBtn" class="bg-purple-600 text-white px-4 py-2 rounded">Keyboard Play</button>
+        <button id="liveChatBtn" class="bg-fuchsia-400 text-white px-4 py-2 rounded">Chat</button>
       </div>
       <div id="roomInfo" class="text-sm text-gray-600 mb-2 italic"></div>
       <h2 id="score" class="text-2xl font-bold"></h2>
