@@ -32,6 +32,35 @@ interface User {
 }
 
 export function renderTournamentPage(): string {
+  setTimeout(() => {
+    // 🔧 TOUTES LES VARIABLES AU MÊME NIVEAU
+    let currentUserProfile = null;
+    let profileReady = false;
+  fetch("api/session", { credentials: "include" })
+    .then((res) => {
+      if (!res.ok) throw new Error("Utilisateur non connecté");
+      return res.json();
+    })
+    .then((user) => {
+      currentUserProfile = user;
+      profileReady = true;
+
+      console.log("👤 Profil utilisateur chargé:", {
+        name: user.name,
+        email: user.email,
+        id: user.id,
+      });
+
+      const welcomeEl = document.getElementById("welcome");
+      if (welcomeEl)
+        welcomeEl.innerText = `Bienvenue ${
+          user.name || user.email || "utilisateur"
+        } !`;
+    })
+    .catch(() => {
+      profileReady = true;
+      window.location.href = "/";
+    });
   const container = document.getElementById("app");
   if (!container) return "";
 
@@ -1573,6 +1602,6 @@ export function renderTournamentPage(): string {
       }
     }
   });
-
+}, 300);
   return "";
 }
