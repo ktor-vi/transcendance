@@ -6,8 +6,7 @@ export default async function userProfileRoutes(fastify)
 		const historyDb = await openDbHistory();
 		const userName = req.params.name;
 
-		const history = await historyDb.all('SELECT * FROM history WHERE player_1 = ? OR player_2 = ? ORDER BY created_at DESC', userName, userName
-	);
+		const history = await historyDb.all('SELECT * FROM history WHERE player_1 = ? OR player_2 = ? ORDER BY created_at DESC', userName, userName);
 	if (history)
 		reply.send(history);
 	else

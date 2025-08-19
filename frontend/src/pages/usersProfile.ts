@@ -19,13 +19,14 @@ export async function renderUserProfile(ctx: any) {
 
 		const html = `
 		<div style="display: flex; flex-direction: column; align-items: center;">
-	<h1 style="text-align: center;">Profile de ${userName}</h1>
-	<span id="userStatut"></span>
-	<img 
-		src="${userData.picture}" 
-		alt="default" 
-		style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
-	</div>
+			<h1 style="text-align: center;">Profile de ${userName}</h1>
+			<button id="friendshipButton">Envoyer une demande d'amitié</button>
+			<span id="userStatut"></span>
+			<img 
+			src="${userData.picture}" 
+			alt="default" 
+			style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
+		</div>
 
 		<table border="1" style="width: 100%; text-align: center;">
 			<thead>
@@ -55,6 +56,21 @@ export async function renderUserProfile(ctx: any) {
 		`;
 
 		document.getElementById("app")!.innerHTML = html;
+
+		document.getElementById("friendshipButton")?.addEventListener("click", async() =>
+		{
+			try {
+				const receiver = userName;
+				fetch("/api/friendshipButton", { 
+					method: "POST",
+					body: receiver
+				});
+
+			} catch {
+				console.error("Erreur lors de l'envoi de la requête");
+			}
+		});
+
 		const statut = document.getElementById("userStatut");
 		if (statut)
 		{

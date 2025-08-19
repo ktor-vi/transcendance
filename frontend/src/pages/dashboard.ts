@@ -152,6 +152,7 @@ export function renderDashboard() {
 	
 	<section id="friendsList">
 	<h2>Liste d'amis</h2>
+	<ul id="userList" style="background: none;"></ul>
 	</section>
 
 
