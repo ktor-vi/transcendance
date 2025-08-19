@@ -36,41 +36,109 @@ export default fp(async function (fastify) {  // declare et exporte le plugin fa
 	- const { room } = req.query; // ex: ws://serveur/chat?room=42
 	*/
     console.log("Miaou : client chat connecté"); // pour voir dans inspect sur la page et avoir des logs de debug
-    clients.add(socket);		// ajoute ce socket au set des clients connectes
+//     clients.add(socket);		// ajoute ce socket au set des clients connectes
 
 
-    socket.on("message", (raw) => { // ecoute chaque msg du client
-      let msg;
-      try {
-        msg = JSON.parse(raw); // parser au cas ou ca soit envoyer en format invalide de al part du front
-      } catch {
-        return;
-      }
+//     socket.on("message", (raw) => { // ecoute chaque msg du client
+//       let msg;
+//       try {
+//         msg = JSON.parse(raw); // parser au cas ou ca soit envoyer en format invalide de al part du front
+//       } catch {
+//         return;
+//       }
 
-      if (msg.type === "chatMessage") { // reconnaissance du type chatMessage quon retrouve aussi comme id type dans le front
-        const payload = JSON.stringify({ // formate le payload en en contenu JSON pcq on veut plusieurs infos : type, user, content
-          type: "chatMessage",
-          user: msg.user ?? "Ta mere", // tous les clients qui ne sont pas toi portent ce nom 
-	  //user: clients.get(socket), // ca je lai enleve pcq ca faisait tout bug on verra plus tard de toutes facons on doit se baser sur la DB et je sais pas si on peut link avec Set de base et get sutilise avec Map donc bon...
-          content: msg.content
-        });
-        for (const client of clients) { // broadcast a tous les clients sauf l'expediteur 
-		if (client !== socket && client.readyState === 1) { // si le state de la WS est a 1 cest quelle bien OPEN (0 = connecting, 2= closing, 3 closed)
-      		     client.send(payload);
-	   }
-        }
-      }
-    });
+//       if (msg.type === "chatMessage") { // reconnaissance du type chatMessage quon retrouve aussi comme id type dans le front
+//         const payload = JSON.stringify({ // formate le payload en en contenu JSON pcq on veut plusieurs infos : type, user, content
+//           type: "chatMessage",
+//           user: msg.user ?? "Ta mere", // tous les clients qui ne sont pas toi portent ce nom 
+// 	  //user: clients.get(socket), // ca je lai enleve pcq ca faisait tout bug on verra plus tard de toutes facons on doit se baser sur la DB et je sais pas si on peut link avec Set de base et get sutilise avec Map donc bon...
+//           content: msg.content
+//         });
+//         for (const client of clients) { // broadcast a tous les clients sauf l'expediteur 
+// 		if (client !== socket && client.readyState === 1) { // si le state de la WS est a 1 cest quelle bien OPEN (0 = connecting, 2= closing, 3 closed)
+//       		     client.send(payload);
+// 	   }
+//         }
+//       }
+//     });
 
-    socket.on("close", () => {
-      clients.delete(socket); // si client deconnecte on le retire son socket du Set 
-      console.log("Mia-goodbye : client déconnecté");
-    });
+//     socket.on("close", () => {
+//       clients.delete(socket); // si client deconnecte on le retire son socket du Set 
+//       console.log("Mia-goodbye : client déconnecté");
+//     });
 
-    socket.on("error", () => {
-      clients.delete(socket); // si erreur on supprime le client et sa socket, classic shit 
-    });
+//     socket.on("error", () => {
+//       clients.delete(socket); // si erreur on supprime le client et sa socket, classic shit 
+//     });
+//   });
+// });
+
+
+console.log(
+	`[CHAT] Nouvelle connexion WebSocket depuis ${req.socket.remoteAddress}`
+  );
+  console.log(`[CHAT] Headers de la requête:`, req.headers);
+
+  clients.add(socket);
+  console.log(
+	`[CHAT] Client ajouté. Total: ${clients.size} clients connectés`
+  );
+
+  socket.on("message", (raw) => {
+	console.log(`[CHAT] Message reçu:`, raw.toString());
+
+	let msg;
+	try {
+	  msg = JSON.parse(raw);
+	  console.log(`[CHAT] Message parsé:`, msg);
+	} catch (err) {
+	  console.error("[CHAT] Erreur de parsing JSON:", err);
+	  return;
+	}
+
+	if (msg.type === "chatMessage") {
+	  const payload = JSON.stringify({
+		type: "chatMessage",
+		user: msg.user ?? "Utilisateur",
+		content: msg.content,
+	  });
+
+	  console.log(`[CHAT] Broadcasting à ${clients.size} clients:`, payload);
+
+	  let broadcastCount = 0;
+	  for (const client of clients) {
+		if (client !== socket && client.readyState === 1) {
+		  try {
+			client.send(payload);
+			broadcastCount++;
+		  } catch (err) {
+			console.error("[CHAT] Erreur envoi à un client:", err);
+			clients.delete(client);
+		  }
+		}
+	  }
+
+	  console.log(`[CHAT] Message broadcasté à ${broadcastCount} clients`);
+	} else {
+	  console.log(`[CHAT] Type de message ignoré: ${msg.type}`);
+	}
+  });
+
+  socket.on("close", (code, reason) => {
+	clients.delete(socket);
+	console.log(
+	  `[CHAT] Client déconnecté (Code: ${code}, Raison: ${reason}). Clients restants: ${clients.size}`
+	);
+  });
+
+  socket.on("error", (err) => {
+	console.error("[CHAT] Erreur socket:", err);
+	clients.delete(socket);
+	console.log(
+	  `[CHAT] Client supprimé après erreur. Clients restants: ${clients.size}`
+	);
   });
 });
 
-
+console.log("[CHAT PLUGIN] Plugin chat enregistré avec succès");
+});
