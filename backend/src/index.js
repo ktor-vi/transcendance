@@ -15,15 +15,15 @@ import fastifyMultipart from '@fastify/multipart';
 
 import fs from 'fs';
 
-const fastify = Fastify({ logger: true }); // sans https pcq jai pas reussi a le faire marcher avec donc jai fait comme ca en commentant ce quil y a juste en dessous mais normalement cest cense fonctionner avec ce quil y a en dessous 
+//const fastify = Fastify({ logger: true }); // sans https pcq jai pas reussi a le faire marcher avec donc jai fait comme ca en commentant ce quil y a juste en dessous mais normalement cest cense fonctionner avec ce quil y a en dessous 
 
-/*const fastify = Fastify({
+const fastify = Fastify({
   logger: true,
   https: {
   key: fs.readFileSync("/app/certs/localhost.key"),
   cert: fs.readFileSync("/app/certs/localhost.crt"),
   }
-})*/
+})
 
 await fastify.register(fastifyStatic, { root: path.join(process.cwd(), 'public'), prefix: '/' });
 
@@ -60,11 +60,20 @@ await fastify.ready();
 fastify.printRoutes();
 
 
-fastify.listen({ port: 3000, host: '0.0.0.0' }, (err, address) => {
+/*fastify.listen({ port: 3000, host: '0.0.0.0' }, (err, address) => {
 	if (err) {
 		fastify.log.error(err);
 		process.exit(1);
 	}
 	fastify.log.info(`Server listening at ${address}`);
-});
+});*/
+
+try {
+  const address = await fastify.listen({ port: 3000, host: '0.0.0.0' });
+  fastify.log.info(`Server listening at ${address}`);
+} catch (err) {
+  fastify.log.error(err);
+  process.exit(1);
+}
+
 

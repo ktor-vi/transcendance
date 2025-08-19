@@ -2,7 +2,7 @@ export function renderChat() {
 
 	setTimeout(() => { // attend que la page charge pour executer le code (et oui le JS est asynchrone lol)
 		//const socket = new WebSocket(`ws://${import.meta.env.VITE_HOSTNAME}:3000/chat`); // avec var env
-		const socket = new WebSocket(`ws://mi-r4-p4.s19.be:3000/chat`); // sans var env avec la valeur direct pour debug mais a enlever
+		const socket = new WebSocket(`wss://mi-r4-p4.s19.be:3000/chat`); // sans var env avec la valeur direct pour debug mais a enlever
 	
 		socket.addEventListener("open", () => { // verifie que la socket est bien en mode "open" 
 			console.log("[CHAT] Connecté au serveur");
