@@ -10,3 +10,11 @@ export async function openDb()
 		driver: sqlite3.Database // sqlite3 = un objet, Database = une classe. Cette ligne indique a sqlite quel type de connexion utiliser pour gerer la db
 	});
 }
+
+export async function openDbHistory()
+{
+	return open({	
+	filename: './data/history.sqlite3',
+		driver: sqlite3.Database // sqlite3 = un objet, Database = une classe. Cette ligne indique a sqlite quel type de connexion utiliser pour gerer la db
+	});
+}

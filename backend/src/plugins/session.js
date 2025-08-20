@@ -2,22 +2,22 @@
 import secureSession from '@fastify/secure-session';
 
 export default async function registerSession(fastify) {
-  //cle secrete du .env pour chiffrer les cookies
-  const key = Buffer.from(process.env.SESSION_KEY_BASE64, 'base64');
+	//cle secrete du .env pour chiffrer les cookies
+	const key = Buffer.from(process.env.SESSION_KEY_BASE64, 'base64');
 
-  //enregistrement du plugin
-  fastify.register(secureSession, {
-    key,
-    cookeName: 'sessionid',
-    cookie: {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'none', // Pour eviter le csrf
-      secure: true,
-      domain: undefined,
-      maxAge: 24 * 60 * 60 * 1000 // 24 heures
-    }
-  });
+	//enregistrement du plugin
+	fastify.register(secureSession, {
+		key,
+		cookieName: 'sessionid',
+		cookie: {
+			path: '/',
+			httpOnly: true,
+			sameSite: 'none', // Pour eviter le csrf
+			secure: true,
+			domain: undefined,
+			maxAge: 24 * 60 * 60 * 1000 // 24 heures
+		}
+	});
 }
 
 

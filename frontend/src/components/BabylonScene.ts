@@ -1,150 +1,292 @@
+// BabylonScene.ts
 import {
   Engine,
   Scene,
   Vector3,
+  Color3,
+  Color4,
   HemisphericLight,
+  DirectionalLight,
   MeshBuilder,
-  FreeCamera,
-  KeyboardEventTypes,
+  StandardMaterial,
+  UniversalCamera,
 } from "@babylonjs/core";
 
-import { sendMove } from "../socket";
-import { GameState } from "../types/GameTypes";
-let currentScene: Scene | null = null;
-let currentEngine: Engine | null = null;
+// 🔧 Gestionnaire global simple
+let globalEngines = new Map<HTMLCanvasElement, Engine>(); // canvas -> engine
+let activeScenes = new Map<string, any>(); // roomId -> sceneData
 
 export function createBabylonScene(canvas: HTMLCanvasElement) {
-  // Nettoyer l'ancienne scène si elle existe
-  if (currentScene) {
-    currentScene.dispose();
-  }
-  if (currentEngine) {
-    currentEngine.dispose();
-  }
-
   const engine = new Engine(canvas, true);
   const scene = new Scene(engine);
-  currentEngine = engine;
-  currentScene = scene;
 
-  let playerNum = 0;
-  const inputState = { left: false, right: false };
+  let webSocket: WebSocket | null = null;
+  let playerNumber = 0;
 
-  // Création de la scène
-  const camera = new FreeCamera("cam", new Vector3(0, 10, -8), scene);
+  let gameState = {
+    ball: { x: 0, z: 0 },
+    paddleOne: { x: 0 },
+    paddleTwo: { x: 0 },
+    scoreP1: 0,
+    scoreP2: 0,
+    gameEnded: false,
+  };
+
+  const inputState = {
+    left: false,
+    right: false,
+  };
+
+  scene.clearColor = new Color4(0.1, 0.1, 0.2);
+
+  const camera = new UniversalCamera("camera", new Vector3(0, 12, -15), scene);
   camera.setTarget(Vector3.Zero());
-  camera.attachControl(canvas, true);
 
-  new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+  const light1 = new HemisphericLight("light1", new Vector3(0, 1, 0), scene);
+  light1.intensity = 0.7;
 
-  // Terrain de jeu avec les bonnes dimensions
+  const light2 = new DirectionalLight("light2", new Vector3(0, -1, 1), scene);
+  light2.intensity = 0.3;
+
   const ground = MeshBuilder.CreateBox(
     "ground",
-    { width: 13.5, height: 0.1, depth: 7.5 }, // Utiliser les mêmes dimensions que le serveur
+    {
+      width: 13.5,
+      height: 0.2,
+      depth: 7.5,
+    },
     scene
   );
-  ground.position.y = -0.5;
+  ground.position.y = -0.1;
 
-  // Palettes
-  const paddleOne = MeshBuilder.CreateBox(
-    "p1",
-    { width: 2, height: 0.75, depth: 0.25 },
-    scene
-  );
-  paddleOne.position.set(0, 0, -3.75); // Position joueur 1
-
-  const paddleTwo = MeshBuilder.CreateBox(
-    "p2",
-    { width: 2, height: 0.75, depth: 0.25 },
-    scene
-  );
-  paddleTwo.position.set(0, 0, 3.75); // Position joueur 2
+  const groundMat = new StandardMaterial("groundMat", scene);
+  groundMat.diffuseColor = new Color3(0.2, 0.3, 0.4);
+  groundMat.emissiveColor = new Color3(0.05, 0.05, 0.1);
+  ground.material = groundMat;
 
   const ball = MeshBuilder.CreateSphere("ball", { diameter: 0.5 }, scene);
-  ball.position.set(0, 0, 0);
+  ball.position.y = 0.25;
 
-  // Gestion du clavier
-  scene.onKeyboardObservable.add((kb) => {
-    const key = kb.event.key.toLowerCase();
-    const isDown = kb.type === KeyboardEventTypes.KEYDOWN;
+  const ballMat = new StandardMaterial("ballMat", scene);
+  ballMat.diffuseColor = new Color3(1, 1, 1);
+  ballMat.emissiveColor = new Color3(0.2, 0.2, 0.2);
+  ball.material = ballMat;
 
-    // Touches pour joueur 1 et 2
-    if (key === "arrowleft" || key === "a") {
-      inputState.left = isDown;
+  const paddleOne = MeshBuilder.CreateBox(
+    "paddleOne",
+    {
+      width: 2,
+      height: 0.5,
+      depth: 0.3,
+    },
+    scene
+  );
+  paddleOne.position.z = -3.5;
+  paddleOne.position.y = 0.25;
+
+  const paddle1Mat = new StandardMaterial("paddle1Mat", scene);
+  paddle1Mat.diffuseColor = new Color3(0, 0.5, 1);
+  paddle1Mat.emissiveColor = new Color3(0, 0.1, 0.2);
+  paddleOne.material = paddle1Mat;
+
+  const paddleTwo = MeshBuilder.CreateBox(
+    "paddleTwo",
+    {
+      width: 2,
+      height: 0.5,
+      depth: 0.3,
+    },
+    scene
+  );
+  paddleTwo.position.z = 3.5;
+  paddleTwo.position.y = 0.25;
+
+  const paddle2Mat = new StandardMaterial("paddle2Mat", scene);
+  paddle2Mat.diffuseColor = new Color3(1, 0.5, 0);
+  paddle2Mat.emissiveColor = new Color3(0.2, 0.1, 0);
+  paddleTwo.material = paddle2Mat;
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (
+      !webSocket ||
+      webSocket.readyState !== WebSocket.OPEN ||
+      gameState.gameEnded
+    )
+      return;
+
+    let changed = false;
+
+    if (["ArrowLeft", "a", "A"].includes(event.key)) {
+      if (!inputState.left) {
+        inputState.left = true;
+        changed = true;
+      }
     }
-    if (key === "arrowright" || key === "d") {
-      inputState.right = isDown;
+    if (["ArrowRight", "d", "D"].includes(event.key)) {
+      if (!inputState.right) {
+        inputState.right = true;
+        changed = true;
+      }
     }
+
+    if (changed) {
+      webSocket.send(
+        JSON.stringify({
+          type: "input",
+          left: inputState.left,
+          right: inputState.right,
+          playerNumber,
+        })
+      );
+    }
+  };
+
+  const handleKeyUp = (event: KeyboardEvent) => {
+    if (
+      !webSocket ||
+      webSocket.readyState !== WebSocket.OPEN ||
+      gameState.gameEnded
+    )
+      return;
+
+    let changed = false;
+
+    if (["ArrowLeft", "a", "A"].includes(event.key)) {
+      if (inputState.left) {
+        inputState.left = false;
+        changed = true;
+      }
+    }
+    if (["ArrowRight", "d", "D"].includes(event.key)) {
+      if (inputState.right) {
+        inputState.right = false;
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      webSocket.send(
+        JSON.stringify({
+          type: "input",
+          left: inputState.left,
+          right: inputState.right,
+          playerNumber,
+        })
+      );
+    }
+  };
+
+  canvas.addEventListener("keydown", handleKeyDown);
+  canvas.addEventListener("keyup", handleKeyUp);
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+
+  canvas.tabIndex = 1;
+  canvas.addEventListener("click", () => {
+    canvas.focus();
   });
 
-  // Fonction pour mettre à jour la caméra selon le joueur
-  function updateCamera(player: number) {
-    if (player === 1) {
-      // Joueur 1 : vue depuis le bas du terrain
-      camera.position.set(0, 8, -10);
-      camera.setTarget(new Vector3(0, 0, 0));
-    } else if (player === 2) {
-      // Joueur 2 : vue depuis le haut du terrain
-      camera.position.set(0, 8, 10);
-      camera.setTarget(new Vector3(0, 0, 0));
+
+  
+  const inputInterval = setInterval(() => {
+    if (
+      webSocket &&
+      webSocket.readyState === WebSocket.OPEN &&
+      playerNumber > 0
+    ) {
+      if (inputState.left || inputState.right) {
+        if(playerNumber == 1){
+          webSocket.send(
+            JSON.stringify({
+              type: "input",
+              left: inputState.left,
+              right: inputState.right,
+              playerNumber,
+            })
+          );
+        }
+        if (playerNumber == 2) {
+          webSocket.send(
+            JSON.stringify({
+              type: "input",
+              left: inputState.right,
+              right: inputState.left,
+              playerNumber,
+            })
+          );
+        }
+      }
     }
-    camera.attachControl(canvas, true);
+  }, 50);
+
+  function updateGameState(newState: typeof gameState) {
+    gameState = { ...gameState, ...newState };
+
+    if (ball && newState.ball) {
+      ball.position.x = newState.ball.x;
+      ball.position.z = newState.ball.z;
+    }
+
+    if (paddleOne && newState.paddleOne) {
+      paddleOne.position.x = newState.paddleOne.x;
+    }
+
+    if (paddleTwo && newState.paddleTwo) {
+      paddleTwo.position.x = newState.paddleTwo.x;
+    }
+
+    if (playerNumber === 1) {
+      paddle1Mat.emissiveColor = new Color3(0, 0.3, 0.6);
+    } else if (playerNumber === 2) {
+      paddle2Mat.emissiveColor = new Color3(0.6, 0.3, 0);
+    }
   }
 
-  // Fonction pour mettre à jour l'état du jeu
-  function updateGameState(gameState: GameState) {
-    if (gameState.paddleOne) {
-      paddleOne.position.x = gameState.paddleOne.x;
-    }
-    if (gameState.paddleTwo) {
-      paddleTwo.position.x = gameState.paddleTwo.x;
-    }
-    if (gameState.ball) {
-      ball.position.x = gameState.ball.x;
-      ball.position.z = gameState.ball.z;
+  function setWebSocket(ws: WebSocket) {
+    webSocket = ws;
+  }
+
+  function setPlayerNumber(num: number) {
+    playerNumber = num;
+
+    if (playerNumber === 1) {
+      camera.position = new Vector3(0, 12, -15);
+    } else if (playerNumber === 2) {
+      camera.position = new Vector3(0, 12, 15);
+      camera.rotation.y = Math.PI;
     }
   }
 
-  // Fonction pour définir le numéro du joueur
-  function setPlayerNumber(player: number) {
-    playerNum = player;
-    updateCamera(player);
-    console.log(`🎮 Joueur ${player} assigné, caméra mise à jour`);
-  }
-
-  // Boucle de rendu
   engine.runRenderLoop(() => {
-    if (playerNum > 0 && (inputState.left || inputState.right)) {
-      sendMove({
-        type: "input",
-        left: inputState.left,
-        right: inputState.right,
-      });
-    }
     scene.render();
   });
 
-  // Redimensionnement
-  window.addEventListener("resize", () => engine.resize());
+  window.addEventListener("resize", () => {
+    engine.resize();
+  });
 
-  // Nettoyage
-  const cleanup = () => {
-    if (currentScene === scene) {
-      currentScene = null;
+  function cleanup() {
+    canvas.removeEventListener("keydown", handleKeyDown);
+    canvas.removeEventListener("keyup", handleKeyUp);
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keyup", handleKeyUp);
+
+    if (inputInterval) {
+      clearInterval(inputInterval);
     }
-    if (currentEngine === engine) {
-      currentEngine = null;
-    }
+
     scene.dispose();
     engine.dispose();
-  };
+  }
 
-  window.addEventListener("beforeunload", cleanup);
-
-  // Retourner les fonctions pour l'usage externe
   return {
-    setPlayerNumber,
+    scene,
+    engine,
     updateGameState,
+    setWebSocket,
+    setPlayerNumber,
     cleanup,
+    getPlayerNumber: () => playerNumber,
+    getGameState: () => gameState,
   };
 }

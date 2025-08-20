@@ -28,7 +28,7 @@ export default async function authRoutes(fastify)
 		}
 		else
 			console.log("L'utilisateur existait déjà dans la base de données.")
-
+		console.log(process.env.HOSTNAME);
 		reply.redirect(`https://${process.env.HOSTNAME}:5173/dashboard?logged=1`);
 	});
 
@@ -40,9 +40,11 @@ export default async function authRoutes(fastify)
 		reply.send({ success: true });
 	});
 
-	// POST pour une nouvelle inscription
-	// fastify.post('/api/register', async (req, reply) => {
-		
-	// })
+	fastify.get("/api/session", async (req, reply) => {
+    const user = req.session.get("user");
+
+    return user;
+  });
 
 }
+

@@ -1,6 +1,7 @@
 services:
   frontend-dev:
     env_file: ".env"
+    container_name: "frontend-dev"
     environment:
       - HOSTNAME=${HOSTNAME}
     build:
@@ -18,6 +19,7 @@ services:
 
   backend-dev:
     env_file: ".env"
+    container_name: "backend-dev"
     build:
       context: ./backend
       target: development
@@ -34,24 +36,25 @@ services:
 
   frontend-prod:
     env_file: ".env"
+    container_name: "frontend-prod"
     build:
       context: ./frontend
       target: production
     ports:
-      - "80:80"
+      - "5173:5173"
     depends_on:
       - backend-prod
     volumes:
-      - /usr/share/nginx/html
       - ./certs:/app/certs:ro
+      - ./frontend/mime.types:/etc/nginx/mime.types:ro
 
 
   backend-prod:
     env_file: ".env"
+    container_name: "backend-prod"
     build:
       context: ./backend
       target: production
-    container_name: backend
     volumes:
       - ./certs:/app/certs:ro
     ports:

@@ -89,10 +89,17 @@ export default async function profileRoutes(fastify)
 		}
 		const db = await openDb();
 		// mise à jour de la DB avec les infos text
-		await db.run('UPDATE users SET name = ?, given_name = ?, family_name = ? WHERE email = ?', name, given_name, family_name, userSession.email);
+		const existingName = await db.get("SELECT * FROM users WHERE name = ? AND email != ?", name, userSession.email);
+
+		if (existingName)
+			return reply.code(409).send({ success: false, message: "Name déjà pris" });
+
+		else
+			await db.run('UPDATE users SET name = ?, given_name = ?, family_name = ? WHERE email = ?', name, given_name, family_name, userSession.email);
 		// mise à jour de la pp
 		if (!picture) {
-			"LA PHOTO N A PAS ETE UPLOAD DANS LA DB";
+			console.log("LA PHOTO N'A PAS ÉTÉ UPLOAD DANS LA DB");
+
 		}
 		if (picture) {
 			//suppression de l'ancien fichier pour ne pas surcharger le serveur inutilement
@@ -119,7 +126,9 @@ export default async function profileRoutes(fastify)
 				// mise à jour dans la db
 				await db.run('UPDATE users SET picture = ? WHERE email = ?', `/uploads/${safeName}`, userSession.email);
 			}
-			reply.send({ success: true });
+			const updatedUser = await db.get('SELECT * FROM users WHERE email = ?', userSession.email);
+			reply.send(updatedUser);
+
 		});
 		
 }

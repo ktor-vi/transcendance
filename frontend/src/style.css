@@ -2,14 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Boldins';
+  src: url('/fonts/Boldins.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
-    @apply bg-gray-100 text-center p-10;
+    @apply bg-background text-center p-10;
 }
 
 h1 {
-    @apply text-4xl font-bold text-blue-600;
+    @apply text-primary font-boldins text-4xl m-3;
+}
+
+a {
+	@apply text-text m-auto bg-secondary rounded px-3 py-2;
+}
+
+p {
+	@apply text-text;
+}
+
+h3 {
+	@apply text-text;
+}
+
+th {
+	@apply text-text;
+}
+
+td {
+	@apply text-text;
+}
+
+input {
+	@apply rounded px-2 m-3;
 }
 
 button {
-    @apply mt-5 px-4 py-2 bg-blue-500 text-white rounded;
+    @apply mt-5 px-4 py-2 bg-accent text-white rounded;
 }
+
+.link-user {
+	@apply bg-transparent text-text font-bold;
+}
+
+
+ /* canvas {
+  background: #f0f0f0 !important;  
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 400px !important;
+}
+
+.game-container {
+  position: relative;
+  overflow: visible;
+ } */
+ 

@@ -1,26 +1,36 @@
-import Fastify from "fastify";
-import fastifyStatic from "@fastify/static";
-import path from "path";
-import registerCors from "./plugins/cors.js";
+import Fastify from 'fastify';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
+import registerCors from './plugins/cors.js';
+//import websocketHandler from "./plugins/websocket.js";
+import registerSession from './plugins/session.js';
+import registerOAuth from './plugins/oauth.js';
+import authRoutes from "./routes/auth.js";
+import tournamentRoutes from "./routes/tournament.js";
+import profileRoutes from './routes/profile.js';
+import usersListRoutes from './routes/usersList.js';
+import userProfileRoutes from './routes/usersProfile.js';
+import pingRoutes from './routes/ping.js';
+import registerRoutes from './routes/register.js';
+import userRoutes from './routes/user.js';
+import loginRoutes from './routes/login.js';
+import forgotPwdRoutes from './routes/forgotPassword.js';
+import fastifyMultipart from '@fastify/multipart';
+import gameServer from "./plugins/gameServer.js";
 import registerWebSockets from "./plugins/websocket.js";
 import registerChat from "./plugins/chat_WS.js";
-import registerSession from "./plugins/session.js";
-import registerOAuth from "./plugins/oauth.js";
-import authRoutes from "./routes/auth.js";
-import profileRoutes from "./routes/profile.js";
-import registerRoutes from "./routes/register.js";
-import loginRoutes from "./routes/login.js";
-import forgotPwdRoutes from "./routes/forgotPassword.js";
-import fastifyMultipart from "@fastify/multipart";
-import fs from "fs";
+
+import fs from 'fs';
 
 const fastify = Fastify({
-  logger: true,
-  https: {
-    key: fs.readFileSync("/app/certs/localhost.key"),
-    cert: fs.readFileSync("/app/certs/localhost.crt"),
-  },
-});
+	logger: true,
+	https: {
+	key: fs.readFileSync("/app/certs/localhost.key"),
+	cert: fs.readFileSync("/app/certs/localhost.crt"),
+	}
+})
+
+//await fastify.register(fastifyStatic, { root: path.join(process.cwd(), 'public'), prefix: '/' });
 
 // ORDRE IMPORTANT : WebSocket AVANT les plugins qui l'utilisent
 await fastify.register(fastifyStatic, {
@@ -37,6 +47,14 @@ await registerWebSockets(fastify);
 
 // Puis les plugins qui utilisent WebSocket
 await registerChat(fastify);
+//await fastify.register(websocketHandler);
+await fastify.register(tournamentRoutes);
+await fastify.register(gameServer);
+
+fastify.register(userRoutes, { prefix: '/api'});
+fastify.register(usersListRoutes, { prefix: '/api'});
+fastify.register(userProfileRoutes, { prefix: '/api'});
+fastify.register(pingRoutes, { prefix: '/api'});
 
 // Routes HTTP classiques
 fastify.register(authRoutes);

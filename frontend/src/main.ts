@@ -1,13 +1,27 @@
 // Importe la bibliothèque "page.js", un mini routeur client-side pour Single Page Applications (SPA)
 import page from "page";
+import './style.css';
 import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
 import { renderKeyboardPlay } from "./pages/keyboardPlay";
 import { renderProfile } from "./pages/profile";
+import { renderUsersList } from "./pages/usersList";
+import { renderUserProfile } from "./pages/usersProfile";
 import { renderRegister } from "./pages/register";
 import { renderLogin } from "./pages/login";
 import { renderForgotPwd } from "./pages/forgotPassword";
 import { renderChat } from "./pages/chat"; // jai juste ajoute cela sur le meme modele que ce que Rachel avait fait
+import { renderTournamentPage } from "./pages/tournament";
+import { startPingLoop } from "./components/pingLoop";
+import { getUserStatut } from "./components/auth";
+
+// fonction anonume juste pour démarrer ma boucle ping
+// (async() => {
+// 	const res = await getUserStatut();
+// 	if (res.loggedIn)
+// 		startPingLoop();
+// })();
+
 // 🔽 Récupère la référence à l'élément HTML avec l'ID "app"
 // C'est dans cet élément que les pages seront affichées dynamiquement
 const app = document.getElementById("app");
@@ -23,9 +37,17 @@ function render(html: string) {
 page("/", () => render(renderHome()));
 
 // Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
-page("/dashboard", () => render(renderDashboard()));
+page("/dashboard", () => 
+	render(renderDashboard()));
+
 page("/profile", () => 
 	renderProfile());
+
+page("/users-list", () => 
+	renderUsersList());
+
+page("/user/:name", (ctx) =>
+	renderUserProfile(ctx));
 
 page("/register", () => 
 	renderRegister());
@@ -36,6 +58,7 @@ page("/login", () =>
 page("/forgotPassword", () => 
 	renderForgotPwd());
 page("/keyboard-play", () => render(renderKeyboardPlay()))
+page("/tournament", () => renderTournamentPage());
 // Lance le routeur (écoute les changements de l'URL sans recharger la page)
 // a la page de l'index (/) on va donc "génerer" la homepage définie dans pages/home.ts
 page("/chat", () => render(renderChat())); // idem ici, les explications de Rachel ont deja ete faites pour guider

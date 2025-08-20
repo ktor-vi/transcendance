@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "start": "node dist/index.js"
+    "start": "node src/index.js"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.1",
@@ -23,6 +23,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/node": "^24.0.14",
     "nodemon": "^2.0.0",
     "sqlite": "^4.2.1"
   }

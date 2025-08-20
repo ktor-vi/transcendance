@@ -23,10 +23,14 @@ FROM nginx:stable-alpine AS production
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+COPY ./mime.types /etc/nginx/mime.types
+
 COPY ./nginx-template.conf /etc/nginx/templates/nginx-template.conf
 
 COPY ./entrypoint.sh /docker-entrypoint.d/10-generate-nginx.sh
 
 RUN chmod +x /docker-entrypoint.d/10-generate-nginx.sh
 
-EXPOSE 80
+EXPOSE 5173
+
+CMD ["nginx", "-g", "daemon off;"]

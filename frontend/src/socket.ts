@@ -25,7 +25,6 @@ export function connectWebSocket(
 
   isConnecting = true;
   connectionId = crypto.randomUUID();
-
   const hostname = import.meta.env.VITE_HOSTNAME;
   socket = new WebSocket(`wss://${hostname}:3000/ws`);
 
@@ -45,7 +44,6 @@ export function connectWebSocket(
   socket.addEventListener("message", (event) => {
     try {
       const data = JSON.parse(event.data);
-      console.log("[WS] Message reçu:", data.type, data);
       onMessage(data);
     } catch (err) {
       console.error("[WS] Message invalide :", err);
@@ -80,7 +78,6 @@ export function sendMove(input: {
 export function closeConnection() {
   if (socket) {
     socket.close();
-    socket = null;
     isConnecting = false;
     connectionId = null;
   }
