@@ -455,6 +455,13 @@ export function renderDashboard() {
       console.log("🎲 Matchmaking automatique demandé");
       joinRoom("auto");
     });
+    
+    // document = obj global = page html chargee dans le browser -> DOM = Document Obj Model
+    // getElmtById = method de DOM qui selectionne un element HTML par son ID
+    // eventListener = surveillance de l'evenement clique rattache au bouton
+    document.getElementById("liveChatBtn")?.addEventListener("click", () => {
+	    page("/chat");
+    });
 
     document
       .getElementById("goToTournamentBtn")
@@ -476,7 +483,7 @@ export function renderDashboard() {
   }, 300);
 
   return `
-    <div class="w-full my-4 flex flex-row justify-between items-center px-4">
+      <div class="w-full my-4 flex flex-row justify-between items-center px-4">
       <h1 class>Transcendance</h1>
       <a href="/profile" data-nav>Profil</a>
       <a href="/users-list" data-nav>Utilisateurs</a>
@@ -498,13 +505,14 @@ export function renderDashboard() {
         <button id="keyboardPlayBtn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors">
           ⌨️ Clavier
         </button>
+	<button id="liveChatBtn" class="bg-fuchsia-400 text-white px-4 py-2 rounded">Chat</button>
       </div>
-      
+
       <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
         <div id="roomInfo" class="text-sm text-gray-600 italic">Aucune partie en cours</div>
         <h2 id="score" class="text-xl font-bold mt-2"></h2>
       </div>
-      
+
       <div class="game-container">
         <h1 id="launch" class="text-5xl text-center text-gray-400 my-8">🚀 Lancez une partie !</h1>
         <canvas id="renderCanvas" class="border w-full h-[70vh] rounded shadow-lg"></canvas>
