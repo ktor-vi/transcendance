@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import fs from "fs";
-// Fonction pour ajouter la configuration de forwarding de cookies
+
 function cookieForwarding(proxy) {
   proxy.on("proxyReq", (proxyReq, req) => {
     if (req.headers.cookie) {
@@ -19,7 +19,19 @@ export default defineConfig({
   appType: "spa",
   root: "./",
   server: {
+    https: {
+      key: fs.readFileSync("./certs/localhost.key"),
+      cert: fs.readFileSync("./certs/localhost.crt"),
+    },
+    port: 5173,
+    host: true,
+    hmr: {
+      host: `${process.env.VITE_HOSTNAME}`,
+      protocol: "wss",
+      port: 5173,
+    },
     proxy: {
+      // Regular HTTP endpoints
       "/api": {
         target: `https://${process.env.HOSTNAME}:3000`,
         changeOrigin: true,
@@ -50,6 +62,36 @@ export default defineConfig({
         secure: false,
         configure: cookieForwarding,
       },
+      // WebSocket endpoint - CORRIGÉ
+      "/chat": {
+        target: `https://${process.env.HOSTNAME}:3000`,
+        changeOrigin: true,
+        secure: false,
+        ws: true, // Active le proxying WebSocket
+        configure: (proxy, options) => {
+          proxy.on("error", (err, req, res) => {
+            console.log("WebSocket proxy error:", err);
+          });
+
+          proxy.on("proxyReqWs", (proxyReq, req, socket, head) => {
+            console.log("WebSocket proxy request:", proxyReq.path);
+            // Forward les cookies pour l'authentification
+            if (req.headers.cookie) {
+              proxyReq.setHeader("cookie", req.headers.cookie);
+            }
+          });
+
+          proxy.on("open", (proxySocket) => {
+            console.log("WebSocket proxy connection opened");
+          });
+
+          proxy.on("close", (res, socket, head) => {
+            console.log("WebSocket proxy connection closed");
+          });
+        },
+      },
+    },
+/*//======= est ce quon garde ca ???
       "/ws": {
         target: `wss://${process.env.HOSTNAME}:3000`,
         ws: true,
@@ -66,6 +108,7 @@ export default defineConfig({
     },
     host: true,
     port: 5173,
+//>>>>>>> eed3e420b91264f79ae80eb9527d4229bfd4b5e0*/
   },
   build: {
     outDir: "dist",

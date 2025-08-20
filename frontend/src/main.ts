@@ -10,6 +10,7 @@ import { renderUserProfile } from "./pages/usersProfile";
 import { renderRegister } from "./pages/register";
 import { renderLogin } from "./pages/login";
 import { renderForgotPwd } from "./pages/forgotPassword";
+import { renderChat } from "./pages/chat"; // jai juste ajoute cela sur le meme modele que ce que Rachel avait fait
 import { renderTournamentPage } from "./pages/tournament";
 import { startPingLoop } from "./components/pingLoop";
 import { getUserStatut } from "./components/auth";
@@ -60,7 +61,7 @@ page("/keyboard-play", () => render(renderKeyboardPlay()))
 page("/tournament", () => renderTournamentPage());
 // Lance le routeur (écoute les changements de l'URL sans recharger la page)
 // a la page de l'index (/) on va donc "génerer" la homepage définie dans pages/home.ts
-
+page("/chat", () => render(renderChat())); // idem ici, les explications de Rachel ont deja ete faites pour guider
 
 // page a été importé sur ce fichier. il sert à "écouter" et à gérer la navigation
 // de notre appli sans recharger toute la page à chaque fois
