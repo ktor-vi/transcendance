@@ -99,7 +99,7 @@ console.log(
 	if (msg.type === "chatMessage") {
 	  const payload = JSON.stringify({
 		type: "chatMessage",
-		user: msg.user ?? "Utilisateur",
+		user: msg.user ?? "Ta mere",
 		content: msg.content,
 	  });
 

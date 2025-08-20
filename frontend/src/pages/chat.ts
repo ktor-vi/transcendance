@@ -55,7 +55,7 @@ export function renderChat() {
       const payload = {
         type: "chatMessage",
         content: message,
-        user: "Moi", // Optionnel, le serveur peut overrider
+        user: "lol", // Optionnel, le serveur peut overrider
       };
 
       try {
