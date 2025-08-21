@@ -6,7 +6,7 @@ export async function renderUserProfile(ctx: any) {
 	console.log("renderUserProfile called");
 	try {
 		const userName = ctx.params.name;
-		const historyRes = await fetch(`api/user/${encodeURIComponent(userName)}`, { method: "GET" });
+		const historyRes = await fetch(`api/user/history/${encodeURIComponent(userName)}`, { method: "GET" });
 		
 		const res = await fetch("/api/profile", { method: "GET" });
 		const userData = await res.json();

@@ -2,7 +2,7 @@ import { openDb, openDbHistory } from '../utils/db.js';
 
 export default async function userProfileRoutes(fastify)
 {
-	fastify.get('/user/:name', async (req, reply) => {
+	fastify.get('/user/history/:name', async (req, reply) => {
 		const historyDb = await openDbHistory();
 		const userName = req.params.name;
 

@@ -17,7 +17,11 @@ import { getUserStatut } from "./components/auth";
 (async() => {
 	const res = await getUserStatut();
 	if (res.loggedIn)
+	{
+		console.log("LA BOUCLE VA DEMARRER");
 		startPingLoop();
+	}
+	console.log("PERSONNE NON LOGGEDIN");
 })();
 
 // 🔽 Récupère la référence à l'élément HTML avec l'ID "app"

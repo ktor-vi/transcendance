@@ -21,15 +21,19 @@ export default async function friendshipRequestsRoutes(fastify)
 
 		const db = await openDb();
 		console.log("receiver = ", receiver);
-		const senderId = await db.all('SELECT id FROM users WHERE name = ?', sender);
-		const receiverId = await db.all('SELECT id FROM users WHERE name = ?', receiver);
+		const senderRow = await db.all('SELECT id FROM users WHERE name = ?', sender);
+		const receiverRow = await db.all('SELECT id FROM users WHERE name = ?', receiver);
+		const senderId = senderRow[0]?.id;
+		const receiverId = receiverRow[0]?.id;
+
 		console.log("sender id = ", senderId);
 		console.log("receiver id = ", receiverId);
-		//const history = await historyDb.all('SELECT * FROM history WHERE player_1 = ? OR player_2 = ? ORDER BY created_at DESC', userName, userName);
-		// await db.run(
-		// 	`INSERT OR IGNORE INTO requests
-		// 	()`
-		// );
+		await db.run(
+			`INSERT OR IGNORE INTO requests
+			(sender_id, receiver_id)
+			VALUES (?, ?)`,
+			[senderId, receiverId]
+		);
 		
 		// return reply.send(user);
   });

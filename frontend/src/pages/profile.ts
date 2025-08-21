@@ -20,7 +20,7 @@ export async function renderProfile() {
 			userData.picture = "/uploads/default.jpg";
 		}
 
-		const historyRes = await fetch(`api/user/${encodeURIComponent(userData.name)}`, { method: "GET" });
+		const historyRes = await fetch(`api/user/history/${encodeURIComponent(userData.name)}`, { method: "GET" });
 		if (!historyRes.ok) {
 			document.getElementById("app")!.innerHTML = "<p>Cet utilisateur n'existe pas</p>";
 			return;
