@@ -1,6 +1,7 @@
 import page from "page";
 
 import { backButton, setupBackButton } from '../components/backButton.js';
+import { chatButton, setupChatButton } from '../components/chatButton.js';
 
 export async function renderUserProfile(ctx: any) {
 	console.log("renderUserProfile called");
@@ -19,9 +20,9 @@ export async function renderUserProfile(ctx: any) {
 
 		const html = `
 		<div style="display: flex; flex-direction: column; align-items: center;">
-	<h1 style="text-align: center;">Profile de ${userName}</h1>
+	<h1 style="text-align: center;">Profile de ${userName}</h1>  ${chatButton(userName)}
 	<span id="userStatut"></span>
-	<img 
+	<img
 		src="${userData.picture}" 
 		alt="default" 
 		style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
@@ -59,6 +60,7 @@ export async function renderUserProfile(ctx: any) {
 		if (statut)
 			statut.textContent = "[?]";
 		setupBackButton();
+		setupChatButton();
 	} catch (error) {
 		console.error("Erreur lors du chargement du profil :", error);
 		document.getElementById("app")!.innerHTML = "<p>Erreur lors du chargement de la page</p>";
