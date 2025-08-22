@@ -8,9 +8,12 @@ export async function renderUserProfile(ctx: any) {
 		const userName = ctx.params.name;
 		const historyRes = await fetch(`api/user/history/${encodeURIComponent(userName)}`, { method: "GET" });
 		
-		const res = await fetch("/api/profile", { method: "GET" });
+		const res = await fetch(`/api/user/${encodeURIComponent(userName)}`, { method: "GET" });
 		const userData = await res.json();
 		
+		console.log("User FRONTEND = ");
+		console.log(userData.email);
+
 		if (!historyRes.ok) {
 			document.getElementById("app")!.innerHTML = "<p>Cet utilisateur n'existe pas</p>";
 			return;

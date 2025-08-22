@@ -2,6 +2,23 @@ import { openDb, openDbHistory } from '../utils/db.js';
 
 export default async function userProfileRoutes(fastify)
 {
+
+	fastify.get('/user/:name', async (req, reply) => {
+	const db = await openDb();
+	const userName = req.params.name;
+
+	console.log("Name dans BACKEND:");
+	console.log(userName);
+
+	const userInfos = await db.get('SELECT * FROM users WHERE name = ?', userName);
+	console.log("Dans BACKEND:");
+	console.log(userInfos);
+	if (userInfos)
+		reply.send(userInfos);
+	else
+		reply.code(404).send({ success: false, message: "Problème pendant l'affichage du profil" });
+	});
+//////////////////////////////////////////////////////////////////
 	fastify.get('/user/history/:name', async (req, reply) => {
 		const historyDb = await openDbHistory();
 		const userName = req.params.name;
@@ -10,6 +27,6 @@ export default async function userProfileRoutes(fastify)
 	if (history)
 		reply.send(history);
 	else
-		reply.code(404).send({ success: false, message: "Problème pendant l'afichage du profil" });
+		reply.code(404).send({ success: false, message: "Problème pendant l'affichage du profil" });
 	});
 }
