@@ -21,10 +21,18 @@ export default async function friendshipRequestsRoutes(fastify)
 
 		const db = await openDb();
 		console.log("receiver = ", receiver);
+
+		
 		const senderRow = await db.all('SELECT id FROM users WHERE name = ?', sender);
 		const receiverRow = await db.all('SELECT id FROM users WHERE name = ?', receiver);
+		
+		
 		const senderId = senderRow[0]?.id;
 		const receiverId = receiverRow[0]?.id;
+
+		const existingReceiver = await db.get('SELECT * FROM requests WHERE sender_id = ?', [receiverId]);
+		if (existingReceiver)
+			return (reply.code(409).send({ success: false, message: "Tu as déjà envoyé une requête" }));
 
 		console.log("sender id = ", senderId);
 		console.log("receiver id = ", receiverId);
@@ -35,6 +43,6 @@ export default async function friendshipRequestsRoutes(fastify)
 			[senderId, receiverId]
 		);
 		
-		// return reply.send(user);
+		return (reply.code(200).send({ success: true }));
   });
 }

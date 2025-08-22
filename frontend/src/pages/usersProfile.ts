@@ -64,10 +64,18 @@ export async function renderUserProfile(ctx: any) {
 		{
 			try {
 				const receiver = userName;
-				fetch("/api/friendshipButton", { 
+				const resRequest =
+				await fetch("/api/friendshipButton", { 
 					method: "POST",
 					body: receiver
 				});
+			if (resRequest.status === 409) {
+				const data = await resRequest.json();
+				alert(data.message);
+				return ;
+			}
+			else
+				alert(`La demande a bien été envoyée à ${receiver} !`)
 
 			} catch {
 				console.error("Erreur lors de l'envoi de la requête");
