@@ -60,7 +60,7 @@ export async function renderUserProfile(ctx: any) {
 		if (statut)
 			statut.textContent = "[?]";
 		setupBackButton();
-		setupChatButton();
+		setupChatButton(userName);
 	} catch (error) {
 		console.error("Erreur lors du chargement du profil :", error);
 		document.getElementById("app")!.innerHTML = "<p>Erreur lors du chargement de la page</p>";

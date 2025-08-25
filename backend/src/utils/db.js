@@ -18,3 +18,13 @@ export async function openDbHistory()
 		driver: sqlite3.Database // sqlite3 = un objet, Database = une classe. Cette ligne indique a sqlite quel type de connexion utiliser pour gerer la db
 	});
 }
+
+/**
+ * @returns Database data/chat.sqlite3
+ */
+export async function openChatDB(){
+	return open({
+		filename: './data/chat.sqlite3',
+		driver: sqlite3.Database
+	});
+}

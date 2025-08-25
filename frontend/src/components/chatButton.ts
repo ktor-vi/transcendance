@@ -10,7 +10,7 @@ export function chatButton(name: string) {
 // on chope l'élément html ayant la balise "goChat", et si on clique dessus
 // on renvoie simplement à history.back(), qui vient de l'api native de javaScript
 // le ? vérifie si l'élément existe (sinon getElementById renvoie null)
-export function setupChatButton(id: number) {
+export function setupChatButton(name: string) {
 	document.getElementById("goChat")?.addEventListener("click", () => {
 		page("/chat");
 	});
