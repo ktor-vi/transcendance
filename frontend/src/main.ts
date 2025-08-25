@@ -8,6 +8,7 @@ import { renderProfile } from "./pages/profile";
 import { renderUsersList } from "./pages/usersList";
 import { renderUserProfile } from "./pages/usersProfile";
 import { renderFriends } from "./pages/friends";
+import { renderFriendsRequests } from "./pages/friendsRequests";
 import { renderRegister } from "./pages/register";
 import { renderLogin } from "./pages/login";
 import { renderForgotPwd } from "./pages/forgotPassword";
@@ -51,6 +52,9 @@ page("/users-list", () =>
 
 page("/friends", () => 
 	renderFriends());
+
+page("/friends/requests", () => 
+	renderFriendsRequests());
 
 page("/user/:name", (ctx) =>
 	renderUserProfile(ctx));
