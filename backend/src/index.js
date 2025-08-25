@@ -15,6 +15,7 @@ import userRoutes from './routes/user.js';
 import loginRoutes from './routes/login.js';
 import forgotPwdRoutes from './routes/forgotPassword.js';
 import friendshipRequestsRoutes from './routes/friendshipRequests.js';
+import friendsRoutes from './routes/friends.js';
 import fastifyMultipart from '@fastify/multipart';
 
 import fs from 'fs';
@@ -43,6 +44,7 @@ fastify.register(profileRoutes, { prefix: '/api'});
 fastify.register(usersListRoutes, { prefix: '/api'});
 fastify.register(userProfileRoutes, { prefix: '/api'});
 fastify.register(friendshipRequestsRoutes, { prefix: '/api'});
+fastify.register(friendsRoutes, { prefix: '/api'});
 fastify.register(registerRoutes, { prefix: '/api'});
 fastify.register(loginRoutes, { prefix: '/api'});
 fastify.register(forgotPwdRoutes, { prefix: '/api'});

@@ -7,6 +7,7 @@ import { renderKeyboardPlay } from "./pages/keyboardPlay";
 import { renderProfile } from "./pages/profile";
 import { renderUsersList } from "./pages/usersList";
 import { renderUserProfile } from "./pages/usersProfile";
+import { renderFriends } from "./pages/friends";
 import { renderRegister } from "./pages/register";
 import { renderLogin } from "./pages/login";
 import { renderForgotPwd } from "./pages/forgotPassword";
@@ -47,6 +48,9 @@ page("/profile", () =>
 
 page("/users-list", () => 
 	renderUsersList());
+
+page("/friends", () => 
+	renderFriends());
 
 page("/user/:name", (ctx) =>
 	renderUserProfile(ctx));

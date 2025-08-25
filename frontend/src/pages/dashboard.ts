@@ -144,6 +144,7 @@ export function renderDashboard() {
 		<div class="absolute left-1/2 transform -translate-x-1/2 flex flex-row items-center gap-8">
 			<a href="/profile" data-nav class="px-4 py-2">Profil</a>
 			<a href="/users-list" data-nav class="px-4 py-2">Utilisateurs</a>
+			<a href="/friends" data-nav class="px-4 py-2">Amitiés</a>
 		</div>
 		<button id="logout" class="bg-red-500 text-white px-4 py-2 rounded relative -top-2">Déconnexion</button>
 	</div>
@@ -151,7 +152,6 @@ export function renderDashboard() {
 	<h2 id="welcome" class="text-xl mb-4 font-semibold"></h2>
 	
 	<section id="friendsList">
-	<h2>Liste d'amis</h2>
 	<ul id="userList" style="background: none;"></ul>
 	</section>
 

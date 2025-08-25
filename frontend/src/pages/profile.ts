@@ -48,14 +48,13 @@ export async function renderProfile() {
 			</div>
 
 			<label for="changePicture">Photo de profil :</label>
-			<input id="changePicture" name="changePicture" type="file"/>
 			<div style="display: flex; align-items: center; gap: 8px;">
 			<img src="${userData.picture}" alt="default" style="display: flex; align-items: center; width: 100px; height: 100px; object-fit: cover; border-radius: 50%;" />
 			</div>
+			<input id="changePicture" name="changePicture" type="file"/>
 			
 			<button id="save">Enregistrer les modifications</button>
-			<span id="userStatut"></span>
-
+			
 			<table border="1" style="width: 100%; text-align: center;">
 			<h3>Historique des matchs</h3>
 			<thead>
@@ -88,16 +87,7 @@ export async function renderProfile() {
 			
 			// injection du html
 			document.getElementById("app")!.innerHTML = html;
-			
-			const resStatut = await getUserStatut();
-			let statut;
-			if (resStatut.loggedIn)
-				statut = "Connecté";
-			else
-				statut = "Non connecté";
-			const statutElement = document.getElementById("userStatut");
-			if (statutElement)
-				statutElement.textContent = statut;
+
 		// créé le bouton de retour arriere
 		setupBackButton();
 		// va enregistrer si une modif d'information a été faite

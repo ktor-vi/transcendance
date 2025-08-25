@@ -20,10 +20,16 @@ export async function renderUserProfile(ctx: any) {
 		}
 		const history = await historyRes.json();
 
+		const us = await fetch("/api/profile", { method: "GET" });
+		const usData = await us.json();
+		let shouldShowButton = true;
+		if (userName == usData.name)
+			shouldShowButton = false;
+
 		const html = `
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<h1 style="text-align: center;">Profile de ${userName}</h1>
-			<button id="friendshipButton">Envoyer une demande d'amitié</button>
+			 ${shouldShowButton ? `<button id="friendshipButton">Envoyer une demande d'amitié</button>` : ""}
 			<span id="userStatut"></span>
 			<img 
 			src="${userData.picture}" 
