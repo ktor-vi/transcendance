@@ -11,7 +11,7 @@ if ! node ./initHistoryDb.js; then
   exit 1
 fi
 
-if ! node ./initChatTables.js; then
+if ! node ./initChatDB.js; then
   echo "❌ Erreur lors de l'initialisation du chat DB"
   exit 1
 fi
