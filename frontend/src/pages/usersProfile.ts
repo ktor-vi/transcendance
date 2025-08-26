@@ -11,7 +11,7 @@ export async function renderUserProfile(ctx: any) {
 		
 		const res = await fetch("/api/profile", { method: "GET" });
 		const userData = await res.json();
-		
+
 		if (!historyRes.ok) {
 			document.getElementById("app")!.innerHTML = "<p>Cet utilisateur n'existe pas</p>";
 			return;
