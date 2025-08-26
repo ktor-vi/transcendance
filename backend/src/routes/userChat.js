@@ -1,8 +1,8 @@
 import { openDb, openChatDB } from '../utils/db.js';
 
 /**
- * 
- * @param {*} fastify 
+ * Find and send a conversation between two users
+ * @param {*} fastify
  */
 export default async function privateChat(fastify)
 {
