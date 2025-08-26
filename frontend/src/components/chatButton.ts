@@ -12,7 +12,7 @@ export function chatButton(name: string) {
 // le ? vérifie si l'élément existe (sinon getElementById renvoie null)
 export function setupChatButton(name: string) {
 	document.getElementById("goChat")?.addEventListener("click", () => {
-		page("/chat"); // ?/chat/:name
+		page(["/chat/", name].join('')); // ?/chat/:name
 	});
 	
 }
