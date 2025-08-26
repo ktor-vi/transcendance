@@ -21,7 +21,7 @@ export default async function privateChat(fastify)
 		let conversationID = await chatDB.get(`
 			SELECT * FROM conversations
 			WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)`,
-			userFrom, userTo, userTo, userFrom);
+			userFrom, userTo, userTo, userFrom).id;
 		if (!conversationID){
 			let result = await chatDB.run(`
       			INSERT INTO conversations (user1_id, user2_id)
