@@ -1,10 +1,14 @@
 
 
+function addMessageDB(userFrom: string, userTo: string, content: string) {
+
+}
+
 /**
  * Add a message to the current window
  * @param msg - the message to add
  */
-function addMessage(msg: string) {
+function printMessage(msg: string) {
   const node = document.createElement("p");
   node.textContent = msg;
   node.classList.add("text-violet-400", "py-1");
@@ -31,7 +35,7 @@ function sendMessage(socket: WebSocket, input: HTMLInputElement, userName: strin
   // Vérifier que la socket est ouverte avant d'envoyer
   if (socket.readyState !== WebSocket.OPEN) {
     console.warn("[CHAT] Socket fermée, impossible d'envoyer le message");
-    addMessage("⚠️ Connexion fermée, reconnexion en cours...");
+    printMessage("⚠️ Connexion fermée, reconnexion en cours...");
     return;
   }
   const payload = {
@@ -41,11 +45,11 @@ function sendMessage(socket: WebSocket, input: HTMLInputElement, userName: strin
   };
   try {
     socket.send(JSON.stringify(payload));
-    addMessage(`Moi: ${message}`);
+    printMessage(`Moi: ${message}`);
     input.value = "";
   } catch (err) {
     console.error("[CHAT] Erreur envoi message:", err);
-    addMessage("⚠️ Erreur lors de l'envoi du message");
+    printMessage("⚠️ Erreur lors de l'envoi du message");
   }
 }
 
@@ -71,7 +75,7 @@ function setupSocket(ctx: any) : WebSocket {
       try {
         const data = JSON.parse(event.data);
         if (data.type === "chatMessage") {
-          addMessage(`${data.user}: ${data.content}`);
+          printMessage(`${data.user}: ${data.content}`);
         }
       } catch (err) {
         console.error("[CHAT] Message invalide:", event.data, err);
@@ -105,7 +109,7 @@ function setupSocket(ctx: any) : WebSocket {
  */
 export function PrivateChat(ctx: any) {
   setTimeout(() => {
-    let userNameForm = ctx.user.name;
+    let userNameFrom = ctx.user.name;
 		let userNameTo = ctx.params.name;
     const socket = setupSocket(ctx);
 
@@ -119,12 +123,12 @@ export function PrivateChat(ctx: any) {
     }
     btn.addEventListener("click",
       () => {
-        sendMessage(socket, input, userNameForm);
+        sendMessage(socket, input, userNameFrom);
       });
     input.addEventListener("keypress",
       (e) => {
         if (e.key === "Enter") {
-          sendMessage(socket, input, userNameForm);
+          sendMessage(socket, input, userNameFrom);
         }
       });
   }, 0);
