@@ -21,7 +21,7 @@ function addMessage(msg: string) {
 /**
  * Send a message to the private chat of someone, and manage closed connexion
  * @param socket - where to send the message
- * @param input - what to send the message
+ * @param input - what message to send
  * @param other - who receives the message
  * @returns 
  */
