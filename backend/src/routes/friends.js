@@ -89,4 +89,25 @@ export default async function friendsRoutes(fastify) {
 		console.log(sendersList);
 		reply.send(sendersList );
 	});
+	// route pour voir si on déjà amis avec qqu
+	fastify.get('/friends/isFriend/:friendName', async (req, reply) => {
+		const friend = req.params.friendName;
+		const userSession = req.session.get('user');
+
+		const db = await openDb();
+		const friendRow = await db.get('SELECT id FROM users WHERE name = ?', friend);
+		const userRow = await db.get('SELECT id FROM users WHERE name = ?', userSession.name);
+
+		const friendId = friendRow?.id;
+		const userId = userRow?.id;
+
+		const user1 = Math.min(friendId, userId);
+		const user2 = Math.max(friendId, userId);
+
+		let friendship = false;
+
+		if (await db.get('SELECT * FROM friends WHERE user1_id = ? AND user2_id = ?', user1, user2))
+			friendship = true;
+		reply.code(200).send({ friendship });
+	});
 }

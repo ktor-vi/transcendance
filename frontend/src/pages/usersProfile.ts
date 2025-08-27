@@ -20,19 +20,27 @@ export async function renderUserProfile(ctx: any) {
 		}
 		const history = await historyRes.json();
 
+		let buttonRequests = `<button id="friendshipButton">Envoyer une demande d'amitié</button>`;
+
 		const us = await fetch("/api/profile", { method: "GET" });
 		const usData = await us.json();
-		let shouldShowButton = true;
 		if (userName == usData.name)
-			shouldShowButton = false;
+			buttonRequests = ""
+
+		const alreadyFriends = await fetch(`/api/friends/isFriend/${encodeURIComponent(userName)}`, { method: "GET" });
+		const alreadyFriendsData = await alreadyFriends.json();
+		const friendship = alreadyFriendsData.friendship;
+
+		if (friendship == true)
+			buttonRequests = `<button id="friendshipButton disabled">Vous êtes déjà amis</button>`;
 
 		const html = `
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<h1 style="text-align: center;">Profile de ${userName}</h1>
-			 ${shouldShowButton ? `<button id="friendshipButton">Envoyer une demande d'amitié</button>` : ""}
+			 ${buttonRequests}
 			<span id="userStatut"></span>
 			<img 
-			src="${userData.picture}" 
+			src="${userData.picture}"
 			alt="default" 
 			style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
 		</div>
@@ -71,7 +79,7 @@ export async function renderUserProfile(ctx: any) {
 			try {
 				const receiver = userName;
 				const resRequest =
-				await fetch("/api/friendshipButton", { 
+				await fetch("/api/friendshipButton", {
 					method: "POST",
 					body: receiver
 				});
@@ -92,6 +100,7 @@ export async function renderUserProfile(ctx: any) {
 		if (statut)
 		{
 			try {
+				
 				const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`, { method: "GET" });
 				if (!statutRes.ok)
 				    throw new Error(`Error with http status`);

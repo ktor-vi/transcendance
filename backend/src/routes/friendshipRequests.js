@@ -68,9 +68,8 @@ export default async function friendshipRequestsRoutes(fastify)
 		const user2 = Math.max(userId, askerId);
 		if (await db.get('SELECT * FROM friends WHERE user1_id = ? AND user2_id = ?', user1, user2))
 		{
-			console.log("VOUS ETES DEJA AMIS ACCEPT");
 			await db.run('UPDATE requests SET status = ? WHERE sender_id = ? AND receiver_id = ?', `canceled`, askerId, userId);
-			return (reply.code(409).send({ message: 'Vous êtes déjà amis ACCEPT' }));
+			return (reply.code(409).send({ message: 'Vous êtes déjà amis' }));
 		}
 
 		console.log("user1 = ", userId);
@@ -115,9 +114,8 @@ export default async function friendshipRequestsRoutes(fastify)
 
 		if (await db.all('SELECT * FROM friends WHERE user1_id = ? AND user2_id = ?', user1, user2))
 		{
-			console.log("VOUS ETES DEJA AMIS CANCELED");
 			await db.run('UPDATE requests SET status = ? WHERE sender_id = ? AND receiver_id = ?', `canceled`, askerId, userId);
-			return (reply.code(409).send({ message: 'Vous êtes déjà amis DECLINE' }));
+			return (reply.code(409).send({ message: 'Vous êtes déjà amis' }));
 		}	
 
 		console.log("userId = ", userId);

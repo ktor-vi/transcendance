@@ -48,9 +48,11 @@ export async function renderFriendsRequests() {
 						if (resAccept.status === 409) {
 							const data = await resAccept.json();
 							alert(data.message);
+							li.remove();
 							return ;
 						}
 						alert(`Vous avez accepté la demande d'amitié de ${line.sender_name}`)
+						li.remove();
 					} catch {
 						console.error("Erreur avec la demande");
 					}
@@ -69,9 +71,11 @@ export async function renderFriendsRequests() {
 						if (resDecline.status === 409) {
 							const data = await resDecline.json();
 							alert(data.message);
+							li.remove();
 							return ;
 						}
 						alert(`Vous avez décliné la demande d'amitié de ${line.sender_name}`)
+						li.remove();
 					} catch {
 						console.error("Erreur avec la demande");
 					}
