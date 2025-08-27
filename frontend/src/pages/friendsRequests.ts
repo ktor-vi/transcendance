@@ -38,11 +38,44 @@ export async function renderFriendsRequests() {
 				const accept = document.createElement("button");
 				accept.className = "icons-btn";
 				accept.innerHTML = `<img src="/images/ok-svgrepo-com.svg" alt="Accepter" class="w-10">`;
+				accept.addEventListener("click", async () => {
+					try {
+						const resAccept = await fetch("/api/friends/requests/accept", { 
+							method: "POST",
+							headers: {"Content-Type": "application/json"},
+							body: JSON.stringify({ sender_name: line.sender_name }),
+						});
+						if (resAccept.status === 409) {
+							const data = await resAccept.json();
+							alert(data.message);
+							return ;
+						}
+						alert(`Vous avez accepté la demande d'amitié de ${line.sender_name}`)
+					} catch {
+						console.error("Erreur avec la demande");
+					}
+				});
 
 				const decline = document.createElement("button");
 				decline.className = "icons-btn";
 				decline.innerHTML = `<img src="/images/cancel-svgrepo-com.svg" alt="Refuser" class="w-10">`;
-
+				decline.addEventListener("click", async () => {
+					try {
+						const resDecline = await fetch("/api/friends/requests/decline", { 
+							method: "POST",
+							headers: {"Content-Type": "application/json"},
+							body: JSON.stringify({ sender_name: line.sender_name }),
+						});
+						if (resDecline.status === 409) {
+							const data = await resDecline.json();
+							alert(data.message);
+							return ;
+						}
+						alert(`Vous avez décliné la demande d'amitié de ${line.sender_name}`)
+					} catch {
+						console.error("Erreur avec la demande");
+					}
+				});
 
 				divButtons.appendChild(accept);
 				divButtons.appendChild(decline);

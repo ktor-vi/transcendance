@@ -47,8 +47,7 @@ CREATE TABLE IF NOT EXISTS
 		status TEXT NOT NULL DEFAULT 'waiting',
 		request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-		FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
-		UNIQUE (sender_id, receiver_id)
+		FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
 	);
 `;
 

@@ -75,7 +75,7 @@ export async function renderUserProfile(ctx: any) {
 					method: "POST",
 					body: receiver
 				});
-			if (resRequest.status === 409) {
+			if (resRequest.status != 200) {
 				const data = await resRequest.json();
 				alert(data.message);
 				return ;

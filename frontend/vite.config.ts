@@ -72,4 +72,9 @@ export default defineConfig({
 			},
 		},
 	},
+	optimizeDeps: {
+		force: true, // force Vite à re-bundler tous les modules
+		exclude: [
+		],
+	},
 });
