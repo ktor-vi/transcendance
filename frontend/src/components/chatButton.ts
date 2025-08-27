@@ -2,7 +2,7 @@ import page from "page";
 
 // chatButton renvoie simplement le html du bouton
 export function chatButton(name: string) {
-	return ['<button id="goChat">Chat with ', name, "</button>"].join('')
+	return `<button id="goChat">Chat with ${name} </button>`
 }
 
 // setupChatButton sert à "surveiller" si on clique sur le bouton
@@ -12,7 +12,6 @@ export function chatButton(name: string) {
 // le ? vérifie si l'élément existe (sinon getElementById renvoie null)
 export function setupChatButton(name: string) {
 	document.getElementById("goChat")?.addEventListener("click", () => {
-		page(["/chat/", name].join('')); // ?/chat/:name
+		page(`/chat/${name}`);
 	});
-	
 }

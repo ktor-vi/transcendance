@@ -22,10 +22,10 @@ function addMessage(msg: string) {
  * Send a message to the private chat of someone, and manage closed connexion
  * @param socket - where to send the message
  * @param input - what message to send
- * @param other - who receives the message
+ * @param userName - who send the message
  * @returns 
  */
-function sendMessage(socket: WebSocket, input: HTMLInputElement, other: string) {
+function sendMessage(socket: WebSocket, input: HTMLInputElement, userName: string) {
   const message = input.value.trim();
   if (!message) return;
   // Vérifier que la socket est ouverte avant d'envoyer
@@ -37,7 +37,7 @@ function sendMessage(socket: WebSocket, input: HTMLInputElement, other: string) 
   const payload = {
     type: "chatMessage",
     content: message,
-    user: other,
+    user: userName,
   };
   try {
     socket.send(JSON.stringify(payload));
@@ -80,14 +80,12 @@ function setupSocket(ctx: any) : WebSocket {
 
   socket.addEventListener("close",
     (event) => {
-      console.log(
-        `[CHAT] Déconnecté du serveur (Code: ${event.code}, Raison: ${event.reason})`
-      );
+      console.log(`[CHAT] Déconnecté du serveur (Code: ${event.code}, Raison: ${event.reason})`);
 
       // Tentative de reconnexion automatique après 3 secondes
       setTimeout(() => {
         console.log("[CHAT] Tentative de reconnexion...");
-        renderPrivateChat(ctx); // Relance la fonction pour reconnecter
+        PrivateChat(ctx); // Relance la fonction pour reconnecter
       }, 3000);
   });
 
@@ -98,9 +96,17 @@ function setupSocket(ctx: any) : WebSocket {
   return socket;
 }
 
-export function renderPrivateChat(ctx: any) {
+/**
+ * Setup the socket for the conversations,
+ * manage the input messages,
+ * and generate the HTLM to render the chat
+ * @param ctx 
+ * @returns the HTML to render
+ */
+export function PrivateChat(ctx: any) {
   setTimeout(() => {
-		let userNameToChat = ctx.params.name;
+    let userNameForm = ctx.user.name;
+		let userNameTo = ctx.params.name;
     const socket = setupSocket(ctx);
 
     // Récupération des éléments DOM
@@ -113,12 +119,12 @@ export function renderPrivateChat(ctx: any) {
     }
     btn.addEventListener("click",
       () => {
-        sendMessage(socket, input, userNameToChat);
+        sendMessage(socket, input, userNameForm);
       });
     input.addEventListener("keypress",
       (e) => {
         if (e.key === "Enter") {
-          sendMessage(socket, input, userNameToChat);
+          sendMessage(socket, input, userNameForm);
         }
       });
   }, 0);
