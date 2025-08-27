@@ -1,8 +1,8 @@
 
 
-function addMessageDB(userFrom: string, userTo: string, content: string) {
+/*function addMessageDB(userFrom: string, userTo: string, content: string) {
 
-}
+}*/
 
 /**
  * Add a message to the current window
