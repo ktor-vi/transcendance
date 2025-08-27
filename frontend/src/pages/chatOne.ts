@@ -1,20 +1,73 @@
-export function renderPrivateChat(ctx: any) {
-  setTimeout(() => {
-		let userNameToChat = ctx.params.name;
-    // Construction de l'URL WebSocket basée sur la location actuelle
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.host;
-    const socketUrl = `${protocol}//${host}/chat`;
 
-    console.log(`[CHAT] Tentative de connexion à: ${socketUrl}`);
 
-    const socket = new WebSocket(socketUrl);
+/**
+ * Add a message to the current window
+ * @param msg - the message to add
+ */
+function addMessage(msg: string) {
+  const node = document.createElement("p");
+  node.textContent = msg;
+  node.classList.add("text-violet-400", "py-1");
+  const chatMessages = document.getElementById("chatMessages");
+  if (chatMessages) {
+    chatMessages.appendChild(node);
+    // Auto-scroll vers le bas
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  } else {
+    console.error("[CHAT] Zone de messages introuvable");
+  }
+}
 
-    socket.addEventListener("open", () => {
+/**
+ * Send a message to the private chat of someone, and manage closed connexion
+ * @param socket - where to send the message
+ * @param input - what to send the message
+ * @param other - who receives the message
+ * @returns 
+ */
+function sendMessage(socket: WebSocket, input: HTMLInputElement, other: string) {
+  const message = input.value.trim();
+  if (!message) return;
+  // Vérifier que la socket est ouverte avant d'envoyer
+  if (socket.readyState !== WebSocket.OPEN) {
+    console.warn("[CHAT] Socket fermée, impossible d'envoyer le message");
+    addMessage("⚠️ Connexion fermée, reconnexion en cours...");
+    return;
+  }
+  const payload = {
+    type: "chatMessage",
+    content: message,
+    user: other,
+  };
+  try {
+    socket.send(JSON.stringify(payload));
+    addMessage(`Moi: ${message}`);
+    input.value = "";
+  } catch (err) {
+    console.error("[CHAT] Erreur envoi message:", err);
+    addMessage("⚠️ Erreur lors de l'envoi du message");
+  }
+}
+
+/**
+ * Create a socket based on the actual location and define the events associated
+ */
+function setupSocket(ctx: any) : WebSocket {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const host = window.location.host;
+  const socketUrl = `${protocol}//${host}/chat`;
+
+  console.log(`[CHAT] Tentative de connexion à: ${socketUrl}`);
+
+  const socket = new WebSocket(socketUrl);
+
+  socket.addEventListener("open",
+    () => {
       console.log("[CHAT] Connecté au serveur WebSocket");
     });
 
-    socket.addEventListener("message", (event) => {
+  socket.addEventListener("message",
+    (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.type === "chatMessage") {
@@ -23,9 +76,10 @@ export function renderPrivateChat(ctx: any) {
       } catch (err) {
         console.error("[CHAT] Message invalide:", event.data, err);
       }
-    });
+  });
 
-    socket.addEventListener("close", (event) => {
+  socket.addEventListener("close",
+    (event) => {
       console.log(
         `[CHAT] Déconnecté du serveur (Code: ${event.code}, Raison: ${event.reason})`
       );
@@ -35,39 +89,19 @@ export function renderPrivateChat(ctx: any) {
         console.log("[CHAT] Tentative de reconnexion...");
         renderPrivateChat(ctx); // Relance la fonction pour reconnecter
       }, 3000);
-    });
+  });
 
-    socket.addEventListener("error", (err) => {
-      console.error("[CHAT] Erreur WebSocket:", err);
-    });
+  socket.addEventListener("error", (err) => {
+    console.error("[CHAT] Erreur WebSocket:", err);
+  });
 
-    function sendMessage() {
-      const message = input.value.trim();
+  return socket;
+}
 
-      if (!message) return;
-
-      // Vérifier que la socket est ouverte avant d'envoyer
-      if (socket.readyState !== WebSocket.OPEN) {
-        console.warn("[CHAT] Socket fermée, impossible d'envoyer le message");
-        addMessage("⚠️ Connexion fermée, reconnexion en cours...");
-        return;
-      }
-
-      const payload = {
-        type: "chatMessage",
-        content: message,
-        user: userNameToChat,
-      };
-
-      try {
-        socket.send(JSON.stringify(payload));
-        addMessage(`Moi: ${message}`);
-        input.value = "";
-      } catch (err) {
-        console.error("[CHAT] Erreur envoi message:", err);
-        addMessage("⚠️ Erreur lors de l'envoi du message");
-      }
-    }
+export function renderPrivateChat(ctx: any) {
+  setTimeout(() => {
+		let userNameToChat = ctx.params.name;
+    const socket = setupSocket(ctx);
 
     // Récupération des éléments DOM
     const input = document.getElementById("chatInput") as HTMLInputElement;
@@ -77,29 +111,16 @@ export function renderPrivateChat(ctx: any) {
       console.error("[CHAT] Éléments DOM introuvables");
       return;
     }
-
-    function addMessage(msg: string) {
-      const node = document.createElement("p");
-      node.textContent = msg;
-      node.classList.add("text-violet-400", "py-1");
-
-      const chatMessages = document.getElementById("chatMessages");
-      if (chatMessages) {
-        chatMessages.appendChild(node);
-        // Auto-scroll vers le bas
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      } else {
-        console.error("[CHAT] Zone de messages introuvable");
-      }
-    }
-
-    btn.addEventListener("click", sendMessage);
-
-    input.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        sendMessage();
-      }
-    });
+    btn.addEventListener("click",
+      () => {
+        sendMessage(socket, input, userNameToChat);
+      });
+    input.addEventListener("keypress",
+      (e) => {
+        if (e.key === "Enter") {
+          sendMessage(socket, input, userNameToChat);
+        }
+      });
   }, 0);
 
   // HTML de base
