@@ -4,7 +4,6 @@
 FRONTEND_DIR = ./frontend
 BACKEND_DIR = ./backend
 DOCKER_COMPOSE_FILE = docker-compose.yml
-DOCKER_NETWORK = your_network_name
 
 # ANSI color codes
 RED = \033[0;31m
