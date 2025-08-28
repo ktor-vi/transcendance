@@ -3,7 +3,6 @@ import {
   Scene,
   Vector3,
   HemisphericLight,
-  MeshBuilder,
   FreeCamera,
   KeyboardEventTypes,
 } from "@babylonjs/core";
@@ -14,32 +13,25 @@ import {
   Control
 } from "@babylonjs/gui";
 
-function makePaddle(scene: any, size: number, radius: number, angle: number) {
-  let paddle = MeshBuilder.CreateBox("paddle", { width: size, height: 0.75, depth: 0.25 }, scene);
-  paddle.position.x = radius * Math.sin(angle);
-  paddle.position.z = radius * Math.cos(angle);
-  return paddle;
-}
-
-function buildObjects(scene: any, canvas: any, FIELD_DEPTH: number, FIELD_WIDTH: number) {
-  const ground = MeshBuilder.CreateBox("ground", { width: FIELD_WIDTH, height: 0.1, depth: FIELD_DEPTH }, scene);
-  ground.position.y = -0.5;
-
-  const paddleOne = makePaddle(scene, 2, FIELD_DEPTH / 2, 0);
-  const paddleTwo = makePaddle(scene, 2, FIELD_DEPTH / 2, Math.PI);
-
-  const ball = MeshBuilder.CreateSphere("ball", { diameter: 0.5 }, scene);
-
-  return {paddleOne, paddleTwo, ball};
-}
+import {Paddle, Ball, Wall} from "./PongAssets";
 
 function setupVisuals(scene: any, canvas: any, FIELD_DEPTH: number, FIELD_WIDTH: number) {
   const camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), scene);
   camera.setTarget(Vector3.Zero());
-  camera.rotation.x = Math.PI / 2;
+  camera.rotation.x = Math.PI / 2;//changer ca, ca tourne tout le reste
   camera.attachControl(canvas, true);
   camera.setTarget(Vector3.Zero());
   const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+}
+
+// Reset de la partie
+function resetGame(ball: any) {
+  ball.hitbox.position.set(0, 0, 0);
+  ball.speed.set(
+    0.05 * (Math.random() > 0.5 ? 1 : -1),
+    0,
+    0.1 * (Math.random() > 0.5 ? 1 : -1)
+  );
 }
 
 export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
@@ -48,13 +40,22 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   const scene = new Scene(engine);
 
   // Paramètres du terrain
-
   const FIELD_WIDTH = 13.5;
   const FIELD_DEPTH = 7.5;
-  let gameStarted = false;
+  const PADDLE_WIDTH = 2;
+  const PADDLE_HEIGHT = 0.75;
+  const PADDLE_DEPTH = 0.25;
+  const BALL_SIZE = 0.5;
 
-  const {paddleOne, paddleTwo, ball} = buildObjects(scene, canvas, FIELD_DEPTH, FIELD_WIDTH);
+  // Construit la scène
+  const ground = new Wall(scene, FIELD_WIDTH, 0.1, FIELD_DEPTH);
+  ground.hitbox.position.set(0, -0.5, 0);
+  const paddleOne = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, Math.PI);
+  const paddleTwo = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, 0);
+  const ball = new Ball(scene, BALL_SIZE);
   setupVisuals(scene, canvas, FIELD_DEPTH, FIELD_WIDTH);
+  
+  let gameStarted = false;
 
   //Score 
   let score = { p1: 0, p2: 0 };
@@ -66,31 +67,12 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   }
 
   // Direction de la balle
-
-  let ballDirection = new Vector3(0.05, 0, 0.1);
-
+  ball.speed.set(0.05, 0, 0.1);
 
   // Clavier
-
   const keysTwo = { left: false, right: false };
-
   const keysOne = { left: false, right: false };
-
   const PDL_SPD = 0.25;
-
-  // Reset de la partie
-
-  function resetGame() {
-    ball.position.set(0, 0, 0);
-
-    ballDirection = new Vector3(
-      0.05 * (Math.random() > 0.5 ? 1 : -1),
-      0,
-      0.1 * (Math.random() > 0.5 ? 1 : -1)
-    );
-
-    gameStarted = true;
-  }
 
   // Création de l'interface utilisateur
 
@@ -122,7 +104,8 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
     score.p1 = 0;
     score.p2 = 0;
     if (scoreCallback) scoreCallback(score);
-    resetGame(); // Réinitialise la partie
+    resetGame(ball); // Réinitialise la partie
+    gameStarted = true;
   });
 
   // Ajoute le bouton à l'UI
@@ -131,7 +114,7 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
 
   // Gestion des touches pour déplacer les palettes
 
-  scene.onKeyboardObservable.add((kbInfo) => {
+  scene.onKeyboardObservable.add((kbInfo: any) => {
     const key = kbInfo.event.key.toLowerCase();
 
     switch (kbInfo.type) {
@@ -159,61 +142,63 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
 
     if (gameStarted) {
       if(score.p1 < 11 && score.p2 < 11)
-            ball.position.addInPlace(ballDirection);
+            ball.hitbox.position.addInPlace(ball.speed);
 
       // Rebond sur les murs gauche/droit
 
       if (
-        ball.position.x <= -FIELD_WIDTH / 2 ||
-        ball.position.x >= FIELD_WIDTH / 2
+        ball.hitbox.position.x <= -FIELD_WIDTH / 2 ||
+        ball.hitbox.position.x >= FIELD_WIDTH / 2
       ) {
-        ballDirection.x *= -1;
+        ball.speed.x *= -1;
       }
 
       // Rebond sur les palettes
 
       // Paddle 1 collision
       if (
-        ball.position.z <= -FIELD_DEPTH / 2 + 0.5 &&
-        ball.position.z >= -FIELD_DEPTH / 2 - 0.5 && // tolérance plus large
-        Math.abs(ball.position.x - paddleOne.position.x) < 1.1
+        ball.hitbox.position.z <= -FIELD_DEPTH / 2 + 0.5 &&
+        ball.hitbox.position.z >= -FIELD_DEPTH / 2 - 0.5 && // tolérance plus large
+        Math.abs(ball.hitbox.position.x - paddleOne.hitbox.position.x) < 1.1
       ) {
-        ball.position.z = -FIELD_DEPTH / 2 + 0.5; // corriger position pour éviter le clip
-        ballDirection.z *= -1;
+        ball.hitbox.position.z = -FIELD_DEPTH / 2 + 0.5; // corriger position pour éviter le clip
+        ball.speed.z *= -1;
       }
 
       // Paddle 2 collision
       if (
-        ball.position.z >= FIELD_DEPTH / 2 - 0.5 &&
-        ball.position.z <= FIELD_DEPTH / 2 + 0.5 && // tolérance plus large
-        Math.abs(ball.position.x - paddleTwo.position.x) < 1.1
+        ball.hitbox.position.z >= FIELD_DEPTH / 2 - 0.5 &&
+        ball.hitbox.position.z <= FIELD_DEPTH / 2 + 0.5 && // tolérance plus large
+        Math.abs(ball.hitbox.position.x - paddleTwo.hitbox.position.x) < 1.1
       ) {
-        ball.position.z = FIELD_DEPTH / 2 - 0.5; // corriger position
-        ballDirection.z *= -1;
+        ball.hitbox.position.z = FIELD_DEPTH / 2 - 0.5; // corriger position
+        ball.speed.z *= -1;
       }
 
       // Reset si la balle sort du terrain
 
-      if (ball.position.z <= -FIELD_DEPTH) {
+      if (ball.hitbox.position.z <= -FIELD_DEPTH) {
         // Player 2 marque
         score.p2++;
         if (scoreCallback) scoreCallback(score);
-        resetGame();
+        resetGame(ball);
+        gameStarted = true;
       }
 
-      if (ball.position.z >= FIELD_DEPTH) {
+      if (ball.hitbox.position.z >= FIELD_DEPTH) {
         // Player 1 marque
         score.p1++;
         if (scoreCallback) scoreCallback(score);
-        resetGame();
+        resetGame(ball);
+        gameStarted = true;
       }
 
       // Déplacement des palettes
 
-      if (keysOne.left) paddleOne.position.x -= PDL_SPD;
-      if (keysOne.right) paddleOne.position.x += PDL_SPD;
-      if (keysTwo.left) paddleTwo.position.x -= PDL_SPD;
-      if (keysTwo.right) paddleTwo.position.x += PDL_SPD;
+      if (keysOne.left) paddleOne.hitbox.position.x -= PDL_SPD;
+      if (keysOne.right) paddleOne.hitbox.position.x += PDL_SPD;
+      if (keysTwo.left) paddleTwo.hitbox.position.x -= PDL_SPD;
+      if (keysTwo.right) paddleTwo.hitbox.position.x += PDL_SPD;
     }
 
     scene.render();
@@ -223,11 +208,15 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
     engine.resize();
   });
   return {
-    start: () => resetGame(),
+    start: () => {
+      resetGame(ball);
+      gameStarted = true;
+    },
     reset: () => {
       score = { p1: 0, p2: 0 };
       if (scoreCallback) scoreCallback(score);
-      resetGame();
+      resetGame(ball);
+      gameStarted = true;
     },
     onScoreUpdate,
   };
