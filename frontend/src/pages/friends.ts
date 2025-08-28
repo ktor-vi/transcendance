@@ -14,14 +14,21 @@ export async function renderFriends() {
 	let	requests = await resRequests.json();
 
 	const resFriends = await fetch("/api/friends", { method: "GET" });
+	const friendsData = await resFriends.json();
+	const totalFriends = friendsData.total;	
 
 	const html = `
 		<h1 style="text-align: center;">Demandes d'amis :</h1>
-		${requests > 0 ? `<p id="requestsMsg">Vous avez ${requests} demande(s) d'amis</p>
-		<a href="/friends/requests" data-nav class="inline-block mt-4 px-4 py-2">Voir les demandes</a>`
-		: `<p>Vous n'avez aucune demande d'amis</p>`}
+ 		${requests > 0 ?
+			`<p id="requestsMsg">Vous avez ${requests} demande(s) d'amis</p>
+			<a href="/friends/requests" data-nav class="inline-block mt-4 px-4 py-2">Voir les demandes</a>`
+			: `<p>Vous n'avez aucune demande d'amis</p>`
+		}
 		<h1 style="text-align: center;">Liste d'amis</h1>
-		<ul id="friendsList" style="background: none;"></ul>
+		${totalFriends === 0 ?
+			`<p id="requestsMsg">Vous n'avez pas d'amis :( </p>`
+			: `<ul id="friendsList" style="background: none;"></ul>`
+		}
 		${backButton()}
 		`;
 
@@ -29,7 +36,6 @@ export async function renderFriends() {
 		setupBackButton();
 
 		const listFriends = document.getElementById("friendsList");
-		const friendsData = await resFriends.json();
 		const friends = friendsData.friends;
 
 		console.log("Mes amis: ");
