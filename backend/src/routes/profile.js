@@ -101,7 +101,7 @@ export default async function profileRoutes(fastify)
 			const oldPictureRow = await db.get('SELECT picture FROM users WHERE email = ?', userSession.email);
 			const oldPicture = oldPictureRow.picture;
 
-			if (oldPicture && oldPicture.startsWith('/uploads/')) {
+			if (oldPicture != "/uploads/default.jpg" && oldPicture && oldPicture.startsWith('/uploads/')) {
 				const fileName = oldPicture.replace('/uploads/', '');
 				const filePath = path.join(uploadDir, fileName);
 
