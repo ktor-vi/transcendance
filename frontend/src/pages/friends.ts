@@ -41,12 +41,21 @@ export async function renderFriends() {
 		console.log("Mes amis: ");
 		console.log(friends);
 
-
 		if (listFriends) {
 			listFriends.innerHTML = "";
 			for (const friend of friends) {
 				const li = document.createElement("li");
-				li.textContent = `${friend.friend_name}`;
+				li.className = "flex items-center justify-between p-2 border-b";
+
+				const span1 = document.createElement("span");
+				span1.textContent = `${friend.friend_name}`;
+
+				const span2 = document.createElement("span");
+				span2.textContent = `Amis depuis le ${friend.friends_since}`;
+
+				li.appendChild(span1);
+				li.appendChild(span2);
+
 				listFriends.appendChild(li);
 			}
 		}

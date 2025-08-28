@@ -41,7 +41,7 @@ export default async function friendsRoutes(fastify) {
 			CASE WHEN friends.user1_id = ?
 			THEN u2.name
 			ELSE u1.name END AS friend_name,
-			friends.friends_since FROM friends
+			strftime('%Y-%m-%d %H:%M', datetime(friends.friends_since, '+2 hours')) AS friends_since FROM friends
 			JOIN users u1 ON friends.user1_id = u1.id
 			JOIN users u2 ON friends.user2_id = u2.id
 			WHERE friends.user1_id = ? OR friends.user2_id = ?
