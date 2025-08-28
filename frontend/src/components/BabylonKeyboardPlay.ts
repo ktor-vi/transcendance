@@ -8,30 +8,53 @@ import {
   KeyboardEventTypes,
 } from "@babylonjs/core";
 
-import { AdvancedDynamicTexture, Button, Control } from "@babylonjs/gui";
+import {
+  AdvancedDynamicTexture,
+  Button,
+  Control
+} from "@babylonjs/gui";
+
+function makePaddle(scene: any, size: number, radius: number, angle: number) {
+  let paddle = MeshBuilder.CreateBox("paddle", { width: size, height: 0.75, depth: 0.25 }, scene);
+  paddle.position.x = radius * Math.sin(angle);
+  paddle.position.z = radius * Math.cos(angle);
+  return paddle;
+}
+
+function buildObjects(scene: any, canvas: any, FIELD_DEPTH: number, FIELD_WIDTH: number) {
+  const ground = MeshBuilder.CreateBox("ground", { width: FIELD_WIDTH, height: 0.1, depth: FIELD_DEPTH }, scene);
+  ground.position.y = -0.5;
+
+  const paddleOne = makePaddle(scene, 2, FIELD_DEPTH / 2, 0);
+  const paddleTwo = makePaddle(scene, 2, FIELD_DEPTH / 2, Math.PI);
+
+  const ball = MeshBuilder.CreateSphere("ball", { diameter: 0.5 }, scene);
+
+  return {paddleOne, paddleTwo, ball};
+}
+
+function setupVisuals(scene: any, canvas: any, FIELD_DEPTH: number, FIELD_WIDTH: number) {
+  const camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), scene);
+  camera.setTarget(Vector3.Zero());
+  camera.rotation.x = Math.PI / 2;
+  camera.attachControl(canvas, true);
+  camera.setTarget(Vector3.Zero());
+  const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+}
 
 export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
 
   const engine = new Engine(canvas, true);
   const scene = new Scene(engine);
 
-  const camera = new FreeCamera("camera", new Vector3(0, 10, 0), scene);
-  camera.setTarget(Vector3.Zero());
-  camera.rotation.x = Math.PI / 2;
-  camera.attachControl(canvas, true);
-  camera.position.set(0, 8, -10);
-  camera.setTarget(new Vector3(0, 0, 0));
-  const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+  // Paramètres du terrain
 
-  // Sol
-  const ground = MeshBuilder.CreateBox(
-    "ground",
-    { width: 13.5, height: 0.1, depth: 7.5 }, 
-    scene
-  );
-  ground.position.y = -0.5;
+  const FIELD_WIDTH = 13.5;
+  const FIELD_DEPTH = 7.5;
+  let gameStarted = false;
 
-  ground.position.y = -0.5;
+  const {paddleOne, paddleTwo, ball} = buildObjects(scene, canvas, FIELD_DEPTH, FIELD_WIDTH);
+  setupVisuals(scene, canvas, FIELD_DEPTH, FIELD_WIDTH);
 
   //Score 
   let score = { p1: 0, p2: 0 };
@@ -42,44 +65,10 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
     scoreCallback = cb;
   }
 
-  // Palettes
-  const paddleOne = MeshBuilder.CreateBox(
-    "paddleOne",
-    { width: 2, height: 0.75, depth: 0.25 },
-    scene
-  );
-
-  paddleOne.position.x = 0;
-  paddleOne.position.y = 0;
-  paddleOne.position.z = -3.75;
-
-  const paddleTwo = MeshBuilder.CreateBox(
-    "paddleTwo",
-    { width: 2, height: 0.75, depth: 0.25 },
-    scene
-  );
-
-  paddleTwo.position.x = 0;
-  paddleTwo.position.y = 0;
-  paddleTwo.position.z = 3.75;
-
-  // Balle
-
-  const ball = MeshBuilder.CreateSphere("ball", { diameter: 0.5 }, scene);
-
-  ball.position.y = 0;
-
   // Direction de la balle
 
   let ballDirection = new Vector3(0.05, 0, 0.1);
 
-  // Paramètres du terrain
-
-  const FIELD_WIDTH = 13.5;
-
-  const FIELD_DEPTH = 7.5;
-
-  let gameStarted = false;
 
   // Clavier
 
