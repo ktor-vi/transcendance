@@ -17,11 +17,16 @@ export async function renderProfile() {
 		const userData = await res.json();
 
 		if (!userData.picture || userData.picture.trim() === "") {
-			userData.picture = "/default.jpg";
+			userData.picture = "/uploads/default.jpg";
 		}
 
-		
-		
+		const historyRes = await fetch(`api/user/history/${encodeURIComponent(userData.name)}`, { method: "GET" });
+		if (!historyRes.ok) {
+			document.getElementById("app")!.innerHTML = "<p>Cet utilisateur n'existe pas</p>";
+			return;
+		}
+		const history = await historyRes.json();
+
 		const html = `
 		<h1 style="text-align: center;">Profil</h1>
 		<section style="
@@ -42,55 +47,59 @@ export async function renderProfile() {
 		<input type="text" id="nameInput" value="${userData.name}" />
 			</div>
 
-			<div style="display: flex; align-items: center; gap: 8px;">
-			<label for="given_nameInput">Prénom :</label>
-			<input type="text" id="given_nameInput" value="${userData.given_name}" />
-			</div>
-			
-			<div style="display: flex; align-items: center; gap: 8px;">
-			<label for="family_nameInput">Nom :</label>
-			<input type="text" id="family_nameInput" value="${userData.family_name}" />
-			</div>
-			
 			<label for="changePicture">Photo de profil :</label>
-			<input id="changePicture" name="changePicture" type="file"/>
 			<div style="display: flex; align-items: center; gap: 8px;">
 			<img src="${userData.picture}" alt="default" style="display: flex; align-items: center; width: 100px; height: 100px; object-fit: cover; border-radius: 50%;" />
 			</div>
+			<input id="changePicture" name="changePicture" type="file"/>
 			
 			<button id="save">Enregistrer les modifications</button>
-			<span id="userStatut"></span>
+			
+			<table border="1" style="width: 100%; text-align: center;">
+			${!history.length ?
+				`<h1">L'historique apparaîtra quand tu auras fait au moins 1 match </p>`
+			:
+				`<h3>Historique des matchs</h3>
+				<thead>
+					<tr>
+						<th>Type</th>
+						<th>Joueur 1</th>
+						<th>Joueur 2</th>
+						<th>Score</th>
+						<th>Vainqueur</th>
+						<th>Date</th>
+					</tr>
+				</thead>
+				<tbody>
+					${history.map((entry: any) => `
+						<tr>
+							<td>${entry.type}</td>
+							<td>${entry.player_1}</td>
+							<td>${entry.player_2}</td>
+							<td>${entry.scores}</td>
+							<td>${entry.winner}</td>
+							<td>${entry.created_at}</td>
+						</tr>
+					`).join("")}
+				</tbody>
+				</table>`}
 			${backButton()}
 			</section>
 			`;
 			
 			// injection du html
 			document.getElementById("app")!.innerHTML = html;
-			
-			const resStatut = await getUserStatut();
-			let statut;
-			if (resStatut.loggedIn)
-				statut = "Connecté";
-			else
-				statut = "Non connecté";
-			const statutElement = document.getElementById("userStatut");
-			if (statutElement)
-				statutElement.textContent = statut;
+
 		// créé le bouton de retour arriere
 		setupBackButton();
 		// va enregistrer si une modif d'information a été faite
 
 		document.getElementById("save")?.addEventListener("click", async() => {
 			const newName = (document.getElementById("nameInput") as HTMLInputElement).value;
-			const newGivenName = (document.getElementById("given_nameInput") as HTMLInputElement).value;
-			const newFamilyName = (document.getElementById("family_nameInput") as HTMLInputElement).value;
 			
 			const fileData = new FormData();
 
 			fileData.append("name", newName);
-			fileData.append("given_name", newGivenName);
-			fileData.append("family_name", newFamilyName);
-
 
 			const fileInput = document.getElementById("changePicture") as HTMLInputElement;
 			

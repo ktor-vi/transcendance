@@ -7,6 +7,8 @@ import { renderKeyboardPlay } from "./pages/keyboardPlay";
 import { renderProfile } from "./pages/profile";
 import { renderUsersList } from "./pages/usersList";
 import { renderUserProfile } from "./pages/usersProfile";
+import { renderFriends } from "./pages/friends";
+import { renderFriendsRequests } from "./pages/friendsRequests";
 import { renderRegister } from "./pages/register";
 import { renderLogin } from "./pages/login";
 import { renderForgotPwd } from "./pages/forgotPassword";
@@ -16,11 +18,15 @@ import { startPingLoop } from "./components/pingLoop";
 import { getUserStatut } from "./components/auth";
 
 // fonction anonume juste pour démarrer ma boucle ping
-// (async() => {
-// 	const res = await getUserStatut();
-// 	if (res.loggedIn)
-// 		startPingLoop();
-// })();
+(async() => {
+	const res = await getUserStatut();
+	if (res.loggedIn)
+	{
+		console.log("LA BOUCLE VA DEMARRER");
+		startPingLoop();
+	}
+	console.log("PERSONNE NON LOGGEDIN");
+})();
 
 // 🔽 Récupère la référence à l'élément HTML avec l'ID "app"
 // C'est dans cet élément que les pages seront affichées dynamiquement
@@ -45,6 +51,12 @@ page("/profile", () =>
 
 page("/users-list", () => 
 	renderUsersList());
+
+page("/friends", () => 
+	renderFriends());
+
+page("/friends/requests", () => 
+	renderFriendsRequests());
 
 page("/user/:name", (ctx) =>
 	renderUserProfile(ctx));

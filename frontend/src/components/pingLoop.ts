@@ -1,6 +1,7 @@
 let pingInterval: NodeJS.Timeout | null = null; // protection démarrage en boucle
 
 export function startPingLoop() {
+	console.log("!!!!!!! DEMARRAGE DU PING !!!!!!!\n");
 	if (pingInterval)
 		return ;
 	pingInterval = setInterval(async () => {
@@ -12,5 +13,5 @@ export function startPingLoop() {
 		} catch (err) {
 			console.error('Erreur de ping: ', err);
 		}
-	}, 30000); // on va ping toutes les 30 secondes
+	}, 20000); // on va ping toutes les 20 secondes
 }

@@ -22,17 +22,37 @@ CREATE TABLE IF NOT EXISTS
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		email TEXT UNIQUE NOT NULL,
 		name TEXT UNIQUE NOT NULL,
-		given_name TEXT,
-		family_name TEXT,
 		password_hash TEXT,
 		question TEXT,
 		response_hash TEXT,
 		picture TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
+
+CREATE TABLE IF NOT EXISTS
+	friends (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user1_id INTEGER NOT NULL,
+		user2_id INTEGER NOT NULL,
+		friends_since DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
+		FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE,
+		UNIQUE(user1_id, user2_id)
+	);
+
+CREATE TABLE IF NOT EXISTS
+	requests (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		sender_id INTEGER NOT NULL,
+		receiver_id INTEGER NOT NULL,
+		status TEXT NOT NULL DEFAULT 'waiting',
+		request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+		FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+	);
 `;
 
-db.run(createSQTable, (err) => //execute une commande sql
+db.exec(createSQTable, (err) => //execute une commande sql
 {
 	if (err)
 		console.error("error when creating users table");
