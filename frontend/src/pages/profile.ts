@@ -56,31 +56,33 @@ export async function renderProfile() {
 			<button id="save">Enregistrer les modifications</button>
 			
 			<table border="1" style="width: 100%; text-align: center;">
-			<h3>Historique des matchs</h3>
-			<thead>
-				<tr>
-					<th>Type</th>
-					<th>Joueur 1</th>
-					<th>Joueur 2</th>
-					<th>Score</th>
-					<th>Vainqueur</th>
-					<th>Date</th>
-				</tr>
-			</thead>
-			<tbody>
-				${history.map((entry: any) => `
+			${!history.length ?
+				`<h1">L'historique apparaîtra quand tu auras fait au moins 1 match </p>`
+			:
+				`<h3>Historique des matchs</h3>
+				<thead>
 					<tr>
-						<td>${entry.type}</td>
-						<td>${entry.player_1}</td>
-						<td>${entry.player_2}</td>
-						<td>${entry.scores}</td>
-						<td>${entry.winner}</td>
-						<td>${new Date(entry.created_at).toLocaleString()}</td>
+						<th>Type</th>
+						<th>Joueur 1</th>
+						<th>Joueur 2</th>
+						<th>Score</th>
+						<th>Vainqueur</th>
+						<th>Date</th>
 					</tr>
-				`).join("")}
-			</tbody>
-			</table>
-
+				</thead>
+				<tbody>
+					${history.map((entry: any) => `
+						<tr>
+							<td>${entry.type}</td>
+							<td>${entry.player_1}</td>
+							<td>${entry.player_2}</td>
+							<td>${entry.scores}</td>
+							<td>${entry.winner}</td>
+							<td>${new Date(entry.created_at).toLocaleString()}</td>
+						</tr>
+					`).join("")}
+				</tbody>
+				</table>`}
 			${backButton()}
 			</section>
 			`;

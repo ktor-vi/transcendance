@@ -47,7 +47,7 @@ export async function renderUserProfile(ctx: any) {
 
 		${!history.length ?
 			`<h1">L'historique apparaîtra quand la personne aura fait au moins 1 match </p>`
-			:
+		:
 			`<table border="1" style="width: 100%; text-align: center;">
 				<thead>
 					<tr>
