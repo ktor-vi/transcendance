@@ -492,41 +492,33 @@ export function renderDashboard() {
 		</div>
 		<button id="logout" class="bg-red-500 text-white px-4 py-2 rounded relative -top-2">Déconnexion</button>
 	</div>
-	<div class="px-4">
-	<h2 id="welcome" class="text-xl mb-4 font-semibold"></h2>
-	
-	<section id="friendsList">
-	<ul id="userList" style="background: none;"></ul>
-	</section>
+	    <div class="px-4">
+      <h2 id="welcome" class="text-xl mb-4 font-semibold"></h2>
+      <div class="mb-4 flex flex-col md:flex-row gap-2 items-start md:items-center">
+        <button id="joinRoomBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
+          🎮 Rejoindre Room
+        </button>
+        <button id="matchmakeBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors">
+          🎲 Matchmaking
+        </button>
+        <button id="goToTournamentBtn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors">
+          🏆 Tournoi
+        </button>
+        <button id="keyboardPlayBtn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors">
+          ⌨️ Clavier
+        </button>
+	<button id="liveChatBtn" class="bg-fuchsia-400 text-white px-4 py-2 rounded">Chat</button>
+      </div>
 
+      <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
+        <div id="roomInfo" class="text-sm text-gray-600 italic">Aucune partie en cours</div>
+        <h2 id="score" class="text-xl font-bold mt-2"></h2>
+      </div>
 
-	<h1 id="launch" class="text-5xl">Lancez une partie !</h1>
-		<div class="mb-4 flex flex-col md:flex-row gap-0 items-start md:items-center">
-		<input id="roomIdInput" placeholder="ID de la room (laisser vide pour créer)" class="border px-3 py-2 rounded w-full md:w-64" />
-		<button id="joinRoomBtn" class="relative w-60 h-60 bg-transparent">
-			<img src="images/cloud2.svg" class="w-full h-full scale-110" />
-				<span class="absolute inset-0 flex items-center justify-center text-primary font-bold mt-6">
-					Créer / Rejoindre
-				</span>
-		</button>
-
-		<button id="matchmakeBtn" class="relative w-60 h-60 bg-transparent">
-			<img src="images/cloud3.svg" class="w-full h-full scale-110" />
-					<span class="absolute inset-0 flex items-center justify-center text-primary font-bold mt-6">
-					Matchmaking
-				</span>
-		</button>
-
-		<button id="keyboardPlayBtn" class="relative w-60 h-60 bg-transparent">
-				<img src="images/cloud4.svg" class="w-full h-full scale-110" />
-				<span class="absolute inset-0 flex items-center justify-center text-primary font-bold mt-6">
-					Keyboard
-				</span>
-		</button>
-		</div>
-		<div id="roomInfo" class="text-sm text-gray-600 mb-2 italic"></div>
-		<h2 id="score" class="text-2xl font-bold"></h2>
-		<canvas id="renderCanvas" class="border w-full h-[80vh]"></canvas>
-	</div>
+      <div class="game-container">
+        <h1 id="launch" class="text-5xl text-center text-gray-400 my-8">🚀 Lancez une partie !</h1>
+        <canvas id="renderCanvas" class="border w-full h-[70vh] rounded shadow-lg"></canvas>
+      </div>
+    </div>
 	`;
 }
