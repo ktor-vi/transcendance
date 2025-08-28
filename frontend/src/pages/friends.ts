@@ -26,7 +26,7 @@ export async function renderFriends() {
 		}
 		<h1 style="text-align: center;">Liste d'amis</h1>
 		${totalFriends === 0 ?
-			`<p id="requestsMsg">Vous n'avez pas d'amis :( </p>`
+			`<p>Vous n'avez pas d'amis :(</p>`
 			: `<ul id="friendsList" style="background: none;"></ul>`
 		}
 		${backButton()}
