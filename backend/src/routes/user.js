@@ -1,3 +1,5 @@
+import { isUserOnline } from '../utils/connectedUsers.js'
+
 export default async function userRoutes(fastify) {
   // On déclare une route GET sur le chemin '/me'
   // Cela signifie que lorsqu’un client envoie une requête GET à l'URL '/me', la fonction callback est exécutée.
@@ -15,5 +17,11 @@ export default async function userRoutes(fastify) {
 			// Si un utilisateur est trouvé dans la session, on le retourne tel quel.
 		// Cela permet au frontend de récupérer les informations du profil de l'utilisateur actuellement connecté.
 		return user;
+	});
+
+	fastify.get('/user/:name/online', async (req, reply) => {
+		const online = isUserOnline(req.params.name);
+		console.log(`userId DANS FASTIFY GET = ${req.params.name}`);
+		return ({ online });
 	});
 }

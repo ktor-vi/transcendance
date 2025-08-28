@@ -5,7 +5,10 @@ export function updateUserPing(userId) {
 }
 
 export function isUserOnline(userId) {
+	// console.log(`userId DANS ISUSERONLINE = ${userId}`);
 	const lastConnexion = connectedUsers.get(userId);
+	// console.log(`last connexion = ${lastConnexion}`);
+
 	if (!lastConnexion)
 		return false;
 	if (Date.now() - lastConnexion > 40000)

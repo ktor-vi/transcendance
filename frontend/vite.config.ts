@@ -91,24 +91,7 @@ export default defineConfig({
         },
       },
     },
-/*//======= est ce quon garde ca ???
-      "/ws": {
-        target: `wss://${process.env.HOSTNAME}:3000`,
-        ws: true,
-      },
-    },
-    historyApiFallback: true,
-    hmr: {
-      host: `${process.env.VITE_HOSTNAME}`,
-      protocol: "wss",
-    },
-    https: {
-      key: fs.readFileSync("/app/certs/localhost.key"),
-      cert: fs.readFileSync("/app/certs/localhost.crt"),
-    },
-    host: true,
-    port: 5173,
-//>>>>>>> eed3e420b91264f79ae80eb9527d4229bfd4b5e0*/
+
   },
   build: {
     outDir: "dist",
@@ -119,4 +102,9 @@ export default defineConfig({
       },
     },
   },
+	optimizeDeps: {
+		force: true, // force Vite à re-bundler tous les modules
+		exclude: [
+		],
+	},
 });

@@ -15,6 +15,8 @@ import registerRoutes from './routes/register.js';
 import userRoutes from './routes/user.js';
 import loginRoutes from './routes/login.js';
 import forgotPwdRoutes from './routes/forgotPassword.js';
+import friendshipRequestsRoutes from './routes/friendshipRequests.js';
+import friendsRoutes from './routes/friends.js';
 import fastifyMultipart from '@fastify/multipart';
 import gameServer from "./plugins/gameServer.js";
 import registerWebSockets from "./plugins/websocket.js";
@@ -54,6 +56,8 @@ await fastify.register(gameServer);
 fastify.register(userRoutes, { prefix: '/api'});
 fastify.register(usersListRoutes, { prefix: '/api'});
 fastify.register(userProfileRoutes, { prefix: '/api'});
+fastify.register(friendshipRequestsRoutes, { prefix: '/api'});
+fastify.register(friendsRoutes, { prefix: '/api'});
 fastify.register(pingRoutes, { prefix: '/api'});
 
 // Routes HTTP classiques

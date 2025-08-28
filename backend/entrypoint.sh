@@ -11,7 +11,7 @@ if ! node ./initHistoryDb.js; then
   exit 1
 fi
 
-echo "✅ Base de données initialisée"
+echo "✅ Base de données Users et History initialisée"
 echo "🚀 Lancement..."
 
 # Choix de la commande selon l'environnement
