@@ -71,23 +71,20 @@ export default async function friendsRoutes(fastify) {
 		const userRow = await db.get('SELECT * FROM users WHERE name = ?', userName);
 		const receiverId = userRow.id;
 
-		const requestsTable = await db.all('SELECT sender_id, request_date FROM requests WHERE receiver_id = ? AND status = ?', receiverId, "waiting");
-		console.log("Table des requêtes :");
-		console.log(requestsTable);
+		// const requestsTable = await db.all('SELECT sender_id, request_date FROM requests WHERE receiver_id = ? AND status = ?', receiverId, "waiting");
+		const requestsList = await db.all(
+		`SELECT 
+			u.name AS sender_name,
+			strftime('%Y-%m-%d %H:%M', datetime(requests.request_date, '+2 hours')) AS request_date
+		FROM requests
+		JOIN users u ON requests.sender_id = u.id
+		WHERE requests.receiver_id = ? AND requests.status = 'waiting'
+		ORDER BY requests.request_date DESC`,
+		[receiverId]
+		);
 
-		const sendersList = await db.all(`
-			SELECT
-				u.name AS sender_name,
-				requests.request_date
-			FROM requests
-			JOIN users u
-				ON requests.sender_id = u.id
-			WHERE requests.receiver_id = ?
-				AND requests.status= 'waiting'
-			`, receiverId);
-		console.log("Noms des sender :");
-		console.log(sendersList);
-		reply.send(sendersList );
+		console.log("Requêtes formatées :", requestsList);
+		reply.send(requestsList);
 	});
 	// route pour voir si on déjà amis avec qqu
 	fastify.get('/friends/isFriend/:friendName', async (req, reply) => {
