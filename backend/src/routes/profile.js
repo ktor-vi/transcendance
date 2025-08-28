@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default async function profileRoutes(fastify)
 {
-  fastify.get('/profile', async (req, reply) => {
+	fastify.get('/profile', async (req, reply) => {
 		const userSession = req.session.get('user');
 
 		if (!userSession) {
@@ -18,9 +18,9 @@ export default async function profileRoutes(fastify)
 		const user = await db.get('SELECT * FROM users WHERE email = ?', userSession.email);
 	
 		return reply.send(user);
-  });
+	});
 
-  fastify.put('/profile', async (req, reply) => {
+	fastify.put('/profile', async (req, reply) => {
 		const userSession = req.session.get('user');
 
 		if (!userSession) {
@@ -33,7 +33,7 @@ export default async function profileRoutes(fastify)
 		await db.run('UPDATE users SET name = ? WHERE email = ?', name, userSession.email);
 	
 		reply.send({ success: true });
-  });
+	});
 
 	fastify.post('/profile', async (req, reply) => {
 		const userSession = req.session.get('user');

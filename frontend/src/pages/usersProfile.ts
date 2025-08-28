@@ -67,7 +67,7 @@ export async function renderUserProfile(ctx: any) {
 							<td>${entry.player_2}</td>
 							<td>${entry.scores}</td>
 							<td>${entry.winner}</td>
-							<td>${new Date(entry.created_at).toLocaleString()}</td>
+							<td>${entry.created_at}</td>
 						</tr>
 					`).join("")}
 				</tbody>
