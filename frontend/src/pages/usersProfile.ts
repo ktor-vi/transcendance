@@ -41,7 +41,7 @@ export async function renderUserProfile(ctx: any) {
 			<span id="userStatut"></span>
 			<img 
 			src="${userData.picture}"
-			alt="default" 
+			alt="[photo de profil]" 
 			style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
 		</div>
 
