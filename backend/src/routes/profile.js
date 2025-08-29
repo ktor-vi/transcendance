@@ -16,7 +16,11 @@ export default async function profileRoutes(fastify)
 
 		const db = await openDb();
 		const user = await db.get('SELECT * FROM users WHERE email = ?', userSession.email);
-	
+		try {
+			await fs.access(user.picture);
+		} catch {
+			user.picture = "/uploads/default.jpg";
+		}
 		return reply.send(user);
 	});
 
