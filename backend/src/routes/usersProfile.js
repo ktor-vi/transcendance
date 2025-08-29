@@ -1,3 +1,5 @@
+import fs from 'fs/promises';
+
 import { openDb, openDbHistory } from '../utils/db.js';
 
 export default async function userProfileRoutes(fastify)
@@ -11,8 +13,15 @@ export default async function userProfileRoutes(fastify)
 	console.log(userName);
 
 	const userInfos = await db.get('SELECT * FROM users WHERE name = ?', userName);
-	console.log("Dans BACKEND:");
-	console.log(userInfos);
+	console.log("userProfile:");
+	console.log(userInfos.picture);
+	console.log("PATH");
+
+	try {
+		await fs.access(userInfos.picture);
+	} catch {
+		userInfos.picture = "/uploads/default.jpg";
+	}
 	if (userInfos)
 		reply.send(userInfos);
 	else
