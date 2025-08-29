@@ -40,9 +40,9 @@ export default async function userProfileRoutes(fastify)
 			scores, 
 			winner,
 			strftime('%Y-%m-%d %H:%M', datetime(created_at, '+2 hours')) AS created_at
-		 FROM history 
-		 WHERE player_1 = ? OR player_2 = ? 
-		 ORDER BY created_at DESC`,
+		FROM history 
+		WHERE player_1 = ? OR player_2 = ? 
+		ORDER BY created_at DESC`,
 		userName, userName
   );
 	if (history)

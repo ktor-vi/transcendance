@@ -1,4 +1,4 @@
-import { openDb } from '../utils/db.js';
+import { openDb, openDbHistory } from '../utils/db.js';
 import path from 'path';
 import fs from 'fs/promises';
 import { mkdir } from 'fs/promises';
@@ -28,7 +28,6 @@ export default async function profileRoutes(fastify)
 		} catch {
 			user.picture = "/uploads/default.jpg";
 }
-
 		console.log("USER PIC = ");
 		console.log(user.picture);
 		return reply.send(user);
@@ -88,8 +87,19 @@ export default async function profileRoutes(fastify)
 			return reply.code(409).send({ success: false, message: "Name déjà pris" });
 		else
 		{
-			req.session.user.name = name;
+			const userSession = req.session.get('user');
+			const oldName = userSession.name;
+			console.log("OLD = ");
+			console.log(userSession);
+			userSession.name = name;
+			req.session.set('user', userSession); // ✅ remplace l’ancien
+
 			await db.run('UPDATE users SET name = ? WHERE email = ?', name, userSession.email);
+			const dbHistory = await openDbHistory();
+			await dbHistory.run('UPDATE history SET player_1 = ? WHERE player_1 = ?', name, oldName);
+			await dbHistory.run('UPDATE history SET player_2 = ? WHERE player_2 = ?', name, oldName);
+			await dbHistory.run('UPDATE history SET winner = ? WHERE winner = ?', name, oldName);
+
 		}
 		if (picture) {
 			//suppression de l'ancien fichier pour ne pas surcharger le serveur inutilement
@@ -100,8 +110,6 @@ export default async function profileRoutes(fastify)
 			if (oldPicture != "/uploads/default.jpg" && oldPicture && oldPicture.startsWith('/uploads/')) {
 				const fileName = oldPicture.replace('/uploads/', '');
 				const filePath = path.join(uploadDir, fileName);
-				console.log("FICHIER A SUPPRIMER :");
-				console.log(filePath);
 
 				try {
 					await fs.unlink(filePath);
@@ -115,7 +123,6 @@ export default async function profileRoutes(fastify)
 			const safeName = `${uuidv4()}.${extension}`;
 			// on expose uniquement le dossier uploads
 				await mkdir(uploadDir, { recursive: true });
-				
 				const filePath = path.join(uploadDir, safeName);
 				await fs.writeFile(filePath, picture);
 				// mise à jour dans la db
