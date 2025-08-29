@@ -18,18 +18,22 @@ export default async function profileRoutes(fastify)
 		const db = await openDb();
 		const user = await db.get('SELECT * FROM users WHERE email = ?', userSession.email);
 
-		const __filename = fileURLToPath(import.meta.url);
-		const __dirname = path.dirname(__filename);
-		const fileName = path.basename(user.picture); // "36f6a779-30a5-446f-86e2-25681b40f890.jpg"
-		const imgPath = path.join(__dirname, "../../public/uploads", fileName);
-
-		try {
-			await fs.access(imgPath);
-		} catch {
+		if (!user.picture) {
 			user.picture = "/uploads/default.jpg";
-}
-		console.log("USER PIC = ");
-		console.log(user.picture);
+		} else if (user.picture !== "/uploads/default.jpg") {
+			// Vérifie seulement si ce n’est pas déjà l’image par défaut
+			const __filename = fileURLToPath(import.meta.url);
+			const __dirname = path.dirname(__filename);
+			const fileName = path.basename(user.picture); 
+			const imgPath = path.join(__dirname, "../../public/uploads", fileName);
+
+			try {
+				await fs.access(imgPath); // OK → on garde l’image
+			} catch {
+				console.warn(`Image introuvable, fallback sur default.jpg: ${imgPath}`);
+				user.picture = "/uploads/default.jpg";
+			}
+	}
 		return reply.send(user);
 	});
 	
