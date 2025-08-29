@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import { mkdir } from 'fs/promises';
 import { fileTypeFromBuffer } from "file-type";
 import { v4 as uuidv4 } from 'uuid';
+import { fileURLToPath } from "url";
 
 export default async function profileRoutes(fastify)
 {
@@ -16,29 +17,23 @@ export default async function profileRoutes(fastify)
 
 		const db = await openDb();
 		const user = await db.get('SELECT * FROM users WHERE email = ?', userSession.email);
+
+		const __filename = fileURLToPath(import.meta.url);
+		const __dirname = path.dirname(__filename);
+		const fileName = path.basename(user.picture); // "36f6a779-30a5-446f-86e2-25681b40f890.jpg"
+		const imgPath = path.join(__dirname, "../../public/uploads", fileName);
+
 		try {
-			await fs.access(user.picture);
+			await fs.access(imgPath);
 		} catch {
 			user.picture = "/uploads/default.jpg";
-		}
+}
+
+		console.log("USER PIC = ");
+		console.log(user.picture);
 		return reply.send(user);
 	});
-
-	fastify.put('/profile', async (req, reply) => {
-		const userSession = req.session.get('user');
-
-		if (!userSession) {
-			return reply.code(401).send({ error: 'Non connecté' });
-		}
-		// le body = le nouveau nom passé depuis la requete enovoyee du frontend
-		const { name } = req.body;
-
-		const db = await openDb();
-		await db.run('UPDATE users SET name = ? WHERE email = ?', name, userSession.email);
 	
-		reply.send({ success: true });
-	});
-
 	fastify.post('/profile', async (req, reply) => {
 		const userSession = req.session.get('user');
 
@@ -91,13 +86,10 @@ export default async function profileRoutes(fastify)
 
 		if (existingName)
 			return reply.code(409).send({ success: false, message: "Name déjà pris" });
-
 		else
+		{
+			req.session.user.name = name;
 			await db.run('UPDATE users SET name = ? WHERE email = ?', name, userSession.email);
-		// mise à jour de la pp
-		if (!picture) {
-			console.log("LA PHOTO N'A PAS ÉTÉ UPLOAD DANS LA DB");
-
 		}
 		if (picture) {
 			//suppression de l'ancien fichier pour ne pas surcharger le serveur inutilement
@@ -108,8 +100,13 @@ export default async function profileRoutes(fastify)
 			if (oldPicture != "/uploads/default.jpg" && oldPicture && oldPicture.startsWith('/uploads/')) {
 				const fileName = oldPicture.replace('/uploads/', '');
 				const filePath = path.join(uploadDir, fileName);
+				console.log("FICHIER A SUPPRIMER :");
+				console.log(filePath);
 
-				await fs.unlink(filePath);
+				try {
+					await fs.unlink(filePath);
+					} catch {
+				}
 			}
 
 			extension = type.ext;
