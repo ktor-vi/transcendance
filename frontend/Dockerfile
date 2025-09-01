@@ -8,6 +8,7 @@ ARG HOSTNAME
 COPY package*.json ./
 RUN npm install
 RUN npm install -g vite  # Install vite globally
+RUN npm install --save-dev connect-history-api-fallback
 
 COPY . ./
 
