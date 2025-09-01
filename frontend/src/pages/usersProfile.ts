@@ -38,7 +38,7 @@ export async function renderUserProfile(ctx: any) {
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<h1 style="text-align: center;">Profile de ${userName}</h1>
 			 ${buttonRequests}
-			<span id="userStatut"></span>
+			<div id="userStatut"></div>
 			<img 
 			src="${userData.picture}"
 			alt="[photo de profil]" 
@@ -101,24 +101,47 @@ export async function renderUserProfile(ctx: any) {
 			}
 		});
 
-		const statut = document.getElementById("userStatut");
-		if (statut)
-		{
-			try {
-				const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`, { method: "GET" });
-				if (!statutRes.ok)
-					throw new Error(`Error with http status`);
+	const statusContainer = document.getElementById("userStatut");
+
+if (statusContainer) {
+		// créer un conteneur pour aligner l'image et le texte horizontalement
+		const statusWrapper = document.createElement("span");
+		statusWrapper.style.display = "flex";
+		statusWrapper.style.alignItems = "center";
+		statusWrapper.style.gap = "6px"; // petit écart entre image et texte
+
+		const statusImg = document.createElement("img");
+		statusImg.className = "w-9 h-9"; // largeur/hauteur de l'image
+
+		const statusText = document.createElement("span");
+
+		try {
+				const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`);
+				if (!statutRes.ok) throw new Error(`Error with HTTP status`);
+
 				const data = await statutRes.json();
 				console.log("Réponse statut : ", data);
-				
-				if (data.online)
-					statut.textContent = "Connecté";
-				else
-					statut.textContent = "Déconnecté";
-				
-			} catch (err) {
+
+				if (data.online) {
+						statusText.textContent = "Connecté.e";
+						statusImg.alt = "Connecté.e";
+						statusImg.src = `/images/available.svg`;
+				} else {
+						statusText.textContent = "Déconnecté.e";
+						statusImg.alt = "Déconnecté.e";
+						statusImg.src = `/images/disconnected.svg`;
+				}
+
+				// ajouter l'image et le texte dans le conteneur
+				statusWrapper.appendChild(statusImg);
+				statusWrapper.appendChild(statusText);
+
+				// puis ajouter le conteneur dans le DOM
+				statusContainer.appendChild(statusWrapper);
+
+		} catch (err) {
 				console.error("Erreur avec le statut: ", err);
-			}
+		}
 		}
 		setupBackButton();
 		} catch (error) {
