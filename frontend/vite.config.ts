@@ -87,15 +87,7 @@ export default defineConfig({
 				},
 			},
 		},
-		fs: {
-		strict: false, // permet d’accéder aux fichiers en dehors de root si nécessaire
-		},
-		historyApiFallback: {
-			disableDotRule: true, // important si tes routes ont des points
-			rewrites: [
-				{ from: /^\/.*$/, to: '/index.html' } // toutes les routes non trouvées renvoient index.html
-			],
-		},
+		historyApiFallback: true, // ✅ pour le routage SPA (perdu dans le merge)
 	},
 	build: {
 		outDir: "dist",
