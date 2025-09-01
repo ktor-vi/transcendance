@@ -17,7 +17,7 @@ import { renderTournamentPage } from "./pages/tournament";
 import { startPingLoop } from "./components/pingLoop";
 import { getUserStatut } from "./components/auth";
 
-// fonction anonume juste pour démarrer ma boucle ping
+// fonction anonyme juste pour démarrer ma boucle ping
 (async() => {
 	const res = await getUserStatut();
 	if (res.loggedIn)

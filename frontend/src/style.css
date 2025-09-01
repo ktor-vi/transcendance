@@ -17,6 +17,10 @@ h1 {
 	@apply text-primary font-boldins text-4xl m-3;
 }
 
+span {
+	@apply text-text;
+}
+
 a {
 	@apply text-text m-auto bg-secondary rounded px-3 py-2;
 }

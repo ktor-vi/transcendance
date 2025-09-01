@@ -6,7 +6,7 @@ export async function renderUserProfile(ctx: any) {
 	console.log("renderUserProfile called");
 	try {
 		const userName = ctx.params.name;
-		const historyRes = await fetch(`api/user/history/${encodeURIComponent(userName)}`, { method: "GET" });
+		const historyRes = await fetch(`/api/user/history/${encodeURIComponent(userName)}`, { method: "GET" });
 		
 		const res = await fetch(`/api/user/${encodeURIComponent(userName)}`, { method: "GET" });
 		const userData = await res.json();
@@ -46,7 +46,7 @@ export async function renderUserProfile(ctx: any) {
 		</div>
 
 		${!history.length ?
-			`<h1">L'historique apparaîtra quand la personne aura fait au moins 1 match </p>`
+			`<p>L'historique apparaîtra quand la personne aura fait au moins 1 match </p>`
 		:
 			`<table border="1" style="width: 100%; text-align: center;">
 				<thead>
@@ -105,25 +105,23 @@ export async function renderUserProfile(ctx: any) {
 		if (statut)
 		{
 			try {
-				
 				const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`, { method: "GET" });
 				if (!statutRes.ok)
-				    throw new Error(`Error with http status`);
+					throw new Error(`Error with http status`);
 				const data = await statutRes.json();
 				console.log("Réponse statut : ", data);
 				
 				if (data.online)
-				    statut.textContent = "Connecté";
+					statut.textContent = "Connecté";
 				else
-				    statut.textContent = "Déconnecté";
+					statut.textContent = "Déconnecté";
 				
 			} catch (err) {
 				console.error("Erreur avec le statut: ", err);
 			}
-
 		}
 		setupBackButton();
-	} catch (error) {
+		} catch (error) {
 		console.error("Erreur lors du chargement du profil :", error);
 		document.getElementById("app")!.innerHTML = "<p>Erreur lors du chargement de la page</p>";
 	}

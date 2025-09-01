@@ -38,22 +38,78 @@ export async function renderFriends() {
 		const listFriends = document.getElementById("friendsList");
 		const friends = friendsData.friends;
 
-		console.log("Mes amis: ");
-		console.log(friends);
 
+		
 		if (listFriends) {
 			listFriends.innerHTML = "";
+			
+			const header: HTMLLIElement = document.createElement("li");
+			header.className = "grid grid-cols-[1fr_auto_1fr] items-center p-2 border-b font-bold";
+
+			const h1: HTMLSpanElement = document.createElement("span");
+			h1.textContent = "Nom";
+			h1.className = "text-left";
+
+			const h2: HTMLSpanElement = document.createElement("span");
+			h2.textContent = "Statut";
+			h2.className = "text-center";
+
+			const h3: HTMLSpanElement = document.createElement("span");
+			h3.textContent = "Ami depuis le";
+			h3.className = "text-right";
+
+			header.appendChild(h1);
+			header.appendChild(h2);
+			header.appendChild(h3);
+			listFriends.appendChild(header);
+
 			for (const friend of friends) {
 				const li = document.createElement("li");
-				li.className = "flex items-center justify-between p-2 border-b";
+				li.className = "grid grid-cols-[1fr_auto_1fr] items-center p-2 border-b";
 
-				const span1 = document.createElement("span");
+				const span1 = document.createElement("a");
+				span1.href = `/user/${encodeURIComponent(friend.friend_name)}`;
 				span1.textContent = `${friend.friend_name}`;
+				span1.className = "bg-transparent font-bold m-0 p-2 text-left";
+
+				const statusContainer = document.createElement("div");
+				statusContainer.className = "flex items-center gap-2 justify-center";
+
+				const status = document.createElement("img");
+				const statusText = document.createElement("span");
+				statusText.className = "text-white";
+				try {
+					const statutRes = await fetch(`/api/user/${encodeURIComponent(friend.friend_name)}/online`, { method: "GET" });
+					if (!statutRes.ok)
+						throw new Error(`Error with http status`);
+					const data = await statutRes.json();
+					console.log("Réponse statut : ", data);
+
+					if (data.online)
+					{
+						status.src = `public/images/available.svg`;
+						status.alt = "Connecté";
+						statusText.textContent = "Connecté.e";
+					}
+					else
+					{
+						status.src = `public/images/disconnected.svg`;
+						status.alt = "Déconnecté";
+						statusText.textContent = "Déconnecté.e";
+					}
+					statusContainer.appendChild(status);
+					statusContainer.appendChild(statusText);
+				} catch (err) {
+					console.error("Erreur avec le statut: ", err);
+				}
+				status.className = "w-7 shrink-0";
 
 				const span2 = document.createElement("span");
-				span2.textContent = `Amis depuis le ${friend.friends_since}`;
+				span2.textContent = `${friend.friends_since}`;
+				span2.className = "text-right text-white";
 
 				li.appendChild(span1);
+				li.appendChild(statusContainer);
 				li.appendChild(span2);
 
 				listFriends.appendChild(li);
