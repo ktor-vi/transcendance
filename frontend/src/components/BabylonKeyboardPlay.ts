@@ -18,7 +18,7 @@ import {Paddle, Ball, Wall} from "./PongAssets";
 function setupVisuals(scene: any, canvas: any, FIELD_DEPTH: number, FIELD_WIDTH: number) {
   const camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), scene);
   camera.setTarget(Vector3.Zero());
-  camera.rotation.x = Math.PI / 2;//changer ca, ca tourne tout le reste
+  // camera.rotation.x = Math.PI / 2;//changer ca, ca tourne tout le reste
   camera.attachControl(canvas, true);
   camera.setTarget(Vector3.Zero());
   const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
@@ -26,7 +26,7 @@ function setupVisuals(scene: any, canvas: any, FIELD_DEPTH: number, FIELD_WIDTH:
 
 // Reset de la partie
 function resetGame(ball: any) {
-  ball.hitbox.position.set(0, 0, 0);
+  ball.resetPos();
   ball.speed.set(
     0.05 * (Math.random() > 0.5 ? 1 : -1),
     0,
@@ -40,19 +40,31 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   const scene = new Scene(engine);
 
   // Paramètres du terrain
+  const GRAPHIC_FOLDER = "../../public/images/";
   const FIELD_WIDTH = 13.5;
+  const FIELD_HEIGHT = 0.1;
   const FIELD_DEPTH = 7.5;
+  const FIELD_IMAGE = "https://doc.babylonjs.com/img/resources/textures_thumbs/grass.dds.jpg";
   const PADDLE_WIDTH = 2;
   const PADDLE_HEIGHT = 0.75;
   const PADDLE_DEPTH = 0.25;
+  const PADDLE_SPEED = 0.25;
+  const PADDLE_IMAGE = "https://www.babylonjs-playground.com/textures/amiga.jpg";
   const BALL_SIZE = 0.5;
+  // const BALL_IMAGE = GRAPHIC_FOLDER + "HelloKitty.png";
+  const BALL_IMAGE = "https://us1.discourse-cdn.com/flex024/uploads/babylonjs/original/3X/7/b/7b835f51e968cd202d62ad1277dac879e19ffd9b.png";
+  const WALL_WIDTH = PADDLE_DEPTH;
+  const WALL_HEIGHT = PADDLE_HEIGHT * 2;
+  const WALL_DEPTH = FIELD_DEPTH;
+  const WALL_IMAGE = "https://www.babylonjs-playground.com/textures/crate.png";
 
   // Construit la scène
-  const ground = new Wall(scene, FIELD_WIDTH, 0.1, FIELD_DEPTH);
-  ground.hitbox.position.set(0, -0.5, 0);
-  const paddleOne = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, Math.PI);
-  const paddleTwo = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, 0);
-  const ball = new Ball(scene, BALL_SIZE);
+  const ground = new Wall(scene, FIELD_WIDTH, FIELD_HEIGHT, FIELD_DEPTH, FIELD_IMAGE, 0, -0.5 * FIELD_HEIGHT, 0);
+  const wall1 = new Wall(scene, WALL_WIDTH, WALL_HEIGHT, WALL_DEPTH, WALL_IMAGE, (FIELD_WIDTH - WALL_WIDTH) / 2, WALL_HEIGHT / 2, 0);
+  const wall2 = new Wall(scene, WALL_WIDTH, WALL_HEIGHT, WALL_DEPTH, WALL_IMAGE, (WALL_WIDTH - FIELD_WIDTH) / 2, WALL_HEIGHT / 2, 0);
+  const paddleOne = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, Math.PI, PADDLE_IMAGE);
+  const paddleTwo = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, 0, PADDLE_IMAGE);
+  const ball = new Ball(scene, BALL_SIZE, BALL_IMAGE, 0, BALL_SIZE / 2, 0);
   setupVisuals(scene, canvas, FIELD_DEPTH, FIELD_WIDTH);
   
   let gameStarted = false;
@@ -72,34 +84,19 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   // Clavier
   const keysTwo = { left: false, right: false };
   const keysOne = { left: false, right: false };
-  const PDL_SPD = 0.25;
 
   // Création de l'interface utilisateur
-
-  const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI(
-    "UI",
-    true,
-    scene
-  );
-
+  const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
   const button = Button.CreateSimpleButton("startButton", "Start / Restart");
-
   button.width = "150px";
-
   button.height = "40px";
-
   button.color = "white";
-
   button.background = "green";
-
   button.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-
   button.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-
   button.top = "20px";
 
   // Écouteur de clic sur le bouton
-
   button.onPointerUpObservable.add(() => {
     score.p1 = 0;
     score.p2 = 0;
@@ -109,7 +106,6 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   });
 
   // Ajoute le bouton à l'UI
-
   advancedTexture.addControl(button);
 
   // Gestion des touches pour déplacer les palettes
@@ -142,7 +138,8 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
 
     if (gameStarted) {
       if(score.p1 < 11 && score.p2 < 11)
-            ball.hitbox.position.addInPlace(ball.speed);
+        ball.updatePos();
+            // ball.hitbox.position.addInPlace(ball.speed);
 
       // Rebond sur les murs gauche/droit
 
@@ -195,10 +192,10 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
 
       // Déplacement des palettes
 
-      if (keysOne.left) paddleOne.hitbox.position.x -= PDL_SPD;
-      if (keysOne.right) paddleOne.hitbox.position.x += PDL_SPD;
-      if (keysTwo.left) paddleTwo.hitbox.position.x -= PDL_SPD;
-      if (keysTwo.right) paddleTwo.hitbox.position.x += PDL_SPD;
+      if (keysOne.left) paddleOne.hitbox.position.x -= PADDLE_SPEED;
+      if (keysOne.right) paddleOne.hitbox.position.x += PADDLE_SPEED;
+      if (keysTwo.left) paddleTwo.hitbox.position.x -= PADDLE_SPEED;
+      if (keysTwo.right) paddleTwo.hitbox.position.x += PADDLE_SPEED;
     }
 
     scene.render();
