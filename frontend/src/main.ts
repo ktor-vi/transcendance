@@ -3,6 +3,7 @@ import page from "page";
 import './style.css';
 import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
+import { renderNotFound } from "./pages/notFound";
 import { renderKeyboardPlay } from "./pages/keyboardPlay";
 import { renderProfile } from "./pages/profile";
 import { renderUsersList } from "./pages/usersList";
@@ -21,11 +22,8 @@ import { getUserStatut } from "./components/auth";
 (async() => {
 	const res = await getUserStatut();
 	if (res.loggedIn)
-	{
-		console.log("LA BOUCLE VA DEMARRER");
 		startPingLoop();
-	}
-	console.log("PERSONNE NON LOGGEDIN");
+	console.log("Aucun utilisateur n'est connecté");
 })();
 
 // 🔽 Récupère la référence à l'élément HTML avec l'ID "app"
@@ -41,6 +39,9 @@ function render(html: string) {
 
 // Route pour la page d'accueil ("/") → appelle renderHome() et injecte son HTML
 page("/", () => render(renderHome()));
+
+page("*", () =>
+	renderNotFound());
 
 // Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
 page("/dashboard", () => 

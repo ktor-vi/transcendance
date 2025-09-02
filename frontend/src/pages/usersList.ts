@@ -37,6 +37,7 @@ export async function renderUsersList() {
 			for (const user of filteredUsers) {
 				const li = document.createElement("li");
 				const a = document.createElement("a");
+				const status = document.createElement("img");
 				a.href = `/user/${encodeURIComponent(user.name)}`;
 				a.className = "link-user";
 				a.textContent = user.name;
