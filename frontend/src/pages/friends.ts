@@ -26,7 +26,9 @@ export async function renderFriends() {
 		}
 		<h1 style="text-align: center;">Liste d'amis</h1>
 		${totalFriends === 0 ?
-			`<p>Vous n'avez pas d'amis :(</p>`
+			`<p>Vous n'avez pas d'amis</p>
+			<img src="/images/hellokittysad1.png" alt=":-(" class="w-20 mx-auto"></img>
+			`
 			: `<ul id="friendsList" style="background: none;"></ul>`
 		}
 		${backButton()}
@@ -80,6 +82,7 @@ export async function renderFriends() {
 				statusText.className = "text-white";
 				try {
 					const statutRes = await fetch(`/api/user/${encodeURIComponent(friend.friend_name)}/online`, { method: "GET" });
+					
 					if (!statutRes.ok)
 						throw new Error(`Error with http status`);
 					const data = await statutRes.json();

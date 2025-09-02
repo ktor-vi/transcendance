@@ -8,11 +8,13 @@ export default async function userProfileRoutes(fastify)
 	fastify.get('/user/:name', async (req, reply) => {
 	const db = await openDb();
 	const userName = req.params.name;
-
+	
+	
 	console.log("Name dans BACKEND:");
 	console.log(userName);
-
 	const userInfos = await db.get('SELECT * FROM users WHERE name = ?', userName);
+	if (!userInfos)
+		reply.code(404).send({ success: false, message: "Cet utilisateur n'existe pas" });
 	console.log("userProfile:");
 	console.log(userInfos.picture);
 	console.log("PATH");
