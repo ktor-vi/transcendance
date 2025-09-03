@@ -11,7 +11,7 @@ export function renderError(error: any, containerId: string = "app", defaultCode
 	}
 	let imageSrc = "../../images/hellokittysad1.png";
 	if (errorCode === 401)
-		imageSrc = "../../images/hellokittysad2.png";
+		imageSrc = "../../images/hellokittyangry.png";
 	if (errorCode === 404)
 		imageSrc = "../../images/hellokittysad3.png";
 	const container = document.getElementById(containerId);
