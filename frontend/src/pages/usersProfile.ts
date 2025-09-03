@@ -1,27 +1,36 @@
 import page from "page";
 
 import { backButton, setupBackButton } from '../components/backButton.js';
+import { renderError } from '../components/renderError.js';
 
 export async function renderUserProfile(ctx: any) {
 	console.log("renderUserProfile called");
 	try {
 		const userName = ctx.params.name;
-		const historyRes = await fetch(`/api/user/history/${encodeURIComponent(userName)}`, { method: "GET" });
-	
 		const res = await fetch(`/api/user/${encodeURIComponent(userName)}`, { method: "GET" });
 		if (!res.ok)
 		{
 			const errorData = await res.json();
-			console.log(errorData.message);
-			throw new Error(errorData.message || "Erreur inconnue");
+			const error = new Error(errorData.error || "Erreur inconnue");
+			error.status = errorData.status || res.status;
+			throw error;
 		}
+
+		const historyRes = await fetch(`/api/user/history/${encodeURIComponent(userName)}`, { method: "GET" });
+	
 		const userData = await res.json();
 		
 		console.log("User FRONTEND = ");
 		console.log(userData.email);
 
 		if (!historyRes.ok) {
-			document.getElementById("app")!.innerHTML = "<p>Cet utilisateur n'existe pas</p>";
+			document.getElementById("app")!.innerHTML =
+			`
+				<p class="text-white text-1xl">Erreur lors du chargement de la page</p>
+				<h2 class="text-white text-9xl">404</h2>
+				<p class="text-white text-2xl">Cet utilisateur n'existe pas</p>
+				<img src="/images/hellokittysad2.png" class="mx-auto w-48"></img>
+			`;
 			return;
 		}
 		const history = await historyRes.json();
@@ -157,13 +166,6 @@ export async function renderUserProfile(ctx: any) {
 		}
 			setupBackButton();
 		} catch (error: any) {
-			console.error("Erreur lors du chargement du profil :", error);
-			document.getElementById("app")!.innerHTML = 
-			`
-				<p>Erreur lors du chargement de la page</p>
-				<h2 class="text-white text-4xl">${error.message || error}</h2>
-				<img src="/images/hellokittysad2.png" class="mx-auto w-48"></img>
-			`
-			;
+			renderError(error);
 	}
 }

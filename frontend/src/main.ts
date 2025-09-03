@@ -40,9 +40,6 @@ function render(html: string) {
 // Route pour la page d'accueil ("/") → appelle renderHome() et injecte son HTML
 page("/", () => render(renderHome()));
 
-page("*", () =>
-	renderNotFound());
-
 // Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
 page("/dashboard", () => 
 	render(renderDashboard()));
@@ -75,6 +72,9 @@ page("/tournament", () => renderTournamentPage());
 // Lance le routeur (écoute les changements de l'URL sans recharger la page)
 // a la page de l'index (/) on va donc "génerer" la homepage définie dans pages/home.ts
 page("/chat", () => render(renderChat())); // idem ici, les explications de Rachel ont deja ete faites pour guider
+
+page("*", () =>
+	renderNotFound());
 
 // page a été importé sur ce fichier. il sert à "écouter" et à gérer la navigation
 // de notre appli sans recharger toute la page à chaque fois
