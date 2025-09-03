@@ -6,28 +6,33 @@ export default async function userProfileRoutes(fastify)
 {
 
 	fastify.get('/user/:name', async (req, reply) => {
-	const db = await openDb();
-	const userName = req.params.name;
-	
-	
-	console.log("Name dans BACKEND:");
-	console.log(userName);
-	const userInfos = await db.get('SELECT * FROM users WHERE name = ?', userName);
-	if (!userInfos)
-		reply.code(404).send({ success: false, message: "Cet utilisateur n'existe pas" });
-	console.log("userProfile:");
-	console.log(userInfos.picture);
-	console.log("PATH");
 
-	try {
-		await fs.access(userInfos.picture);
-	} catch {
-		userInfos.picture = "/uploads/default.jpg";
-	}
-	if (userInfos)
-		reply.send(userInfos);
-	else
-		reply.code(404).send({ success: false, message: "Problème pendant l'affichage du profil" });
+		const userSession = req.session.get('user');
+
+		if (!userSession) {
+			return reply.code(401).send({ error: 'Non connecté' });
+		}
+		
+		const db = await openDb();
+		const userName = req.params.name;
+		
+
+		const userInfos = await db.get('SELECT * FROM users WHERE name = ?', userName);
+		if (!userInfos)
+			reply.code(404).send({ error: "Cet utilisateur n'existe pas" });
+		console.log("userProfile:");
+		console.log(userInfos.picture);
+		console.log("PATH");
+
+		try {
+			await fs.access(userInfos.picture);
+		} catch {
+			userInfos.picture = "/uploads/default.jpg";
+		}
+		if (userInfos)
+			reply.send(userInfos);
+		else
+			reply.code(404).send({ success: false, message: "Problème pendant l'affichage du profil" });
 	});
 //////////////////////////////////////////////////////////////////
 	fastify.get('/user/history/:name', async (req, reply) => {

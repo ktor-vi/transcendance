@@ -10,7 +10,13 @@ export async function renderProfile() {
 		const res = await fetch("/api/profile", { method: "GET" });
 		
 		if (!res.ok) {
-			document.getElementById("app")!.innerHTML = "<p>Erreur</p>";
+			document.getElementById("app")!.innerHTML = 
+			`
+				<p class="text-white text-1xl">Erreur lors du chargement de la page</p>
+				<h2 class="text-white text-9xl">401</h2>
+				<p class="text-white text-2xl">Vous devez vous connecter</p>
+				<img src="/images/hellokittyangry.png" class="mx-auto w-64 -mt-10"></img>
+			`
 			return ;
 		}
 		// quand on a récupéré la réponse du back (les infos de profile),
@@ -26,7 +32,13 @@ export async function renderProfile() {
 
 		const historyRes = await fetch(`api/user/history/${encodeURIComponent(userData.name)}`, { method: "GET" });
 		if (!historyRes.ok) {
-			document.getElementById("app")!.innerHTML = "<p>Cet utilisateur n'existe pas</p>";
+			document.getElementById("app")!.innerHTML = 
+			`
+				<p class="text-white text-1xl">Erreur lors du chargement de la page</p>
+				<h2 class="text-white text-9xl">404</h2>
+				<p class="text-white text-2xl">Cet utilisateur n'existe pas</p>
+				<img src="/images/hellokittysad2.png" class="mx-auto w-48"></img>
+			`;
 			return;
 		}
 		const history = await historyRes.json();
@@ -166,10 +178,8 @@ export async function renderProfile() {
 
 		});
 	}
-
 	catch (error) {
 		console.error("Erreur lors du chargement du profil :", error);
-		document.getElementById("app")!.innerHTML = "<p>Erreur</p>";
-
+		document.getElementById("app")!.innerHTML = "<p>Vous devez vous connecter</p>";
 	}
 }
