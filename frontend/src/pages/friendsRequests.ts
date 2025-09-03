@@ -110,7 +110,7 @@ export async function renderFriendsRequests() {
 					listRequests.appendChild(li);
 				}
 			}
-	} catch (error : any ) {
+	} catch (error : any) {
 		renderError(error);
 	}
 }
