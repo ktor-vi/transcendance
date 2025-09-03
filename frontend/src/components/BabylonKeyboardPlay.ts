@@ -19,7 +19,7 @@ import {
 
 import * as CANNON from "@type/cannon";
 
-import {Paddle, Ball, Wall, Shiny} from "./PongAssets";
+import {Paddle, Ball, Wall} from "./PongAssets";
 
 function setupVisuals(scene: any, canvas: any, FIELD_DEPTH: number, FIELD_WIDTH: number) {
   const camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), scene);
