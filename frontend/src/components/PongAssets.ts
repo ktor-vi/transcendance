@@ -55,12 +55,15 @@ export class Ball {
 
 export class Wall {
   hitbox: any;
-  constructor(scene: any, width: number, height: number, depth: number, texturePath: string, x: number, y: number, z: number) {
+  constructor(scene: any, width: number, height: number, depth: number, texturePath: string, x: number, y: number, z: number, tileSize: number) {
     this.hitbox = MeshBuilder.CreateBox("wall", { width: width, height: height, depth: depth }, scene);
     this.hitbox.position.set(x, y, z);
     let visual = new StandardMaterial("visual", scene);
-    visual.diffuseTexture = new Texture(texturePath, scene);
+    let texture = new Texture(texturePath, scene);
+    visual.diffuseTexture = texture;
     this.hitbox.material = visual;
+    texture.uScale = height / tileSize;
+    texture.vScale = depth / tileSize;
   }
 }
 
