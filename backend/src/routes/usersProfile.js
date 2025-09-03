@@ -10,7 +10,7 @@ export default async function userProfileRoutes(fastify)
 		const userSession = req.session.get('user');
 
 		if (!userSession) {
-			return reply.code(401).send({ error: 'Non connecté' });
+			return reply.code(401).send({ error: 'Vous devez être connecté' });
 		}
 		
 		const db = await openDb();

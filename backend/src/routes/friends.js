@@ -27,11 +27,12 @@ export default async function friendsRoutes(fastify) {
 	fastify.get('/friends', async (req, reply) => {
 
 		const userSession = req.session.get('user');
-		const db = await openDb();
-
+		
 		if (!userSession) {
-			return reply.code(401).send({ error: 'Non connecté' });
+			return reply.code(401).send({ error: 'Vous devez être connecté' });
 		}
+		const db = await openDb();
+	
 		const userName = userSession.name;
 		const userRow = await db.get('SELECT * FROM users WHERE name = ?', userName);
 		const userId = userRow.id;
@@ -64,7 +65,7 @@ export default async function friendsRoutes(fastify) {
 		const db = await openDb();
 
 		if (!userSession) {
-			return reply.code(401).send({ error: 'Non connecté' });
+			return reply.code(401).send({ error: 'Vous devez être connecté' });
 		}
 
 		const userName = userSession.name;
