@@ -5,6 +5,10 @@ import {
   HemisphericLight,
   FreeCamera,
   KeyboardEventTypes,
+  ParticleSystem,
+  Color4,
+  NoiseProceduralTexture,
+  Texture
 } from "@babylonjs/core";
 
 import {
@@ -13,7 +17,7 @@ import {
   Control
 } from "@babylonjs/gui";
 
-import {Paddle, Ball, Wall} from "./PongAssets";
+import {Paddle, Ball, Wall, Shiny} from "./PongAssets";
 
 function setupVisuals(scene: any, canvas: any, FIELD_DEPTH: number, FIELD_WIDTH: number) {
   const camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), scene);
@@ -57,6 +61,9 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   const WALL_HEIGHT = PADDLE_HEIGHT * 2;
   const WALL_DEPTH = FIELD_DEPTH;
   const WALL_IMAGE = "https://www.babylonjs-playground.com/textures/crate.png";
+  // const SHINY_IMAGE = "https://playground.babylonjs.com/textures/flare.png";
+  // const SHINY_IMAGE = "https://t3.ftcdn.net/jpg/13/90/32/34/360_F_1390323429_fAkdVjJGjh1QfqeNLffeDueRLlUQOLsA.jpg";
+  const SHINY_IMAGE = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjdAeim6jfibyI_iaJ1juLMrtAc8R067EwjLmd5K6_VEJ1ZsjD5p2XHXVFHNtuAqHVsRU&usqp=CAU";
 
   // Construit la scène
   const ground = new Wall(scene, FIELD_WIDTH, FIELD_HEIGHT, FIELD_DEPTH, FIELD_IMAGE, 0, -0.5 * FIELD_HEIGHT, 0);
@@ -65,8 +72,43 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   const paddleOne = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, Math.PI, PADDLE_IMAGE);
   const paddleTwo = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, 0, PADDLE_IMAGE);
   const ball = new Ball(scene, BALL_SIZE, BALL_IMAGE, 0, BALL_SIZE / 2, 0);
+  // const stunningEffects = new Shiny(scene, SHINY_IMAGE);
   setupVisuals(scene, canvas, FIELD_DEPTH, FIELD_WIDTH);
   
+  const createStarsEffect = (position: Vector3) => {
+    const stunningEffects = new ParticleSystem("stars", 1, scene);
+    stunningEffects.particleTexture = new Texture(SHINY_IMAGE, scene);
+    // stunningEffects.textureMask = new Color4(0.1, 0.8, 0.8, 0.1); //works with flare but not with stars
+    stunningEffects.emitter = position;
+    stunningEffects.direction1 = new Vector3(2, 2, 2);
+    stunningEffects.direction2 = new Vector3(-2, 2, -2);
+    // stunningEffects.minEmitBox = new Vector3(0, 0, 0);
+    // stunningEffects.maxEmitBox = new Vector3(0, 0, 0);
+    
+    stunningEffects.emitRate = 100;
+    stunningEffects.minLifeTime = 0.3;
+    stunningEffects.maxLifeTime = 0.5;
+    stunningEffects.minSize = 1;
+    stunningEffects.maxSize = 1;
+    // stunningEffects.minEmitPower = 1;
+    // stunningEffects.maxEmitPower = 3;
+    stunningEffects.updateSpeed = 0.01;
+
+    // var noiseTexture = new NoiseProceduralTexture("perlin", 256, scene);
+    // noiseTexture.animationSpeedFactor = 5;
+    // noiseTexture.persistence = 2;
+    // noiseTexture.brightness = 0.5;
+    // noiseTexture.octaves = 2;
+
+    // stunningEffects.noiseTexture = noiseTexture;
+    // stunningEffects.noiseStrength = new Vector3(100, 100, 100);
+    
+    // stunningEffects.targetStopDuration = 0.05;
+    // stunningEffects.disposeOnStop = true;
+    stunningEffects.manualEmitCount = 1;
+    stunningEffects.start();
+  };
+
   let gameStarted = false;
 
   //Score 
@@ -160,6 +202,8 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
       ) {
         ball.hitbox.position.z = -FIELD_DEPTH / 2 + 0.5; // corriger position pour éviter le clip
         ball.speed.z *= -1;
+        createStarsEffect(ball.hitbox.position);
+        // stunningEffects.explode(ball.hitbox.position);
       }
 
       // Paddle 2 collision
