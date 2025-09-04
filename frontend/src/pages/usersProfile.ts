@@ -33,7 +33,11 @@ export async function renderUserProfile(ctx: any) {
 			`;
 			return;
 		}
-		const history = await historyRes.json();
+		const historyData = await historyRes.json();
+		const history = historyData.history;
+		const wins = historyData.wins;
+		const plays = historyData.plays;
+		const ratio = historyData.ratio;
 
 		let buttonRequests = `<button id="friendshipButton">Envoyer une demande d'amitié</button>`;
 
@@ -60,10 +64,30 @@ export async function renderUserProfile(ctx: any) {
 				style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
 			</div>
 
+			<div id="stats" style="display: flex; justify-content: center; margin: 20px 0;">
+  				<table border="1" style="width: 70%; text-align: center;">
+					<thread>
+						<tr>
+							<th>Victoires</th>
+							<th>Parties jouées</th>
+							<th>Ratio de victoires</th>
+						</tr>
+					</thread>
+					<tbody>
+						<tr>
+							<td>${wins}</td>
+							<td>${plays}</td>
+							<td>${ratio}%</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
 			${!history.length ?
 				`<p>L'historique apparaîtra quand la personne aura fait au moins 1 match </p>`
 			:
 				`<table border="1" style="width: 100%; text-align: center;">
+				<h2 class="text-2xl text-text font-bold m-4">Historique</h2>
 					<thead>
 						<tr>
 							<th>Type</th>
