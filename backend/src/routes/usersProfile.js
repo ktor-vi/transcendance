@@ -40,21 +40,41 @@ export default async function userProfileRoutes(fastify)
 		const userName = req.params.name;
 
 		const history = await historyDb.all(
-		`SELECT 
-			type, 
-			player_1, 
-			player_2, 
-			scores, 
-			winner,
-			strftime('%Y-%m-%d %H:%M', datetime(created_at, '+2 hours')) AS created_at
-		FROM history 
-		WHERE player_1 = ? OR player_2 = ? 
-		ORDER BY created_at DESC`,
-		userName, userName
-  );
-	if (history)
-		reply.send(history);
-	else
-		reply.code(404).send({ success: false, message: "Problème pendant l'affichage du profil" });
+			`SELECT 
+				type, 
+				player_1, 
+				player_2, 
+				scores, 
+				winner,
+				strftime('%Y-%m-%d %H:%M', datetime(created_at, '+2 hours')) AS created_at
+			FROM history 
+			WHERE player_1 = ? OR player_2 = ? 
+			ORDER BY created_at DESC`,
+			userName, userName
+  		);
+		const wins = await historyDb.get(`SELECT COUNT(*) as count FROM history WHERE winner = ?`, userName);
+		const plays = await historyDb.get(`SELECT COUNT(*) as count FROM history WHERE player_1 = ? OR player_2 = ?`, userName, userName);
+		console.log("PLAYS = ");
+		console.log(plays);
+		console.log("WINS = ");
+		console.log(wins);
+		const multiplier = 100/ plays.count;
+		const stat = wins.count * multiplier;
+		let ratio;
+		if (plays.count === 0)
+			ratio = 0;
+		else
+			ratio = Math.round(stat)
+
+
+		if (history)
+			reply.send({
+				history: history,
+				wins: wins.count,
+				plays: plays.count,
+				ratio: ratio
+		});
+		else
+			reply.code(404).send({ success: false, message: "Problème pendant l'affichage du profil" });
 	});
 }
