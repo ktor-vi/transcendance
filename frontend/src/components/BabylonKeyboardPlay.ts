@@ -8,7 +8,8 @@ import {
   ParticleSystem,
   Color4,
   NoiseProceduralTexture,
-  Texture
+  Texture,
+  CannonJSPlugin,
 } from "@babylonjs/core";
 
 import {
@@ -17,17 +18,18 @@ import {
   Control
 } from "@babylonjs/gui";
 
-import * as CANNON from "@type/cannon";
+import * as CANNON from "cannon";
 
 import {Paddle, Ball, Wall} from "./PongAssets";
 
-function setupVisuals(scene: any, canvas: any, FIELD_DEPTH: number, FIELD_WIDTH: number) {
+function createScene(canvas: any, engine: any, FIELD_DEPTH: number, FIELD_WIDTH: number): Scene{
+  const scene = new Scene(engine);
+  new HemisphericLight("light", new Vector3(0, 1, 0), scene);
   const camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), scene);
-  camera.setTarget(Vector3.Zero());
-  // camera.rotation.x = Math.PI / 2;//changer ca, ca tourne tout le reste
   camera.attachControl(canvas, true);
   camera.setTarget(Vector3.Zero());
-  const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+  scene.enablePhysics(new Vector3(0, 0, 0), new CannonJSPlugin(true, 10, CANNON));
+  return scene;
 }
 
 // Reset de la partie
@@ -41,11 +43,6 @@ function resetGame(ball: any) {
 }
 
 export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
-
-  const engine = new Engine(canvas, true);
-  const scene = new Scene(engine);
-  scene.enablePhysics(new Vector3(0, 0, 0), new CannonJSPlugin(true, 10, CANNON));
-
   // Paramètres du terrain
   const GRAPHIC_FOLDER = "../../public/images/";
   const FIELD_WIDTH = 13.5;
@@ -68,6 +65,9 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   // const SHINY_IMAGE = "https://t3.ftcdn.net/jpg/13/90/32/34/360_F_1390323429_fAkdVjJGjh1QfqeNLffeDueRLlUQOLsA.jpg";
   // const SHINY_IMAGE = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjdAeim6jfibyI_iaJ1juLMrtAc8R067EwjLmd5K6_VEJ1ZsjD5p2XHXVFHNtuAqHVsRU&usqp=CAU";
 
+  const engine = new Engine(canvas, true);
+  const scene = createScene(canvas, engine, FIELD_DEPTH, FIELD_WIDTH);
+
   // Construit la scène
   const ground = new Wall(scene, FIELD_WIDTH, FIELD_HEIGHT, FIELD_DEPTH, FIELD_IMAGE, 0, -0.5 * FIELD_HEIGHT, 0, 0.5);
   const wall1 = new Wall(scene, WALL_WIDTH, WALL_HEIGHT, WALL_DEPTH, WALL_IMAGE, (FIELD_WIDTH - WALL_WIDTH) / 2, WALL_HEIGHT / 2, 0, 0.5);
@@ -76,7 +76,6 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   const paddleTwo = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, 0, PADDLE_IMAGE);
   const ball = new Ball(scene, BALL_SIZE, BALL_IMAGE, 0, BALL_SIZE / 2, 0);
   // const stunningEffects = new Shiny(scene, SHINY_IMAGE);
-  setupVisuals(scene, canvas, FIELD_DEPTH, FIELD_WIDTH);
   
   const createStarsEffect = (position: Vector3) => {
     const stunningEffects = new ParticleSystem("stars", 1000, scene);
