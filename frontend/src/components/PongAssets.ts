@@ -1,3 +1,4 @@
+import { PhysicsImpostor } from "@babylonjs/core";
 import {
   Engine,
   Scene,
@@ -24,6 +25,7 @@ export class Paddle {
     this.hitbox.position.x = radius * Math.sin(angle);
     this.hitbox.position.y = height / 2;
     this.hitbox.position.z = radius * Math.cos(angle);
+    this.hitbox.physicsImpostor = new PhysicsImpostor(this.hitbox, PhysicsImpostor.BoxImpostor, {mass: 0, restitution: 1});
     let visual = new StandardMaterial("visual", scene);
     visual.diffuseTexture = new Texture(texturePath, scene);
     this.hitbox.material = visual;
@@ -39,6 +41,7 @@ export class Ball {
     this.start_pos = new Vector3(x, y, z);
     this.hitbox.position.set(x, y, z);
     this.speed = Vector3.Zero();
+    this.hitbox.physicsImpostor = new PhysicsImpostor(this.hitbox, PhysicsImpostor.BoxImpostor, {mass: 1, restitution: 1});
     let visual = new StandardMaterial("visual", scene);
     visual.diffuseTexture = new Texture(texturePath, scene);
     this.hitbox.material = visual;
@@ -58,6 +61,7 @@ export class Wall {
   constructor(scene: any, width: number, height: number, depth: number, texturePath: string, x: number, y: number, z: number, tileSize: number) {
     this.hitbox = MeshBuilder.CreateBox("wall", { width: width, height: height, depth: depth }, scene);
     this.hitbox.position.set(x, y, z);
+    this.hitbox.physicsImpostor = new PhysicsImpostor(this.hitbox, PhysicsImpostor.BoxImpostor, {mass: 0, restitution: 1});
     let visual = new StandardMaterial("visual", scene);
     let texture = new Texture(texturePath, scene);
     visual.diffuseTexture = texture;
