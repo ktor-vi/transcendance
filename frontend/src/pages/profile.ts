@@ -41,7 +41,11 @@ export async function renderProfile() {
 			`;
 			return;
 		}
-		const history = await historyRes.json();
+		const historyData = await historyRes.json();
+		const history = historyData.history;
+		const wins = historyData.wins;
+		const plays = historyData.plays;
+		const ratio = historyData.ratio;
 		
 		const html = `
 		<h1 style="text-align: center;">Profil</h1>
@@ -71,6 +75,25 @@ export async function renderProfile() {
 		
 			<button id="save" disabled>Enregistrer les modifications</button>
 			
+			<div id="stats" style="display: flex; justify-content: center; margin: 20px 0;">
+  				<table border="1" style="width: 10em; text-align: center;">
+					<thread>
+						<tr>
+							<th>Victoires</th>
+							<th>Parties jouées</th>
+							<th>Ratio de victoires</th>
+						</tr>
+					</thread>
+					<tbody>
+						<tr>
+							<td>${wins}</td>
+							<td>${plays}</td>
+							<td>${ratio}%</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
 			<table border="1" style="width: 100%; text-align: center;">
 			${!history.length ?
 				`<h1">L'historique apparaîtra quand tu auras fait au moins 1 match </p>`
