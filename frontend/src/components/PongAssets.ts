@@ -1,4 +1,5 @@
 import {
+  Scene,
   Vector3,
   MeshBuilder,
   PhysicsImpostor,
@@ -6,13 +7,8 @@ import {
   Texture,
   ParticleSystem,
   Color4,
-  Effect,
-  KeyboardEventTypes,
 } from "@babylonjs/core";
 
-// https://doc.babylonjs.com/toolsAndResources/assetLibraries/availableTextures
-// https://doc.babylonjs.com/features/featuresDeepDive/mesh/transforms/center_origin/ref_frame/
-// https://doc.babylonjs.com/img/resources/textures_thumbs/grass.dds.jpg
 export class Paddle {
   hitbox: any;
   constructor(scene: any, width: number, height: number, depth: number, radius: number, angle: number, texturePath: string) {
@@ -30,9 +26,11 @@ export class Paddle {
 }
 
 export class Ball {
+  scene: Scene;
   hitbox: any;
   start_pos: Vector3;
   constructor(scene:any, size: number, texturePath: string, x: number, y: number, z: number) {
+    this.scene = scene;
     this.hitbox = MeshBuilder.CreateSphere("ball", { diameter: size }, scene);
     this.hitbox.renderingGroupId = 1;
     this.start_pos = new Vector3(x, y, z);
@@ -48,7 +46,7 @@ export class Ball {
     this.hitbox.position.set(this.start_pos.x, this.start_pos.y, this.start_pos.z);
   }
   launch(){
-    let speed = new Vector3(Math.random(), 0, Math.random());
+    let speed = new Vector3((Math.random() - 0.5), 0, (Math.random() > 0.5 ? -1 : 1));
     speed = speed.normalize().multiplyInPlace(new Vector3(10, 10, 10));
     this.hitbox.physicsImpostor.setLinearVelocity(speed);
   }
@@ -59,6 +57,7 @@ export class Ball {
     speed = speed.normalize().multiplyInPlace(new Vector3(10, 10, 10));
     this.hitbox.physicsImpostor.setLinearVelocity(speed);
   }
+
 }
 
 export class Ground {
@@ -93,32 +92,21 @@ export class Wall {
 
 export function shiny(scene: any, position: Vector3, texturePath: string) {
   const stunningEffects = new ParticleSystem("stars", 1000, scene);
+  stunningEffects.renderingGroupId = 1;
   stunningEffects.particleTexture = new Texture(texturePath, scene);
-  stunningEffects.textureMask = new Color4(0, 1, 0, 0.01); //works with flare but not with stars
+  stunningEffects.textureMask = new Color4(Math.random(), Math.random(), Math.random(), 0.01);
   stunningEffects.emitter = position;
   stunningEffects.direction1 = new Vector3(2, 2, 2);
   stunningEffects.direction2 = new Vector3(-2, 2, -2);
-  // stunningEffects.minEmitBox = new Vector3(0, 0, 0);
-  // stunningEffects.maxEmitBox = new Vector3(0, 0, 0);
   
   stunningEffects.emitRate = 300;
   stunningEffects.minLifeTime = 0.3;
   stunningEffects.maxLifeTime = 0.5;
-  stunningEffects.minSize = 1;
-  stunningEffects.maxSize = 1;
-  // stunningEffects.minEmitPower = 1;
-  // stunningEffects.maxEmitPower = 3;
+  stunningEffects.minSize = 0.1;
+  stunningEffects.maxSize = 0.3;
   stunningEffects.updateSpeed = 0.01;
-  // var noiseTexture = new NoiseProceduralTexture("perlin", 256, scene);
-  // noiseTexture.animationSpeedFactor = 5;
-  // noiseTexture.persistence = 2;
-  // noiseTexture.brightness = 0.5;
-  // noiseTexture.octaves = 2;
-  // stunningEffects.noiseTexture = noiseTexture;
-  // stunningEffects.noiseStrength = new Vector3(100, 100, 100);
   
-  stunningEffects.targetStopDuration = 0.5;
+  stunningEffects.targetStopDuration = 0.05;
   stunningEffects.disposeOnStop = true;
-  // stunningEffects.manualEmitCount = 300;
   stunningEffects.start();
 }
