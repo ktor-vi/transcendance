@@ -9,12 +9,8 @@ import {
   Color4,
   FreeCamera,
   KeyboardEventTypes,
-  NoiseProceduralTexture,
   Texture,
   CannonJSPlugin,
-  PhysicsImpostor,
-  AbstractMesh,
-  ParticleSystem,
 } from "@babylonjs/core";
 
 import {
@@ -50,21 +46,10 @@ function createScene(canvas: any, engine: any, FIELD_DEPTH: number, FIELD_WIDTH:
   return scene;
 }
 
-// Reset de la partie
-// function resetGame(ball: any) {
-//   ball.resetPos();
-//   ball.speed.set(
-//     0.05 * (Math.random() > 0.5 ? 1 : -1),
-//     0,
-//     0.1 * (Math.random() > 0.5 ? 1 : -1)
-//   );
-// }
-
 export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   // Paramètres du terrain
   const GRAPHIC_FOLDER = "../../public/images/";
   const FIELD_WIDTH = 13.5;
-  const FIELD_HEIGHT = 0.1;
   const FIELD_DEPTH = 7.5;
   const FIELD_IMAGE = "https://doc.babylonjs.com/img/resources/textures_thumbs/grass.dds.jpg";
   const PADDLE_WIDTH = 3; 
@@ -80,8 +65,6 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   const WALL_DEPTH = FIELD_DEPTH;
   const WALL_IMAGE = "https://www.babylonjs-playground.com/textures/crate.png";
   const SHINY_IMAGE = "https://playground.babylonjs.com/textures/flare.png";
-  // const SHINY_IMAGE = "https://t3.ftcdn.net/jpg/13/90/32/34/360_F_1390323429_fAkdVjJGjh1QfqeNLffeDueRLlUQOLsA.jpg";
-  // const SHINY_IMAGE = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjdAeim6jfibyI_iaJ1juLMrtAc8R067EwjLmd5K6_VEJ1ZsjD5p2XHXVFHNtuAqHVsRU&usqp=CAU";
 
   const engine = new Engine(canvas, true);
   const scene = createScene(canvas, engine, FIELD_DEPTH, FIELD_WIDTH);
@@ -93,27 +76,12 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   const paddleOne = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, Math.PI, PADDLE_IMAGE);
   const paddleTwo = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, 0, PADDLE_IMAGE);
   const ball = new Ball(scene, BALL_SIZE, BALL_IMAGE, 0, BALL_SIZE / 2, 0);
-  function DetectCollisions(ballCol: any, colAgainst: any): void {
-    const stunningEffects = new ParticleSystem("stars", 1000, scene);
-    stunningEffects.particleTexture = new Texture(SHINY_IMAGE, scene);
-    stunningEffects.textureMask = new Color4(0, 1, 0, 0.01); //works with flare but not with stars
-    stunningEffects.emitter = (ballCol.object as AbstractMesh).position;
-    stunningEffects.direction1 = new Vector3(2, 2, 2);
-    stunningEffects.direction2 = new Vector3(-2, 2, -2);
 
-    stunningEffects.emitRate = 300;
-    stunningEffects.minLifeTime = 0.3;
-    stunningEffects.maxLifeTime = 0.5;
-    stunningEffects.minSize = 1;
-    stunningEffects.maxSize = 1;
-    stunningEffects.updateSpeed = 0.01;
-    
-    stunningEffects.targetStopDuration = 0.5;
-    stunningEffects.disposeOnStop = true;
-    stunningEffects.start();
-  }
-  // ball.hitbox.PhysicsImpostor.registerOnPhysicsCollide(paddleOne.hitbox.physicsImpostor, DetectCollisions);
   scene.registerBeforeRender(() => {
+    if (ball.hitbox.intersectsMesh(paddleOne.hitbox))
+      shiny(scene, ball.hitbox.position, SHINY_IMAGE);
+    if (ball.hitbox.intersectsMesh(paddleTwo.hitbox))
+      shiny(scene, ball.hitbox.position, SHINY_IMAGE);
     ball.keepOnTrack();
   });
 
