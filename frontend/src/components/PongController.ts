@@ -1,16 +1,5 @@
 import {
-  Engine,
-  Scene,
-  Vector3,
-  MeshBuilder,
-  StandardMaterial,
-  CubeTexture,
-  HemisphericLight,
-  Color4,
-  FreeCamera,
   KeyboardEventTypes,
-  Texture,
-  CannonJSPlugin,
 } from "@babylonjs/core";
 
 import {
@@ -19,63 +8,13 @@ import {
   Control
 } from "@babylonjs/gui";
 
-import * as CANNON from "cannon";
-
-import {Paddle, Ball, Wall, Ground, shiny} from "./PongAssets";
-
-function createScene(canvas: any, engine: any, FIELD_DEPTH: number, FIELD_WIDTH: number): Scene{
-  const scene = new Scene(engine);
-  scene.clearColor = new Color4(1, 0, 0, 0.1);
-
-  const skybox = MeshBuilder.CreateBox("SkyBox", {size: 100}, scene);
-  const skyboxMaterial = new StandardMaterial("skyBox", scene);
-  skyboxMaterial.backFaceCulling = false;
-  skyboxMaterial.disableLighting = true;
-  skybox.material = skyboxMaterial;
-  skybox.infiniteDistance = true;
-  let texturePath = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzRT6G0cuCqmybwjD-8zWjjUIAQBvi6LMFHkTCZL5hzSEtDgYqIdfWRLWtnyG4SBGBptk&usqp=CAU";
-  skyboxMaterial.reflectionTexture = new CubeTexture(texturePath, scene);
-  skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
-  skybox.renderingGroupId = 0;
-
-  new HemisphericLight("light", new Vector3(0, 1, 0), scene);
-  const camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), scene);
-  camera.attachControl(canvas, true);
-  camera.setTarget(Vector3.Zero());
-  scene.enablePhysics(new Vector3(0, 0, 0), new CannonJSPlugin(true, 10, CANNON));
-  return scene;
-}
+import {Paddle, Ball, Wall, PongModel} from "./PongModel";
+import {PaddleView, BallView, WallView, GroundView, shiny, PongView} from "./PongView";
 
 export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
-  // Paramètres du terrain
-  const GRAPHIC_FOLDER = "../../public/images/";
-  const FIELD_WIDTH = 13.5;
-  const FIELD_DEPTH = 7.5;
-  const FIELD_IMAGE = "https://doc.babylonjs.com/img/resources/textures_thumbs/grass.dds.jpg";
-  const PADDLE_WIDTH = 3; 
-  const PADDLE_HEIGHT = 0.75;
-  const PADDLE_DEPTH = 0.25;
-  const PADDLE_SPEED = 0.25;
-  const PADDLE_IMAGE = "https://www.babylonjs-playground.com/textures/amiga.jpg";
-  const BALL_SIZE = 1;
-  // const BALL_IMAGE = GRAPHIC_FOLDER + "HelloKitty.png";
-  const BALL_IMAGE = "https://us1.discourse-cdn.com/flex024/uploads/babylonjs/original/3X/7/b/7b835f51e968cd202d62ad1277dac879e19ffd9b.png";
-  const WALL_WIDTH = PADDLE_DEPTH;
-  const WALL_HEIGHT = PADDLE_HEIGHT * 2;
-  const WALL_DEPTH = FIELD_DEPTH;
-  const WALL_IMAGE = "https://www.babylonjs-playground.com/textures/crate.png";
-  const SHINY_IMAGE = "https://playground.babylonjs.com/textures/flare.png";
 
-  const engine = new Engine(canvas, true);
-  const scene = createScene(canvas, engine, FIELD_DEPTH, FIELD_WIDTH);
-
-  // Construit la scène
-  const ground = new Ground(scene, FIELD_WIDTH, FIELD_DEPTH, FIELD_IMAGE, 0.5);
-  const wall1 = new Wall(scene, WALL_WIDTH, WALL_HEIGHT, WALL_DEPTH, WALL_IMAGE, (FIELD_WIDTH - WALL_WIDTH) / 2, WALL_HEIGHT / 2, 0, 0.5);
-  const wall2 = new Wall(scene, WALL_WIDTH, WALL_HEIGHT, WALL_DEPTH, WALL_IMAGE, (WALL_WIDTH - FIELD_WIDTH) / 2, WALL_HEIGHT / 2, 0, 0.5);
-  const paddleOne = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, Math.PI, PADDLE_IMAGE);
-  const paddleTwo = new Paddle(scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, 0, PADDLE_IMAGE);
-  const ball = new Ball(scene, BALL_SIZE, BALL_IMAGE, 0, BALL_SIZE / 2, 0);
+  const pong = new PongModel(canvas, 2);
+  const view = new PongView(pong.engine, pong.scene);
 
   scene.registerBeforeRender(() => {
     if (ball.hitbox.intersectsMesh(paddleOne.hitbox))
