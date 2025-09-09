@@ -12,10 +12,20 @@ function errorHandling(err) // ma variable err va "stocker" l'eventuel erreur qu
 }
 
 // new sqlite3.Database(path, callback
-const db = new sqlite3.Database('./data/users.sqlite3', errorHandling) //cree ma db dans un fichier que je place dans data
+const db = new sqlite3.Database('./data/users.sqlite3', (err) => { //cree ma db dans un fichier que je place dans data
+	if (err) {
+		console.error("Error opening DB");
+		return;
+	}
+	
+	console.log("Databases open !!!!");
+	
 
-const createSQTable = // je cree une table que je nomme "users" avec son formatage choisi
-`
+	db.run("PRAGMA foreign_keys = ON"); // active le foreign key
+
+	// je cree une table que je nomme "users" avec son formatage choisi
+	const createSQTable = `
+
 CREATE TABLE IF NOT EXISTS
 	users
 	(
@@ -50,24 +60,45 @@ CREATE TABLE IF NOT EXISTS
 		FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
 		FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
 	);
+CREATE TABLE IF NOT EXISTS
+	conversations (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user1_id INTEGER NOT NULL,
+		user2_id INTEGER NOT NULL,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
+		FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE,
+		UNIQUE(user1_id, user2_id)
+  );
+
+CREATE TABLE IF NOT EXISTS
+	messages (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		conversation_id INTEGER NOT NULL,
+		sender_id INTEGER NOT NULL,
+		content TEXT NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+		FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+);
 `;
 
-db.exec(createSQTable, (err) => //execute une commande sql
-{
-	if (err)
-		console.error("error when creating users table");
-	else
-		console.log("users table created or already existing");
-})
+	db.exec(createSQTable, (err) => { // execute une cmd sql
+		if (err)
+			console.error("SQL error when DB creation :", err.message);
+		else
+			console.log("Tables created or already existing");
 
-db.close((err) => // ferme la connexion a la db car elle a ete ouverte automatiquement en la creeant
-{
-	if (err)
-		console.error("error when closing users database");
-	else
-		console.log("users database closed");
+	db.close((err) => { // ferme la connexion a la db car elle a ete ouverte automatiquement en la creeant
+		if (err)
+			console.error("error when closing databases");
+		else
+			console.log("Databases closed");
 	
-})
+		});
+	});
+});
+
 // la fermeture evite des potentielles corruptions de donnees, de la consommation inutiles de ressources etc.
-console.log ("Closing users database...");
 

@@ -1,144 +1,302 @@
-import fp from "fastify-plugin"; // importe fastify plugin 
+import fp from "fastify-plugin"; // Import Fastify plugin helper
+import { getOrCreateConversation } from "./conversationService.js";
+import sqlite3pkg from "sqlite3";
+const sqlite3 = sqlite3pkg.verbose();
+const db = new sqlite3.Database("./data/users.sqlite3");
 
-export default fp(async function (fastify) {  // declare et exporte le plugin fastify 
+export default fp(async function (fastify) { // Declare and export Fastify plugin
 
-  const clients = new Set(); //creer un set de client connectes chaque entree = une socket
-	// mais cest une liste simple (pas de donnees associees ce qui a mon avis posera pb pour
-	// l'associer a la DB alors utiliser peut etre Map (??)
+	const clients = new Set(); // Store connected clients (each entry = a socket)
+	// Note: For associating with DB later, using a Map with userId -> socket might be better
 
-  fastify.get("/chat", { websocket: true }, (socket, req) => { /* transforme la route GET en entrypoint de Websocket avec l'option websocket true au lieu de repondre en html ou json le serveur va faire une connexion http -> websocket
-	  par ex si javais fait :
-	   fastify.get("/hello", (req, reply) => {
-  	   reply.send("Hello world");
-	   });
-	   -> cree une route HTTP GET classique si je fais GET /hello je recois hello world en html
-	   alors que ici avec le plugin fastify websocket le front appelle (fichier -> srcs/pages/chat.ts) la socket "ws://mi-r4-p4 etc il envoie une requete http GET classique vers la loc chat avec un header special qui dit au serveur je veux faire un "upgrade" donc passer dune co basique http a une co websocket persistante 
-	   1 - Envoi de la requete GET
-	   	GET /chat HTTP/1.1
-		Host: mi-r4-p4.s19.be:3000
-		Upgrade: websocket
-		Connection: Upgrade
-		Sec-WebSocket-Key: abc123...
-		Sec-WebSocket-Version: 13
-	  
-	  2 - Serveur Fastify grace a websocket:true repond 
-	  	HTTP/1.1 101 Switching Protocols
-		Upgrade: websocket
-		Connection: Upgrade
-		Sec-WebSocket-Accept: xyz987...
-	La connexion devient bidirectionnellle, et persistante (pas besoin de refaire de requete a chaque fois, dimension "live"), base sur des messages pas du texte http
-	Un canal est ouvert en continu, cote front c'est "open" je peux envoyer des msg, "ecouter" des msg, close si deco
-	Cote serveur fastify jai mon "handler" : l'obj "socket" cest l'obj websocket cree par la lib "ws" de fastify il represente la connexion bi directionnelle entre notre serveur et CE client il ecoute, envoie, et surveille les fermetures une socket quoi
-	ET req : cest la requete HTTP d'origine qui a demande l'upgrade cest comme un obj Fastify Request classic sauf quil est pimpe il sert a : identifier le client avec ses cookies ou sa session, recperer les ttoken d'auth dans les headers, voir lIP du client, anlayser l'URL ou les query params 
-	- const cookies = req.cookies;
-	- const authHeader = req.headers['authorization'];
-	- const ip = req.socket.remoteAddress;
-	- const { room } = req.query; // ex: ws://serveur/chat?room=42
-	*/
-    console.log("Miaou : client chat connecté"); // pour voir dans inspect sur la page et avoir des logs de debug
-//     clients.add(socket);		// ajoute ce socket au set des clients connectes
+	// WebSocket entry point
+	fastify.get("/chat", { websocket: true }, (socket, req) => {
 
+		console.log("Meow: chat client connected");
 
-//     socket.on("message", (raw) => { // ecoute chaque msg du client
-//       let msg;
-//       try {
-//         msg = JSON.parse(raw); // parser au cas ou ca soit envoyer en format invalide de al part du front
-//       } catch {
-//         return;
-//       }
+		console.log(`[CHAT] New WebSocket connection from ${req.socket.remoteAddress}`);
+		console.log(`[CHAT] Request headers:`, req.headers);
 
-//       if (msg.type === "chatMessage") { // reconnaissance du type chatMessage quon retrouve aussi comme id type dans le front
-//         const payload = JSON.stringify({ // formate le payload en en contenu JSON pcq on veut plusieurs infos : type, user, content
-//           type: "chatMessage",
-//           user: msg.user ?? "Ta mere", // tous les clients qui ne sont pas toi portent ce nom 
-// 	  //user: clients.get(socket), // ca je lai enleve pcq ca faisait tout bug on verra plus tard de toutes facons on doit se baser sur la DB et je sais pas si on peut link avec Set de base et get sutilise avec Map donc bon...
-//           content: msg.content
-//         });
-//         for (const client of clients) { // broadcast a tous les clients sauf l'expediteur 
-// 		if (client !== socket && client.readyState === 1) { // si le state de la WS est a 1 cest quelle bien OPEN (0 = connecting, 2= closing, 3 closed)
-//       		     client.send(payload);
-// 	   }
-//         }
-//       }
-//     });
+		clients.add(socket);
+		console.log(`[CHAT] Client added. Total connected clients: ${clients.size}`);
 
-//     socket.on("close", () => {
-//       clients.delete(socket); // si client deconnecte on le retire son socket du Set 
-//       console.log("Mia-goodbye : client déconnecté");
-//     });
+		// Listen for messages from client
+		socket.on("message", (raw) => {
+			console.log(`[CHAT] Received message:`, raw.toString());
 
-//     socket.on("error", () => {
-//       clients.delete(socket); // si erreur on supprime le client et sa socket, classic shit 
-//     });
-//   });
-// });
+			let msg;
+			try {
+				msg = JSON.parse(raw);
+				console.log(`[CHAT] Parsed message:`, msg);
+			} catch (err) {
+				console.error("[CHAT] JSON parsing error:", err);
+				return;
+			}
 
+			if (msg.type === "chatMessage") {
+				const payload = JSON.stringify({
+					type: "chatMessage",
+					user: msg.user ?? "Anonymous",
+					content: msg.content,
+				});
 
-console.log(
-	`[CHAT] Nouvelle connexion WebSocket depuis ${req.socket.remoteAddress}`
-  );
-  console.log(`[CHAT] Headers de la requête:`, req.headers);
+				console.log(`[CHAT] Broadcasting to ${clients.size} clients:`, payload);
 
-  clients.add(socket);
-  console.log(
-	`[CHAT] Client ajouté. Total: ${clients.size} clients connectés`
-  );
+				let broadcastCount = 0;
+				for (const client of clients) {
+					if (client !== socket && client.readyState === 1) {
+						try {
+							client.send(payload);
+							broadcastCount++;
+						} catch (err) {
+							console.error("[CHAT] Error sending to a client:", err);
+							clients.delete(client);
+						}
+					}
+				}
 
-  socket.on("message", (raw) => {
-	console.log(`[CHAT] Message reçu:`, raw.toString());
+				console.log(`[CHAT] Message broadcasted to ${broadcastCount} clients`);
+			} else {
+				console.log(`[CHAT] Ignored message type: ${msg.type}`);
+			}
+		});
 
-	let msg;
-	try {
-	  msg = JSON.parse(raw);
-	  console.log(`[CHAT] Message parsé:`, msg);
-	} catch (err) {
-	  console.error("[CHAT] Erreur de parsing JSON:", err);
-	  return;
-	}
+		// Handle client disconnect
+		socket.on("close", (code, reason) => {
+			clients.delete(socket);
+			console.log(`[CHAT] Client disconnected (Code: ${code}, Reason: ${reason}). Remaining clients: ${clients.size}`);
+		});
 
-	if (msg.type === "chatMessage") {
-	  const payload = JSON.stringify({
-		type: "chatMessage",
-		user: msg.user ?? "Ta mere",
-		content: msg.content,
-	  });
+		// Handle socket errors
+		socket.on("error", (err) => {
+			console.error("[CHAT] Socket error:", err);
+			clients.delete(socket);
+			console.log(`[CHAT] Client removed after error. Remaining clients: ${clients.size}`);
+		});
+	});
 
-	  console.log(`[CHAT] Broadcasting à ${clients.size} clients:`, payload);
+		// --- Direct Messages (DM) ---
+	const dmClients = new Map(); // userId -> socket
+/*	fastify.get("/dm", { websocket: true }, (socket, req) => {
+    // 1️⃣ Récupère l'utilisateur connecté via session
+    const senderId = req.session?.userId;
+    if (!senderId) {
+      socket.close();
+      return;
+    }
 
-	  let broadcastCount = 0;
-	  for (const client of clients) {
-		if (client !== socket && client.readyState === 1) {
-		  try {
-			client.send(payload);
-			broadcastCount++;
-		  } catch (err) {
-			console.error("[CHAT] Erreur envoi à un client:", err);
-			clients.delete(client);
-		  }
+    // 2️⃣ Récupère l'ID du destinataire depuis le header
+    const receiverId = req.headers["x-receiver-id"];
+    if (!receiverId) {
+      socket.close();
+      return;
+    }
+
+    // 3️⃣ Stocke le socket pour l'utilisateur connecté
+    dmClients.set(senderId, socket);
+
+    socket.on("message", async (raw) => {
+      let msg;
+      try {
+        msg = JSON.parse(raw);
+      } catch {
+        return;
+      }
+
+      if (msg.type === "dmMessage" && msg.content) {
+        // a) Crée ou récupère la conversation
+        const conversationId = await getOrCreateConversation(senderId, receiverId);
+
+        // b) Sauvegarde le message en DB
+        db.run(
+          `INSERT INTO messages (conversation_id, sender_id, content) VALUES (?, ?, ?)`,
+          [conversationId, senderId, msg.content],
+          (err) => {
+            if (err) console.error("DB error:", err);
+          }
+        );
+
+        // c) Envoie le message au destinataire si connecté
+        if (dmClients.has(receiverId)) {
+          dmClients.get(receiverId).send(
+            JSON.stringify({
+              type: "dmMessage",
+              from: senderId,
+              to: receiverId,
+              content: msg.content,
+            })
+          );
+        }
+      }
+    });
+
+    // Nettoyage à la fermeture ou erreur
+    const cleanup = () => dmClients.delete(senderId);
+    socket.on("close", cleanup);
+    socket.on("error", cleanup);
+  });
+
+  console.log("[DM PLUGIN] Direct messaging WebSocket ready");
+});*/
+
+	fastify.get("/dm", { websocket: true }, (socket, req) => {
+		console.log("[DM] 🔍 Nouvelle connexion WebSocket DM");
+		console.log("[DM] Headers:", req.headers);
+		console.log("[DM] Query params:", req.query);
+		console.log("[DM] Session complète:", req.session);
+		console.log("[DM] req.session?.userId:", req.session?.userId);
+
+		// 1️⃣ Debug complet de la session
+		const senderId = req.session?.user?.id;
+		console.log("[DM] SenderId extrait:", senderId, typeof senderId);
+
+		if (!senderId) {
+			console.log("[DM] ❌ Pas de senderId dans la session, fermeture WebSocket");
+			socket.send(JSON.stringify({
+				type: "error",
+				message: "Session utilisateur non trouvée"
+			}));
+			socket.close(4001, "No user session");
+			return;
 		}
-	  }
 
-	  console.log(`[CHAT] Message broadcasté à ${broadcastCount} clients`);
-	} else {
-	  console.log(`[CHAT] Type de message ignoré: ${msg.type}`);
-	}
-  });
+		// 2️⃣ Debug du query parameter receiver
+		const receiverId = req.query.receiverId;
+		console.log("[DM] ReceiverId depuis query params:", receiverId, typeof receiverId);
 
-  socket.on("close", (code, reason) => {
-	clients.delete(socket);
-	console.log(
-	  `[CHAT] Client déconnecté (Code: ${code}, Raison: ${reason}). Clients restants: ${clients.size}`
-	);
-  });
+		if (!receiverId) {
+			console.log("[DM] ❌ Pas de receiverId dans les query params");
+			socket.send(JSON.stringify({
+				type: "error",
+				message: "ID destinataire manquant dans l'URL"
+			}));
+			socket.close(4002, "No receiver ID");
+			return;
+		}
 
-  socket.on("error", (err) => {
-	console.error("[CHAT] Erreur socket:", err);
-	clients.delete(socket);
-	console.log(
-	  `[CHAT] Client supprimé après erreur. Clients restants: ${clients.size}`
-	);
-  });
+		// 3️⃣ Vérifier que senderId != receiverId
+		if (senderId.toString() === receiverId.toString()) {
+			console.log("[DM] ❌ Tentative d'envoi de DM à soi-même");
+			socket.send(JSON.stringify({
+				type: "error",
+				message: "Impossible d'envoyer un DM à soi-même"
+			}));
+			socket.close(4003, "Cannot DM self");
+			return;
+		}
+
+		console.log("[DM] ✅ Connexion valide:", { senderId, receiverId });
+
+		// 4️⃣ Stocke le socket pour l'utilisateur connecté
+		dmClients.set(senderId.toString(), socket);
+		console.log("[DM] Socket stocké pour utilisateur:", senderId);
+		console.log("[DM] Clients DM connectés:", Array.from(dmClients.keys()));
+
+		// Confirmer la connexion au client
+		socket.send(JSON.stringify({
+			type: "dmConnected",
+			senderId: senderId,
+			receiverId: receiverId
+		}));
+
+		socket.on("message", async (raw) => {
+			console.log("[DM] Message reçu:", raw.toString());
+			let msg;
+			try {
+				msg = JSON.parse(raw);
+				console.log("[DM] Message parsé:", msg);
+			} catch (err) {
+				console.error("[DM] Erreur parsing JSON:", err);
+				return;
+			}
+
+			if (msg.type === "dmMessage" && msg.content) {
+				console.log("[DM] Traitement du message DM:", msg.content);
+
+				try {
+					// a) Crée ou récupère la conversation
+					const conversationId = await getOrCreateConversation(senderId, receiverId);
+					console.log("[DM] ConversationId:", conversationId);
+
+					// b) Sauvegarde le message en DB
+					db.run(
+						`INSERT INTO messages (conversation_id, sender_id, content) VALUES (?, ?, ?)`,
+						[conversationId, senderId, msg.content],
+						(err) => {
+							if (err) {
+								console.error("[DM] Erreur DB:", err);
+							} else {
+								console.log("[DM] Message sauvegardé en DB");
+							}
+						}
+					);
+
+					// c) Prépare le payload pour le destinataire
+					const dmPayload = JSON.stringify({
+						type: "dmMessage",
+						conversationId: conversationId,
+						from: senderId,
+						to: receiverId,
+						content: msg.content,
+						timestamp: new Date().toISOString()
+					});
+
+					console.log("[DM] Payload à envoyer:", dmPayload);
+
+					// d) Envoie le message au destinataire si connecté
+					const receiverKey = receiverId.toString();
+					if (dmClients.has(receiverKey)) {
+						console.log("[DM] ✅ Destinataire connecté, envoi du message");
+						try {
+							dmClients.get(receiverKey).send(dmPayload);
+							console.log("[DM] Message envoyé au destinataire");
+						} catch (err) {
+							console.error("[DM] Erreur lors de l'envoi:", err);
+							dmClients.delete(receiverKey);
+						}
+					} else {
+						console.log("[DM] ⚠️ Destinataire non connecté");
+					}
+
+					// e) Confirme l'envoi à l'expéditeur
+					socket.send(JSON.stringify({
+						type: "dmSent",
+						conversationId: conversationId,
+						to: receiverId,
+						content: msg.content,
+						timestamp: new Date().toISOString()
+					}));
+
+				} catch (err) {
+					console.error("[DM] Erreur lors du traitement:", err);
+					socket.send(JSON.stringify({
+						type: "error",
+						message: "Erreur lors de l'envoi du message"
+					}));
+				}
+			} else {
+				console.log("[DM] Type de message ignoré:", msg.type);
+			}
+		});
+
+		// Nettoyage à la fermeture ou erreur
+		const cleanup = () => {
+			dmClients.delete(senderId.toString());
+			console.log("[DM] Nettoyage effectué pour utilisateur:", senderId);
+			console.log("[DM] Clients restants:", Array.from(dmClients.keys()));
+		};
+
+		socket.on("close", (code, reason) => {
+			console.log("[DM] Connexion fermée:", { code, reason });
+			cleanup();
+		});
+
+		socket.on("error", (err) => {
+			console.error("[DM] Erreur socket:", err);
+			cleanup();
+		});
+	});
+
+	console.log("[DM PLUGIN] Direct messaging WebSocket ready");
 });
 
-console.log("[CHAT PLUGIN] Plugin chat enregistré avec succès");
-});
