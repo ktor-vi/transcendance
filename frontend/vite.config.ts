@@ -86,6 +86,30 @@ export default defineConfig({
 					});
 				},
 			},
+			"/dm": {
+				target: `https://${process.env.HOSTNAME}:3000`,
+				changeOrigin: true,
+				secure: false,
+				ws: true,
+				configure: (proxy) => {
+					proxy.on("error", (err) => {
+						console.log("WebSocket proxy error:", err);
+					});
+					proxy.on("proxyReqWs", (proxyReq, req) => {
+						console.log("WebSocket proxy request:", proxyReq.path);
+						if (req.headers.cookie) {
+							proxyReq.setHeader("cookie", req.headers.cookie);
+						}
+					});
+					proxy.on("open", () => {
+						console.log("WebSocket proxy connection opened (DM)");
+					});
+					proxy.on("close", () => {
+						console.log("WebSocket proxy connection closed (DM)");
+					});
+				},
+			},
+
 		},
 		historyApiFallback: true, // ✅ pour le routage SPA (perdu dans le merge)
 	},
