@@ -3,71 +3,45 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Boldins';
-  src: url('/fonts/Boldins.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
+	font-family: 'RubikOne-Regular';
+	src: url('/fonts/RubikOne-Regular.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+#app {
+	position: relative;
+	z-index: 2;
+}
+
+html, body {
+	height: 100%;
+}
+
+@layer base {
+	h1 {
+		@apply text-white;
+	}
 }
 
 body {
-	@apply bg-background text-center p-10;
+	font-family: 'RubikOne-Regular', sans-serif;
+	background-color: #F1F2F2;
+	background-image: url('/images/background.png');
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center 100px; /* décale l’image de 100px vers le bas */
+	background-attachment: fixed;
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: hidden;
+	
+	outline: 6px solid white;	 /* l’épaisseur de la ligne */
+	outline-offset: -40px;			/* décalage de 20px vers l’intérieur */
 }
 
-h1 {
-	@apply text-primary font-boldins text-4xl m-3;
+.hellokitty-computer {
+	@apply w-48 h-auto mb-4;
 }
-
-span {
-	@apply text-text;
-}
-
-a {
-	@apply text-text m-auto bg-secondary rounded px-3 py-2;
-}
-
-p {
-	@apply text-text;
-}
-
-h3 {
-	@apply text-text;
-}
-
-th {
-	@apply text-text;
-}
-
-td {
-	@apply text-text;
-}
-
-input {
-	@apply rounded px-2 m-3;
-}
-
-button {
-	@apply mt-5 px-4 py-2 bg-accent text-white rounded;
-}
-
-button.icons-btn {
-	@apply m-0 p-0 bg-transparent text-inherit border-none rounded-none;
-}
-
-.link-user {
-	@apply bg-transparent text-text font-bold;
-}
-
-
- /* canvas {
-  background: #f0f0f0 !important;  
-  display: block !important;
-  width: 100% !important;
-  height: auto !important;
-  min-height: 400px !important;
-}
-
-.game-container {
-  position: relative;
-  overflow: visible;
- } */
- 
