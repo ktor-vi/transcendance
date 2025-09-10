@@ -54,10 +54,7 @@ export default async function userProfileRoutes(fastify)
   		);
 		const wins = await historyDb.get(`SELECT COUNT(*) as count FROM history WHERE winner = ?`, userName);
 		const plays = await historyDb.get(`SELECT COUNT(*) as count FROM history WHERE player_1 = ? OR player_2 = ?`, userName, userName);
-		console.log("PLAYS = ");
-		console.log(plays);
-		console.log("WINS = ");
-		console.log(wins);
+		
 		const multiplier = 100/ plays.count;
 		const stat = wins.count * multiplier;
 		let ratio;

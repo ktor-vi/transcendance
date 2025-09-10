@@ -50,13 +50,15 @@ export async function renderProfile() {
 		const html = `
 		<h1 style="text-align: center;">Profil</h1>
 		<section style="
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 16px;
-		min-height: 50vh;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 16px;
+			min-height: 50vh;
+			overflow-y: auto;
+			padding: 20px;
 		">
+
 		<div style="display: flex; align-items: center; gap: 8px;">
 		<label for="emailInput">Adresse mail :</label>
 		<input type="text" id="emailInput" value="${userData.email}" disabled tabindex=-1/>
@@ -75,28 +77,29 @@ export async function renderProfile() {
 		
 			<button id="save" disabled>Enregistrer les modifications</button>
 			
-			<div id="stats" style="display: flex; justify-content: center; margin: 20px 0;">
-  				<table border="1" style="width: 10em; text-align: center;">
-					<thread>
-						<tr>
-							<th>Victoires</th>
-							<th>Parties jouées</th>
-							<th>Ratio de victoires</th>
-						</tr>
-					</thread>
-					<tbody>
-						<tr>
-							<td>${wins}</td>
-							<td>${plays}</td>
-							<td>${ratio}%</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+		<div id="stats" style="display: flex; justify-content: center; margin: 20px 0;">
+			<table border="1" style="border-collapse: collapse; text-align: center;">
+				<thead>
+					<tr>
+						<th style="min-width: 120px; padding: 8px;">Victoires</th>
+						<th style="min-width: 150px; padding: 8px;">Parties jouées</th>
+						<th style="min-width: 180px; padding: 8px;">Ratio de victoires</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td style="padding: 8px;">${wins}</td>
+						<td style="padding: 8px;">${plays}</td>
+						<td style="padding: 8px;">${ratio}%</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
 
 			<table border="1" style="width: 100%; text-align: center;">
 			${!history.length ?
-				`<h1">L'historique apparaîtra quand tu auras fait au moins 1 match </p>`
+				`<p>L'historique apparaîtra quand tu auras fait au moins 1 match </p>`
 				:
 				`<h3>Historique des matchs</h3>
 				<thead>

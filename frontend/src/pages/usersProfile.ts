@@ -54,15 +54,15 @@ export async function renderUserProfile(ctx: any) {
 			buttonRequests = `<button id="friendshipButton disabled">Vous êtes déjà amis</button>`;
 
 			const html = `
-			<div style="display: flex; flex-direction: column; align-items: center;">
+			 <section class="flex flex-col items-center gap-4 min-h-screen overflow-y-auto p-5">
 				<h1 style="text-align: center;">Profile de ${userName}</h1>
 				 ${buttonRequests}
 				<div id="userStatut"></div>
-				<img 
-				src="${userData.picture}"
-				alt="[photo de profil]" 
-				style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
-			</div>
+					<img 
+					src="${userData.picture}"
+					alt="[photo de profil]" 
+					style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
+				</div>
 
 			<div id="stats" style="display: flex; justify-content: center; margin: 20px 0;">
   				<table border="1" style="width: 70%; text-align: center;">
@@ -120,6 +120,7 @@ export async function renderUserProfile(ctx: any) {
 				`
 			}
 				${backButton()}
+				</section>
 			`;
 
 		document.getElementById("app")!.innerHTML = html;
