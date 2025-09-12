@@ -1,5 +1,5 @@
 import page from "page";
-import { renderDmChat } from "./dmChat";
+import { renderDmChat, initDmChat } from './dmChat';
 import { backButton, setupBackButton } from '../components/backButton.js';
 import { renderError } from '../components/renderError.js';
 
@@ -182,17 +182,22 @@ export async function renderUserProfile(ctx: any) {
         }
     });
 }*/
-
-	const dmButton = document.getElementById("dmButton");
-	if (dmButton) {
-  	dmButton.addEventListener("click", () => {
+const dmButton = document.getElementById("dmButton");
+if (dmButton) {
+  dmButton.addEventListener("click", () => {
     const app = document.getElementById("app");
-    if (app) {
-	            app.innerHTML = renderDmChat(userName); // on passe bien le destinataire
-    }
+    if (!app) return;
+
+    // Injecte le chat
+    app.innerHTML = renderDmChat(userName);
+
+    // Récupère le senderId côté front (depuis session ou fetch /api/me)
+    const me = (window as any).me?.username || "unknown";
+
+    // Initialise la WebSocket et le chat
+    initDmChat(userName, me);
   });
 }
-
 	
         // --- GESTION STATUT UTILISATEUR ---
         const statusContainer = document.getElementById("userStatut");
