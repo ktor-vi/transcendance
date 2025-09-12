@@ -12,6 +12,12 @@ import {
   ParticleSystem,
 } from "@babylonjs/core";
 
+import {
+  AdvancedDynamicTexture,
+  Button,
+  Control
+} from "@babylonjs/gui";
+
 const GRAPHIC_FOLDER = "../../public/images/";
 const SKYBOX_IMAGE = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzRT6G0cuCqmybwjD-8zWjjUIAQBvi6LMFHkTCZL5hzSEtDgYqIdfWRLWtnyG4SBGBptk&usqp=CAU";
 const FIELD_IMAGE = "https://doc.babylonjs.com/img/resources/textures_thumbs/grass.dds.jpg";
@@ -24,7 +30,7 @@ const SHINY_IMAGE = "https://playground.babylonjs.com/textures/flare.png";
 
 const FIELD_WIDTH = 13.5;
 const FIELD_DEPTH = 7.5;
-const PADDLE_WIDTH = 3; 
+const PADDLE_WIDTH = 3;
 const PADDLE_HEIGHT = 0.75;
 const PADDLE_DEPTH = 0.25;
 const PADDLE_SPEED = 0.25;
@@ -36,22 +42,29 @@ const WALL_DEPTH = FIELD_DEPTH;
 export class PongView {
   engine: Engine;
   scene: Scene;
+  startButton: Button;
   constructor(engine: Engine, scene: Scene) {
     this.engine = engine;
     this.scene = scene;
+    this.createUI();
     this.createEnvironment();
-    let toRender = scene.getActiveMeshCandidates().data;
-    for (let i = 0; i < toRender.length; i++){
-      if (toRender[i].name === "wall")
-        applyTexture(toRender[i], WALL_IMAGE, WALL_HEIGHT / TILE_SIZE, FIELD_DEPTH / TILE_SIZE, this.scene);
-      else if (toRender[i].name === "paddle")
-        applyTexture(toRender[i], PADDLE_IMAGE, 1, 1, this.scene);
-      else if (toRender[i].name === "ball")
-        applyTexture(toRender[i], BALL_IMAGE, 1, 1, this.scene);
-    }
+    this.applyTextures();
   }
 
-  createEnvironment(){
+  createUI() {
+    this.startButton = Button.CreateSimpleButton("startButton", "Start / Restart");
+    this.startButton.width = "150px";
+    this.startButton.height = "40px";
+    this.startButton.color = "white";
+    this.startButton.background = "green";
+    this.startButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.startButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+    this.startButton.top = "20px";
+    const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
+    advancedTexture.addControl(this.startButton);
+  }
+
+  createEnvironment() {
     //a nice background (visible if a problem occurs with the skybox + impact calcul of all colors)
     this.scene.clearColor = new Color4(1, 0, 0, 0.1);
 
@@ -70,59 +83,47 @@ export class PongView {
 
     const ground = new GroundView(this.scene, FIELD_WIDTH, FIELD_DEPTH, FIELD_IMAGE, 0.5);
   }
+
+  applyTextures() {
+    let toRender = this.scene.getActiveMeshCandidates().data;
+    for (let i = 0; i < toRender.length; i++){
+      if (toRender[i].name === "wall")
+        applyTexture(toRender[i], WALL_IMAGE, WALL_HEIGHT / TILE_SIZE, FIELD_DEPTH / TILE_SIZE, this.scene);
+      else if (toRender[i].name === "paddle")
+        applyTexture(toRender[i], PADDLE_IMAGE, 1, 1, this.scene);
+      else if (toRender[i].name === "ball")
+        applyTexture(toRender[i], BALL_IMAGE, 1, 1, this.scene);
+    }
+  }
+
+  shiny(position: Vector3) {
+    const stunningEffects = new ParticleSystem("stars", 1000, this.scene);
+    stunningEffects.renderingGroupId = 1;
+    stunningEffects.particleTexture = new Texture(SHINY_IMAGE, this.scene);
+    stunningEffects.textureMask = new Color4(Math.random(), Math.random(), Math.random(), 0.01);
+    stunningEffects.emitter = position;
+    stunningEffects.direction1 = new Vector3(2, 2, 2);
+    stunningEffects.direction2 = new Vector3(-2, 2, -2);
+    
+    stunningEffects.emitRate = 300;
+    stunningEffects.minLifeTime = 0.3;
+    stunningEffects.maxLifeTime = 0.5;
+    stunningEffects.minSize = 0.1;
+    stunningEffects.maxSize = 0.3;
+    stunningEffects.updateSpeed = 0.01;
+    
+    stunningEffects.targetStopDuration = 0.05;
+    stunningEffects.disposeOnStop = true;
+    stunningEffects.start();
+  }  
 }
 
-// export class PaddleView{
-//   mesh: AbstractMesh;
-//   constructor(scene: any, width: number, height: number, depth: number, texturePath: string) {
-//     this.mesh = MeshBuilder.CreateBox("paddle", { width: width, height: height, depth: depth }, scene);
-//     applyTexture(this.mesh, texturePath, 1, 1, scene);
-//   }
-// }
-
-// export class BallView {
-//   mesh: AbstractMesh;
-//   constructor(scene:any, size: number, texturePath: string) {
-//     this.mesh = MeshBuilder.CreateSphere("ball", { diameter: size }, scene);
-//     applyTexture(this.mesh, texturePath, 1, 1, scene);
-//   }
-// }
-
-export class GroundView {
+class GroundView {
   mesh: any;
   constructor(scene: any, width: number, depth: number, texturePath: string, tileSize: number){
     this.mesh = MeshBuilder.CreateGround("ground", {width: width, height: depth}, scene);
     applyTexture(this.mesh, texturePath, width / tileSize,  depth / tileSize, scene);
   }
-}
-
-// export class WallView {
-//   mesh: any;
-//   constructor(scene: any, width: number, height: number, depth: number, texturePath: string, x: number, y: number, z: number, tileSize: number) {
-//     this.mesh = MeshBuilder.CreateBox("wall", { width: width, height: height, depth: depth }, scene);
-//     applyTexture(this.mesh, texturePath, height / tileSize, depth / tileSize, scene);
-//   }
-// }
-
-export function shiny(scene: any, position: Vector3, texturePath: string) {
-  const stunningEffects = new ParticleSystem("stars", 1000, scene);
-  stunningEffects.renderingGroupId = 1;
-  stunningEffects.particleTexture = new Texture(texturePath, scene);
-  stunningEffects.textureMask = new Color4(Math.random(), Math.random(), Math.random(), 0.01);
-  stunningEffects.emitter = position;
-  stunningEffects.direction1 = new Vector3(2, 2, 2);
-  stunningEffects.direction2 = new Vector3(-2, 2, -2);
-  
-  stunningEffects.emitRate = 300;
-  stunningEffects.minLifeTime = 0.3;
-  stunningEffects.maxLifeTime = 0.5;
-  stunningEffects.minSize = 0.1;
-  stunningEffects.maxSize = 0.3;
-  stunningEffects.updateSpeed = 0.01;
-  
-  stunningEffects.targetStopDuration = 0.05;
-  stunningEffects.disposeOnStop = true;
-  stunningEffects.start();
 }
 
 function applyTexture(mesh: AbstractMesh, texturePath: string, uscale: number, vscale: number, scene: Scene){
