@@ -11,7 +11,10 @@ import {
 } from "@babylonjs/gui";
 
 import {PongModel} from "./PongModel";
-import {shiny, PongView} from "./PongView";
+import {PongView} from "./PongView";
+
+const FIELD_DEPTH = 7.5;
+const PADDLE_SPEED = 0.25;
 
 export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
 
@@ -20,54 +23,35 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   const pong = new PongModel(engine, scene, 2);
   const view = new PongView(engine, scene);
 
-  scene.registerBeforeRender(() => {
-    if (pong.collision())
-      view.createShinyEffect();
-    if (pong.balls[0].hitbox.intersectsMesh(paddleOne.hitbox))
-      shiny(scene, pong.balls[0].hitbox.position, SHINY_IMAGE);
-    if (ball.hitbox.intersectsMesh(paddleTwo.hitbox))
-      shiny(scene, pong.balls[0].hitbox.position, SHINY_IMAGE);
-    ball.keepOnTrack();
-  });
-
-  //Score 
   let score = { p1: 0, p2: 0 };
-  let scoreCallback: ((score: { p1: number; p2: number }) => void) | null =
-    null;
-
+  let scoreCallback: ((score: { p1: number; p2: number }) => void) | null = null;
   function onScoreUpdate(cb: (score: { p1: number; p2: number }) => void) {
     scoreCallback = cb;
   }
 
-  // Clavier
+  // Determine les controles
+  pong.camera.attachControl(canvas, true);
   const keysTwo = { left: false, right: false };
   const keysOne = { left: false, right: false };
 
+
+  scene.registerBeforeRender(() => {
+    if (pong.collision())
+      view.shiny(pong.ball.hitbox.position);
+    pong.ball.keepOnTrack();
+  });
+
   let gameStarted = false;
 
-  // Création de l'interface utilisateur
-  const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
-  const button = Button.CreateSimpleButton("startButton", "Start / Restart");
-  button.width = "150px";
-  button.height = "40px";
-  button.color = "white";
-  button.background = "green";
-  button.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-  button.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-  button.top = "20px";
-
   // Écouteur de clic sur le bouton
-  button.onPointerUpObservable.add(() => {
+  view.startButton.onPointerUpObservable.add(() => {
     score.p1 = 0;
     score.p2 = 0;
     if (scoreCallback) scoreCallback(score);
-    ball.reset();
-    ball.launch();
+    pong.ball.reset();
+    pong.ball.launch();
     gameStarted = true;
   });
-
-  // Ajoute le bouton à l'UI
-  advancedTexture.addControl(button);
 
   // Gestion des touches pour déplacer les palettes
   scene.onKeyboardObservable.add((kbInfo: any) => {
@@ -93,37 +77,40 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
 
   // Boucle de rendu
   engine.runRenderLoop(() => {
-    // Déplacement de la balle
 
     if (gameStarted) {
-      if(score.p1 >= 10 || score.p2 >= 10){
-        ball.reset();
+      if(score.p1 > 10 || score.p2 > 10){
+        pong.ball.reset();
         gameStarted = false;
       }
       // Reset si la balle sort du terrain
-      if (ball.hitbox.position.z <= -FIELD_DEPTH) {
+      if (pong.score(1)) {
         // Player 2 marque
         score.p2++;
         if (scoreCallback) scoreCallback(score);
-        ball.reset();
-        ball.launch();
+        setTimeout(() => {
+          pong.ball.reset();
+          pong.ball.launch();
+        }, 1000);
         gameStarted = true;
       }
 
-      if (ball.hitbox.position.z >= FIELD_DEPTH) {
+      if (pong.score(0)) {
         // Player 1 marque
         score.p1++;
         if (scoreCallback) scoreCallback(score);
-        ball.reset();
-        ball.launch();
+        setTimeout(() => {
+          pong.ball.reset();
+          pong.ball.launch();
+        }, 1000);
         gameStarted = true;
       }
 
       // Déplacement des palettes
-      if (keysOne.left) paddleOne.hitbox.position.x -= PADDLE_SPEED;
-      if (keysOne.right) paddleOne.hitbox.position.x += PADDLE_SPEED;
-      if (keysTwo.left) paddleTwo.hitbox.position.x -= PADDLE_SPEED;
-      if (keysTwo.right) paddleTwo.hitbox.position.x += PADDLE_SPEED;
+      if (keysOne.left) pong.paddles[0].hitbox.position.x -= PADDLE_SPEED;
+      if (keysOne.right) pong.paddles[0].hitbox.position.x += PADDLE_SPEED;
+      if (keysTwo.left) pong.paddles[1].hitbox.position.x -= PADDLE_SPEED;
+      if (keysTwo.right) pong.paddles[1].hitbox.position.x += PADDLE_SPEED;
     }
 
     scene.render();
@@ -134,15 +121,54 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   });
   return {
     start: () => {
-      ball.reset();
-      gameStarted = true;
+      pong.ball.reset();
+      // gameStarted = true;
     },
     reset: () => {
       score = { p1: 0, p2: 0 };
       if (scoreCallback) scoreCallback(score);
-      ball.reset();
+      pong.ball.reset();
       gameStarted = true;
     },
     onScoreUpdate,
   };
 }
+
+
+  // // Ancienne Boucle de rendu
+  // engine.runRenderLoop(() => {
+  //   // Déplacement de la balle
+
+  //   if (gameStarted) {
+  //     if(score.p1 >= 10 || score.p2 >= 10){
+  //       ball.reset();
+  //       gameStarted = false;
+  //     }
+  //     // Reset si la balle sort du terrain
+  //     if (ball.hitbox.position.z <= -FIELD_DEPTH) {
+  //       // Player 2 marque
+  //       score.p2++;
+  //       if (scoreCallback) scoreCallback(score);
+  //       ball.reset();
+  //       ball.launch();
+  //       gameStarted = true;
+  //     }
+
+  //     if (ball.hitbox.position.z >= FIELD_DEPTH) {
+  //       // Player 1 marque
+  //       score.p1++;
+  //       if (scoreCallback) scoreCallback(score);
+  //       ball.reset();
+  //       ball.launch();
+  //       gameStarted = true;
+  //     }
+
+  //     // Déplacement des palettes
+  //     if (keysOne.left) paddleOne.hitbox.position.x -= PADDLE_SPEED;
+  //     if (keysOne.right) paddleOne.hitbox.position.x += PADDLE_SPEED;
+  //     if (keysTwo.left) paddleTwo.hitbox.position.x -= PADDLE_SPEED;
+  //     if (keysTwo.right) paddleTwo.hitbox.position.x += PADDLE_SPEED;
+  //   }
+
+  //   scene.render();
+  // });
