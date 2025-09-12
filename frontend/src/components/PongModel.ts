@@ -30,9 +30,9 @@ export class PongModel {
   paddles: Paddle[];
   balls: Ball[];
 
-  constructor(canvas: HTMLCanvasElement, numberOfPlayers: number){
-    this.engine = new Engine(canvas, true);
-    this.scene = new Scene(this.engine);
+  constructor(engine: Engine, scene: Scene, numberOfPlayers: number){
+    this.engine = engine;
+    this.scene = scene;
     this.scene.enablePhysics(new Vector3(0, 0, 0), new CannonJSPlugin(true, 10, CANNON));
     this.walls = [];
     this.paddles = [];

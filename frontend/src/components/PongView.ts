@@ -19,7 +19,19 @@ const PADDLE_IMAGE = "https://www.babylonjs-playground.com/textures/amiga.jpg";
 // const BALL_IMAGE = GRAPHIC_FOLDER + "HelloKitty.png";
 const BALL_IMAGE = "https://us1.discourse-cdn.com/flex024/uploads/babylonjs/original/3X/7/b/7b835f51e968cd202d62ad1277dac879e19ffd9b.png";
 const WALL_IMAGE = "https://www.babylonjs-playground.com/textures/crate.png";
+const TILE_SIZE = 0.5;
 const SHINY_IMAGE = "https://playground.babylonjs.com/textures/flare.png";
+
+const FIELD_WIDTH = 13.5;
+const FIELD_DEPTH = 7.5;
+const PADDLE_WIDTH = 3; 
+const PADDLE_HEIGHT = 0.75;
+const PADDLE_DEPTH = 0.25;
+const PADDLE_SPEED = 0.25;
+const BALL_SIZE = 1;
+const WALL_WIDTH = PADDLE_DEPTH;
+const WALL_HEIGHT = PADDLE_HEIGHT * 2;
+const WALL_DEPTH = FIELD_DEPTH;
 
 export class PongView {
   engine: Engine;
@@ -31,7 +43,11 @@ export class PongView {
     let toRender = scene.getActiveMeshCandidates().data;
     for (let i = 0; i < toRender.length; i++){
       if (toRender[i].name === "wall")
-        applyTexture(toRender[i], WALL_IMAGE, height / tileSize, depth / tileSize, this.scene);
+        applyTexture(toRender[i], WALL_IMAGE, WALL_HEIGHT / TILE_SIZE, FIELD_DEPTH / TILE_SIZE, this.scene);
+      else if (toRender[i].name === "paddle")
+        applyTexture(toRender[i], PADDLE_IMAGE, 1, 1, this.scene);
+      else if (toRender[i].name === "ball")
+        applyTexture(toRender[i], BALL_IMAGE, 1, 1, this.scene);
     }
   }
 
@@ -56,21 +72,21 @@ export class PongView {
   }
 }
 
-export class PaddleView{
-  mesh: AbstractMesh;
-  constructor(scene: any, width: number, height: number, depth: number, texturePath: string) {
-    this.mesh = MeshBuilder.CreateBox("paddle", { width: width, height: height, depth: depth }, scene);
-    applyTexture(this.mesh, texturePath, 1, 1, scene);
-  }
-}
+// export class PaddleView{
+//   mesh: AbstractMesh;
+//   constructor(scene: any, width: number, height: number, depth: number, texturePath: string) {
+//     this.mesh = MeshBuilder.CreateBox("paddle", { width: width, height: height, depth: depth }, scene);
+//     applyTexture(this.mesh, texturePath, 1, 1, scene);
+//   }
+// }
 
-export class BallView {
-  mesh: AbstractMesh;
-  constructor(scene:any, size: number, texturePath: string) {
-    this.mesh = MeshBuilder.CreateSphere("ball", { diameter: size }, scene);
-    applyTexture(this.mesh, texturePath, 1, 1, scene);
-  }
-}
+// export class BallView {
+//   mesh: AbstractMesh;
+//   constructor(scene:any, size: number, texturePath: string) {
+//     this.mesh = MeshBuilder.CreateSphere("ball", { diameter: size }, scene);
+//     applyTexture(this.mesh, texturePath, 1, 1, scene);
+//   }
+// }
 
 export class GroundView {
   mesh: any;
@@ -80,13 +96,13 @@ export class GroundView {
   }
 }
 
-export class WallView {
-  mesh: any;
-  constructor(scene: any, width: number, height: number, depth: number, texturePath: string, x: number, y: number, z: number, tileSize: number) {
-    this.mesh = MeshBuilder.CreateBox("wall", { width: width, height: height, depth: depth }, scene);
-    applyTexture(this.mesh, texturePath, height / tileSize, depth / tileSize, scene);
-  }
-}
+// export class WallView {
+//   mesh: any;
+//   constructor(scene: any, width: number, height: number, depth: number, texturePath: string, x: number, y: number, z: number, tileSize: number) {
+//     this.mesh = MeshBuilder.CreateBox("wall", { width: width, height: height, depth: depth }, scene);
+//     applyTexture(this.mesh, texturePath, height / tileSize, depth / tileSize, scene);
+//   }
+// }
 
 export function shiny(scene: any, position: Vector3, texturePath: string) {
   const stunningEffects = new ParticleSystem("stars", 1000, scene);
