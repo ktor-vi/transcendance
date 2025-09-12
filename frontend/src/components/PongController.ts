@@ -1,4 +1,6 @@
 import {
+  Engine,
+  Scene,
   KeyboardEventTypes,
 } from "@babylonjs/core";
 
@@ -8,19 +10,23 @@ import {
   Control
 } from "@babylonjs/gui";
 
-import {Paddle, Ball, Wall, PongModel} from "./PongModel";
-import {PaddleView, BallView, WallView, GroundView, shiny, PongView} from "./PongView";
+import {PongModel} from "./PongModel";
+import {shiny, PongView} from "./PongView";
 
 export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
 
-  const pong = new PongModel(canvas, 2);
-  const view = new PongView(pong.engine, pong.scene);
+  const engine = new Engine(canvas, true);
+  const scene = new Scene(engine);
+  const pong = new PongModel(engine, scene, 2);
+  const view = new PongView(engine, scene);
 
   scene.registerBeforeRender(() => {
-    if (ball.hitbox.intersectsMesh(paddleOne.hitbox))
-      shiny(scene, ball.hitbox.position, SHINY_IMAGE);
+    if (pong.collision())
+      view.createShinyEffect();
+    if (pong.balls[0].hitbox.intersectsMesh(paddleOne.hitbox))
+      shiny(scene, pong.balls[0].hitbox.position, SHINY_IMAGE);
     if (ball.hitbox.intersectsMesh(paddleTwo.hitbox))
-      shiny(scene, ball.hitbox.position, SHINY_IMAGE);
+      shiny(scene, pong.balls[0].hitbox.position, SHINY_IMAGE);
     ball.keepOnTrack();
   });
 
