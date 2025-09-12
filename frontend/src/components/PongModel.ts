@@ -6,6 +6,7 @@ import {
   FreeCamera,
   PhysicsImpostor,
   CannonJSPlugin,
+  AbstractMesh,
 } from "@babylonjs/core";
 
 import * as CANNON from "cannon";
@@ -26,37 +27,54 @@ const WALL_DEPTH = FIELD_DEPTH;
 export class PongModel {
   engine: Engine;
   scene: Scene;
+  camera: FreeCamera;
   walls: Wall[];
   paddles: Paddle[];
-  balls: Ball[];
+  goals: Goal[];
+  ball: Ball;
 
-  constructor(engine: Engine, scene: Scene, numberOfPlayers: number){
+  constructor(engine: Engine, scene: Scene, numberOfPlayers: number) {
     this.engine = engine;
     this.scene = scene;
     this.scene.enablePhysics(new Vector3(0, 0, 0), new CannonJSPlugin(true, 10, CANNON));
     this.walls = [];
     this.paddles = [];
-    this.balls = [];
+    this.goals = [];
     this.createImpostors(numberOfPlayers);
-
-    // je ne sais pas encore où déclarer la caméra
-    const camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), this.scene);
-    camera.attachControl(canvas, true);
-    camera.setTarget(Vector3.Zero());
+    this.camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), this.scene);
+    this.camera.setTarget(Vector3.Zero());
   }
 
-  createImpostors(numberOfPlayers: number){
+  createImpostors(numberOfPlayers: number) {
+    this.ball = new Ball(this.scene, BALL_SIZE, 0, BALL_SIZE / 2, 0);
     this.walls[0] = new Wall(this.scene, WALL_WIDTH, WALL_HEIGHT, WALL_DEPTH, (FIELD_WIDTH - WALL_WIDTH) / 2, WALL_HEIGHT / 2, 0);
     this.walls[1] = new Wall(this.scene, WALL_WIDTH, WALL_HEIGHT, WALL_DEPTH, (WALL_WIDTH - FIELD_WIDTH) / 2, WALL_HEIGHT / 2, 0);
     this.paddles[0] = new Paddle(this.scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, Math.PI);
+    this.goals[0] = new Goal(this.scene, (FIELD_DEPTH + BALL_SIZE) / 2, Math.PI);
     this.paddles[1] = new Paddle(this.scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, 0);
-    this.balls[0] = new Ball(this.scene, BALL_SIZE, 0, BALL_SIZE / 2, 0);
+    this.goals[1] = new Goal(this.scene, (FIELD_DEPTH + BALL_SIZE) / 2, 0);
+  }
+
+  collision() : boolean {
+    if (this.ball.hitbox.intersectsMesh(this.paddles[0].hitbox))
+      return true;
+    if (this.ball.hitbox.intersectsMesh(this.paddles[1].hitbox))
+      return true;
+    return false;
+  }
+
+  score(player: number) : boolean{
+    if (this.ball.hitbox.intersectsMesh(this.goals[player].hitbox)){
+      this.goals[player].score++;
+      return true;
+    }
+    return false;
   }
 }
 
-export class Paddle {
+class Paddle {
   hitbox: any;
-  constructor(scene: any, width: number, height: number, depth: number, radius: number, angle: number) {
+  constructor(scene: Scene, width: number, height: number, depth: number, radius: number, angle: number) {
     this.hitbox = MeshBuilder.CreateBox("paddle", { width: width, height: height, depth: depth }, scene);
     this.hitbox.renderingGroupId = 1;
     this.hitbox.rotation.y = angle;
@@ -67,7 +85,21 @@ export class Paddle {
   }
 }
 
-export class Ball {
+class Goal {
+  hitbox: AbstractMesh;
+  score: number;
+  constructor(scene: Scene, radius: number, angle: number) {
+    this.hitbox = MeshBuilder.CreateBox("goal", { width: FIELD_WIDTH, height: WALL_HEIGHT, depth: PADDLE_DEPTH }, scene);
+    this.hitbox.visibility = 0.25;
+    this.hitbox.rotation.y = angle;
+    this.hitbox.position.x = radius * Math.sin(angle);
+    this.hitbox.position.y = WALL_HEIGHT / 2;
+    this.hitbox.position.z = radius * Math.cos(angle);
+    this.score = 0;
+  }
+}
+
+class Ball {
   scene: Scene;
   hitbox: any;
   start_pos: Vector3;
@@ -99,9 +131,9 @@ export class Ball {
 
 }
 
-export class Wall {
+class Wall {
   hitbox: any;
-  constructor(scene: any, width: number, height: number, depth: number, x: number, y: number, z: number) {
+  constructor(scene: Scene, width: number, height: number, depth: number, x: number, y: number, z: number) {
     this.hitbox = MeshBuilder.CreateBox("wall", { width: width, height: height, depth: depth }, scene);
     this.hitbox.renderingGroupId = 1;
     this.hitbox.position.set(x, y, z);
