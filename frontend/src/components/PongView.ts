@@ -30,14 +30,8 @@ const SHINY_IMAGE = "https://playground.babylonjs.com/textures/flare.png";
 
 const FIELD_WIDTH = 13.5;
 const FIELD_DEPTH = 7.5;
-const PADDLE_WIDTH = 3;
 const PADDLE_HEIGHT = 0.75;
-const PADDLE_DEPTH = 0.25;
-const PADDLE_SPEED = 0.25;
-const BALL_SIZE = 1;
-const WALL_WIDTH = PADDLE_DEPTH;
 const WALL_HEIGHT = PADDLE_HEIGHT * 2;
-const WALL_DEPTH = FIELD_DEPTH;
 
 export class PongView {
   engine: Engine;
