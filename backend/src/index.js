@@ -36,8 +36,8 @@ const fastify = Fastify({
 
 // ORDRE IMPORTANT : WebSocket AVANT les plugins qui l'utilisent
 await fastify.register(fastifyStatic, {
-  root: path.join(process.cwd(), "public"),
-  prefix: "/",
+	root: path.join(process.cwd(), "public"),
+	prefix: "/",
 });
 await fastify.register(fastifyMultipart);
 await registerCors(fastify);
@@ -69,23 +69,33 @@ fastify.register(forgotPwdRoutes, { prefix: "/api" });
 
 // Gestion d'erreurs
 fastify.setErrorHandler(function (error, request, reply) {
-  if (error.code === "FST_REQ_FILE_TOO_LARGE") {
-    reply.code(413).send({ error: "Fichier trop volumineux (> 1MB)" });
-  } else {
-    console.error(error);
-    reply.code(error.statusCode || 500).send({
-      error: error.message || "Erreur serveur",
-    });
-  }
+	if (error.code === "FST_REQ_FILE_TOO_LARGE") {
+		reply.code(413).send({ error: "Fichier trop volumineux (> 1MB)" });
+	} else {
+		console.error(error);
+		reply.code(error.statusCode || 500).send({
+			error: error.message || "Erreur serveur",
+		});
+	}
+});
+
+fastify.setNotFoundHandler((req, reply) => {
+	if (req.url.startsWith("/api/")) {
+		// Cas API (backend) → renvoyer du JSON
+		reply.status(404).send({ message: "Route API non trouvée" });
+	} else {
+		// Cas frontend → servir index.html (SPA)
+		reply.sendFile("index.html");
+	}
 });
 
 await fastify.ready();
 fastify.printRoutes(); // Pour voir toutes les routes enregistrées
 
 try {
-  const address = await fastify.listen({ port: 3000, host: "0.0.0.0" });
-  fastify.log.info(`Server listening at ${address}`);
+	const address = await fastify.listen({ port: 3000, host: "0.0.0.0" });
+	fastify.log.info(`Server listening at ${address}`);
 } catch (err) {
-  fastify.log.error(err);
-  process.exit(1);
+	fastify.log.error(err);
+	process.exit(1);
 }
