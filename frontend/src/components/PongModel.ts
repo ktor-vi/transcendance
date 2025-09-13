@@ -28,6 +28,7 @@ export class PongModel {
   engine: Engine;
   scene: Scene;
   camera: FreeCamera;
+  numberOfPlayers: number;
   walls: Wall[];
   paddles: Paddle[];
   goals: Goal[];
@@ -37,6 +38,7 @@ export class PongModel {
     this.engine = engine;
     this.scene = scene;
     this.scene.enablePhysics(new Vector3(0, 0, 0), new CannonJSPlugin(true, 10, CANNON));
+    this.numberOfPlayers = numberOfPlayers;
     this.walls = [];
     this.paddles = [];
     this.goals = [];
@@ -47,8 +49,8 @@ export class PongModel {
 
   createImpostors(numberOfPlayers: number) {
     this.ball = new Ball(this.scene, BALL_SIZE, 0, BALL_SIZE / 2, 0);
-    this.walls[0] = new Wall(this.scene, WALL_WIDTH, WALL_HEIGHT, WALL_DEPTH, (FIELD_WIDTH - WALL_WIDTH) / 2, WALL_HEIGHT / 2, 0);
-    this.walls[1] = new Wall(this.scene, WALL_WIDTH, WALL_HEIGHT, WALL_DEPTH, (WALL_WIDTH - FIELD_WIDTH) / 2, WALL_HEIGHT / 2, 0);
+    this.walls[0] = new Wall(this.scene, (FIELD_WIDTH - WALL_WIDTH) / 2, WALL_HEIGHT / 2, 0);
+    this.walls[1] = new Wall(this.scene, (WALL_WIDTH - FIELD_WIDTH) / 2, WALL_HEIGHT / 2, 0);
     this.paddles[0] = new Paddle(this.scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, Math.PI);
     this.goals[0] = new Goal(this.scene, (FIELD_DEPTH + BALL_SIZE) / 2, Math.PI);
     this.paddles[1] = new Paddle(this.scene, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_DEPTH, FIELD_DEPTH / 2, 0);
@@ -56,10 +58,10 @@ export class PongModel {
   }
 
   collision() : boolean {
-    if (this.ball.hitbox.intersectsMesh(this.paddles[0].hitbox))
-      return true;
-    if (this.ball.hitbox.intersectsMesh(this.paddles[1].hitbox))
-      return true;
+    for (let i = 0; i < this.numberOfPlayers; i++){
+      if (this.ball.hitbox.intersectsMesh(this.paddles[i].hitbox))
+        return true;
+    }
     return false;
   }
 
@@ -110,6 +112,9 @@ class Ball {
     this.start_pos = new Vector3(x, y, z);
     this.hitbox.position.set(x, y, z);
     this.hitbox.physicsImpostor = new PhysicsImpostor(this.hitbox, PhysicsImpostor.SphereImpostor, {mass: 0.3, restitution: 1});
+    scene.registerBeforeRender(() => {
+      this.keepOnTrack();
+    });
   }
   reset(){
     this.hitbox.physicsImpostor.setLinearVelocity(Vector3.Zero());
@@ -133,10 +138,10 @@ class Ball {
 
 class Wall {
   hitbox: any;
-  constructor(scene: Scene, width: number, height: number, depth: number, x: number, y: number, z: number) {
-    this.hitbox = MeshBuilder.CreateBox("wall", { width: width, height: height, depth: depth }, scene);
+  constructor(scene: Scene, x: number, y: number, z: number) {
+    this.hitbox = MeshBuilder.CreateBox("wall", { width: WALL_WIDTH, height: WALL_HEIGHT, depth: WALL_DEPTH }, scene);
     this.hitbox.renderingGroupId = 1;
-    this.hitbox.position.set(x, y, z);
+    this.hitbox.position.set(x, WALL_HEIGHT / 2, z);
     this.hitbox.physicsImpostor = new PhysicsImpostor(this.hitbox, PhysicsImpostor.BoxImpostor, {mass: 0, restitution: 1});
   }
 }
