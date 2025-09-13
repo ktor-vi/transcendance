@@ -3,6 +3,7 @@ import page from "page";
 import './style.css';
 import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
+import { renderNotFound } from "./pages/notFound";
 import { renderKeyboardPlay } from "./pages/keyboardPlay";
 import { renderProfile } from "./pages/profile";
 import { renderUsersList } from "./pages/usersList";
@@ -17,15 +18,12 @@ import { renderTournamentPage } from "./pages/tournament";
 import { startPingLoop } from "./components/pingLoop";
 import { getUserStatut } from "./components/auth";
 
-// fonction anonume juste pour démarrer ma boucle ping
+// fonction anonyme juste pour démarrer ma boucle ping
 (async() => {
 	const res = await getUserStatut();
 	if (res.loggedIn)
-	{
-		console.log("LA BOUCLE VA DEMARRER");
 		startPingLoop();
-	}
-	console.log("PERSONNE NON LOGGEDIN");
+	console.log("Aucun utilisateur n'est connecté");
 })();
 
 // 🔽 Récupère la référence à l'élément HTML avec l'ID "app"
@@ -74,6 +72,9 @@ page("/tournament", () => renderTournamentPage());
 // Lance le routeur (écoute les changements de l'URL sans recharger la page)
 // a la page de l'index (/) on va donc "génerer" la homepage définie dans pages/home.ts
 page("/chat", () => render(renderChat())); // idem ici, les explications de Rachel ont deja ete faites pour guider
+
+page("*", () =>
+	renderNotFound());
 
 // page a été importé sur ce fichier. il sert à "écouter" et à gérer la navigation
 // de notre appli sans recharger toute la page à chaque fois

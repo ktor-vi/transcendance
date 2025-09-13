@@ -1,7 +1,7 @@
 let pingInterval: NodeJS.Timeout | null = null; // protection démarrage en boucle
 
 export function startPingLoop() {
-	console.log("!!!!!!! DEMARRAGE DU PING !!!!!!!\n");
+	console.log("Démarrage des pings...\n");
 	if (pingInterval)
 		return ;
 	pingInterval = setInterval(async () => {

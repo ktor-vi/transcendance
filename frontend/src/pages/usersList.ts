@@ -1,6 +1,7 @@
 import page from "page";
 
 import { backButton, setupBackButton } from '../components/backButton.js';
+import { renderError } from "../components/renderError.js";
 
 // renderProfile permet de créer la page liée au profile
 export async function renderUsersList() {
@@ -9,9 +10,11 @@ export async function renderUsersList() {
 		const res = await fetch("/api/usersList", { method: "GET" });
 		
 		if (!res.ok) {
-			document.getElementById("app")!.innerHTML = "<p>Erreur</p>";
-			return;
-		}
+				const errorData = await res.json();
+				const error = new Error(errorData.error || "Erreur inconnue");
+				error.status = errorData.status || res.status;
+				throw error;
+			}
 		// quand on a récupéré la réponse du back (les infos de profile),
 		// on les met dans userData puis dans le html qui sera injecté
 		const users = await res.json();
@@ -37,6 +40,7 @@ export async function renderUsersList() {
 			for (const user of filteredUsers) {
 				const li = document.createElement("li");
 				const a = document.createElement("a");
+				const status = document.createElement("img");
 				a.href = `/user/${encodeURIComponent(user.name)}`;
 				a.className = "link-user";
 				a.textContent = user.name;
@@ -53,9 +57,8 @@ export async function renderUsersList() {
 			
 		});
 
-	} catch (error) {
-		console.error("Erreur lors du chargement du profil :", error);
-		document.getElementById("app")!.innerHTML = "<p>Erreur</p>";
+	} catch (error: any) {
+		renderError(error);
 	}
 }
 

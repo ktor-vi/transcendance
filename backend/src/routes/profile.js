@@ -1,9 +1,10 @@
-import { openDb } from '../utils/db.js';
+import { openDb, openDbHistory } from '../utils/db.js';
 import path from 'path';
 import fs from 'fs/promises';
 import { mkdir } from 'fs/promises';
 import { fileTypeFromBuffer } from "file-type";
 import { v4 as uuidv4 } from 'uuid';
+import { fileURLToPath } from "url";
 
 export default async function profileRoutes(fastify)
 {
@@ -16,25 +17,26 @@ export default async function profileRoutes(fastify)
 
 		const db = await openDb();
 		const user = await db.get('SELECT * FROM users WHERE email = ?', userSession.email);
-	
+
+		if (!user.picture) {
+			user.picture = "/uploads/default.jpg";
+		} else if (user.picture !== "/uploads/default.jpg") {
+			// Vérifie seulement si ce n’est pas déjà l’image par défaut
+			const __filename = fileURLToPath(import.meta.url);
+			const __dirname = path.dirname(__filename);
+			const fileName = path.basename(user.picture); 
+			const imgPath = path.join(__dirname, "../../public/uploads", fileName);
+
+			try {
+				await fs.access(imgPath); // OK → on garde l’image
+			} catch {
+				console.warn(`Image introuvable, fallback sur default.jpg: ${imgPath}`);
+				user.picture = "/uploads/default.jpg";
+			}
+	}
 		return reply.send(user);
 	});
-
-	fastify.put('/profile', async (req, reply) => {
-		const userSession = req.session.get('user');
-
-		if (!userSession) {
-			return reply.code(401).send({ error: 'Non connecté' });
-		}
-		// le body = le nouveau nom passé depuis la requete enovoyee du frontend
-		const { name } = req.body;
-
-		const db = await openDb();
-		await db.run('UPDATE users SET name = ? WHERE email = ?', name, userSession.email);
 	
-		reply.send({ success: true });
-	});
-
 	fastify.post('/profile', async (req, reply) => {
 		const userSession = req.session.get('user');
 
@@ -87,12 +89,20 @@ export default async function profileRoutes(fastify)
 
 		if (existingName)
 			return reply.code(409).send({ success: false, message: "Name déjà pris" });
-
 		else
+		{
+			const userSession = req.session.get('user');
+			const oldName = userSession.name;
+			console.log("OLD = ");
+			console.log(userSession);
+			userSession.name = name;
+			req.session.set('user', userSession); // ✅ remplace l’ancien
+
 			await db.run('UPDATE users SET name = ? WHERE email = ?', name, userSession.email);
-		// mise à jour de la pp
-		if (!picture) {
-			console.log("LA PHOTO N'A PAS ÉTÉ UPLOAD DANS LA DB");
+			const dbHistory = await openDbHistory();
+			await dbHistory.run('UPDATE history SET player_1 = ? WHERE player_1 = ?', name, oldName);
+			await dbHistory.run('UPDATE history SET player_2 = ? WHERE player_2 = ?', name, oldName);
+			await dbHistory.run('UPDATE history SET winner = ? WHERE winner = ?', name, oldName);
 
 		}
 		if (picture) {
@@ -101,11 +111,14 @@ export default async function profileRoutes(fastify)
 			const oldPictureRow = await db.get('SELECT picture FROM users WHERE email = ?', userSession.email);
 			const oldPicture = oldPictureRow.picture;
 
-			if (oldPicture && oldPicture.startsWith('/uploads/')) {
+			if (oldPicture != "/uploads/default.jpg" && oldPicture && oldPicture.startsWith('/uploads/')) {
 				const fileName = oldPicture.replace('/uploads/', '');
 				const filePath = path.join(uploadDir, fileName);
 
-				await fs.unlink(filePath);
+				try {
+					await fs.unlink(filePath);
+					} catch {
+				}
 			}
 
 			extension = type.ext;
@@ -114,7 +127,6 @@ export default async function profileRoutes(fastify)
 			const safeName = `${uuidv4()}.${extension}`;
 			// on expose uniquement le dossier uploads
 				await mkdir(uploadDir, { recursive: true });
-				
 				const filePath = path.join(uploadDir, safeName);
 				await fs.writeFile(filePath, picture);
 				// mise à jour dans la db
