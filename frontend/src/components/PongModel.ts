@@ -2,11 +2,11 @@ import {
   Engine,
   Scene,
   Vector3,
+  AbstractMesh,
   MeshBuilder,
   FreeCamera,
   PhysicsImpostor,
   CannonJSPlugin,
-  AbstractMesh,
 } from "@babylonjs/core";
 
 import * as CANNON from "cannon";
