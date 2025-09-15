@@ -33,7 +33,6 @@ services:
       - NODE_ENV=development
     command: ["sh", "./entrypoint.sh"]
 
-
   frontend-prod:
     env_file: ".env"
     container_name: "frontend-prod"
@@ -48,7 +47,6 @@ services:
       - ./certs:/app/certs:ro
       - ./frontend/mime.types:/etc/nginx/mime.types:ro
 
-
   backend-prod:
     env_file: ".env"
     container_name: "backend-prod"
@@ -61,4 +59,3 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-    # 👇 Pas besoin de `command`, le Dockerfile fait le boulot

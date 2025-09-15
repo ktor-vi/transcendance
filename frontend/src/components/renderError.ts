@@ -1,19 +1,23 @@
-export function renderError(error: any, containerId: string = "app", defaultCode: number | string = 400) {
+export function renderError(
+	error: any,
+	containerId: string = "app",
+	defaultCode: number | string = 400
+) {
 	let errorMessage: string;
 	let errorCode: number | string;
 
 	if (error instanceof Error) {
 		errorMessage = error.message;
-		errorCode = (error as any).status || defaultCode; // status ajouté côté front
+		errorCode = (error as any).status || defaultCode;
 	} else {
 		errorMessage = String(error);
 		errorCode = defaultCode;
 	}
+
 	let imageSrc = "../../images/hellokittysad1.png";
-	if (errorCode === 401)
-		imageSrc = "../../images/hellokittyangry.png";
-	if (errorCode === 404)
-		imageSrc = "../../images/hellokittysad3.png";
+	if (errorCode === 401) imageSrc = "../../images/hellokittyangry.png";
+	if (errorCode === 404) imageSrc = "../../images/hellokittysad3.png";
+
 	const container = document.getElementById(containerId);
 	if (container) {
 		container.innerHTML = `

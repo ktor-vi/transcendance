@@ -1,5 +1,4 @@
 import page from "page";
-
 import { backButton, setupBackButton } from '../components/backButton.js';
 
 export function renderNotFound() {

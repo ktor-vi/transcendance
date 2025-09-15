@@ -1,24 +1,22 @@
 import page from "page";
-
 import { backButton, setupBackButton } from '../components/backButton.js';
 import { renderError } from "../components/renderError.js";
 
-// renderProfile permet de créer la page liée au profile
+// Render the user list page
 export async function renderUsersList() {
-	console.log("renderUsersList called");
-	try { //on tente de récupérer la route du backend
+	try {
+		// Fetch the user list from backend
 		const res = await fetch("/api/usersList", { method: "GET" });
-		
 		if (!res.ok) {
-				const errorData = await res.json();
-				const error = new Error(errorData.error || "Erreur inconnue");
-				error.status = errorData.status || res.status;
-				throw error;
-			}
-		// quand on a récupéré la réponse du back (les infos de profile),
-		// on les met dans userData puis dans le html qui sera injecté
+			const errorData = await res.json();
+			const error = new Error(errorData.error || "Unknown error");
+			error.status = errorData.status || res.status;
+			throw error;
+		}
+
 		const users = await res.json();
-		
+
+		// Inject HTML template
 		const html = `
 		<section class="flex flex-col items-center text-center">
 		
@@ -28,22 +26,20 @@ export async function renderUsersList() {
 		${backButton()}
 		</section>
 		`;
-	
-		// injection du html
 		document.getElementById("app")!.innerHTML = html;
-		// créé le bouton de retour arriere
+
+		// Setup back button
 		setupBackButton();
-		// va enregistrer si une modif d'information a été faite
-		
+
 		const listUsers = document.getElementById("userList");
 		const searchInput = document.getElementById("searchInput") as HTMLInputElement;
-		
+
+		// Display filtered users
 		function displaySearch(filteredUsers: any[]) {
 			listUsers.innerHTML = "";
 			for (const user of filteredUsers) {
 				const li = document.createElement("li");
 				const a = document.createElement("a");
-				const status = document.createElement("img");
 				a.href = `/user/${encodeURIComponent(user.name)}`;
 				a.className = "link-user";
 				a.textContent = user.name;
@@ -51,17 +47,17 @@ export async function renderUsersList() {
 				listUsers.appendChild(li);
 			}
 		}
-			displaySearch(users);
 
+		displaySearch(users);
+
+		// Filter list on input
 		searchInput.addEventListener("input", () => {
 			const search = searchInput.value.toLowerCase();
-			const filterd = users.filter(user => user.name.toLowerCase().includes(search));
-			displaySearch(filterd);
-			
+			const filtered = users.filter(user => user.name.toLowerCase().includes(search));
+			displaySearch(filtered);
 		});
 
 	} catch (error: any) {
 		renderError(error);
 	}
 }
-

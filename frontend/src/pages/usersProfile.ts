@@ -3,25 +3,22 @@ import page from "page";
 import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 import { renderError } from '../components/renderError.js';
 
+// Render user profile page
 export async function renderUserProfile(ctx: any) {
-	console.log("renderUserProfile called");
 	try {
 		const userName = ctx.params.name;
+
+		// Fetch user profile data
 		const res = await fetch(`/api/user/${encodeURIComponent(userName)}`, { method: "GET" });
-		if (!res.ok)
-		{
+		if (!res.ok) {
 			const errorData = await res.json();
-			const error = new Error(errorData.error || "Erreur inconnue");
+			const error = new Error(errorData.error || "Unknown error");
 			error.status = errorData.status || res.status;
 			throw error;
 		}
 
 		const historyRes = await fetch(`/api/user/history/${encodeURIComponent(userName)}`, { method: "GET" });
-	
 		const userData = await res.json();
-		
-		console.log("User FRONTEND = ");
-		console.log(userData.email);
 
 		if (!historyRes.ok) {
 			document.getElementById("app")!.innerHTML =
@@ -47,8 +44,8 @@ export async function renderUserProfile(ctx: any) {
 
 		const us = await fetch("/api/profile", { method: "GET" });
 		const usData = await us.json();
-		if (userName == usData.name)
-			buttonRequests = ""
+
+		if (userName === usData.name) buttonRequests = "";
 
 		const alreadyFriends = await fetch(`/api/friends/isFriend/${encodeURIComponent(userName)}`, { method: "GET" });
 		const alreadyFriendsData = await alreadyFriends.json();
@@ -136,44 +133,59 @@ export async function renderUserProfile(ctx: any) {
 
 		document.getElementById("app")!.innerHTML = html;
 
-		document.getElementById("friendshipButton")?.addEventListener("click", async() =>
-		{
+		// Friendship button click
+		document.getElementById("friendshipButton")?.addEventListener("click", async () => {
 			try {
 				const receiver = userName;
-				const resRequest =
-				await fetch("/api/friendshipButton", {
-					method: "POST",
-					body: receiver
-				});
-
-					if (resRequest.status != 200) {
-						const data = await resRequest.json();
-						alert(data.message);
-						return ;
-					} else
-						alert(`La demande a bien été envoyée à ${receiver} !`)
+				const resRequest = await fetch("/api/friendshipButton", { method: "POST", body: receiver });
+				if (resRequest.status !== 200) {
+					const data = await resRequest.json();
+					alert(data.message);
+				} else {
+					alert(`Friend request sent to ${receiver}!`);
+				}
 			} catch {
-				console.error("Erreur lors de l'envoi de la requête");
+				console.error("Error sending request");
 			}
 		});
 
-			const statusContainer = document.getElementById("userStatut");
+		// DM button click
+		const dmButton = document.getElementById("dmButton");
+		if (dmButton) {
+			dmButton.addEventListener("click", async () => {
+				const app = document.getElementById("app");
+				if (!app) return;
 
+				try {
+					const res = await fetch(`/api/user/${encodeURIComponent(userName)}`);
+					const userData = await res.json();
+					const receiverId = userData.id;
+
+					const meRes = await fetch("/api/me");
+					const meData = await meRes.json();
+					const senderId = meData.id;
+
+					app.innerHTML = renderDmChat(userName);
+					initDmChat(receiverId, senderId);
+				} catch (error) {
+					console.error("DM initialization error:", error);
+					alert("Error opening private chat");
+				}
+			});
+		}
+
+		// Display user online status
+		const statusContainer = document.getElementById("userStatut");
 		if (statusContainer) {
-			// créer un conteneur pour aligner l'image et le texte horizontalement
 			const statusWrapper = document.createElement("span");
 			const statusImg = document.createElement("img");
-			statusImg.className = "w-9 h-9"; // largeur/hauteur de l'image
+			statusImg.className = "w-9 h-9";
 
 			const statusText = document.createElement("span");
-
 			try {
-					const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`);
-					if (!statutRes.ok)
-						throw new Error(`Error with HTTP status`);
-
-					const data = await statutRes.json();
-					console.log("Réponse statut : ", data);
+				const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`);
+				if (!statutRes.ok) throw new Error(`Error with HTTP status`);
+				const data = await statutRes.json();
 
 					statusImg.alt = data.online ? "Connecté.e" : "Déconnecté.e";
 					statusImg.src = data.online ? "/images/available.svg" : "/images/disconnected.svg";

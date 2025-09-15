@@ -1,22 +1,23 @@
 #!/bin/sh
 
-echo "🛠 Initialisation des bases de donnees avec sqlite3..."
+echo "Initializing SQLite3 databases..."
+
 if ! node ./initUsersDb.js; then
-  echo "❌ Erreur lors de l'initialisation de users DB"
-  exit 1
+	echo "Error initializing Users DB"
+	exit 1
 fi
 
 if ! node ./initHistoryDb.js; then
-  echo "❌ Erreur lors de l'initialisation de History DB"
-  exit 1
+	echo "Error initializing History DB"
+	exit 1
 fi
 
-echo "✅ Base de données Users et History initialisée"
-echo "🚀 Lancement..."
+echo "Databases initialized successfully"
+echo "Starting server..."
 
-# Choix de la commande selon l'environnement
 if [ "$NODE_ENV" = "production" ]; then
-  exec npm start
+	exec npm start
 else
-  exec npm run dev
+	exec npm run dev
 fi
+

@@ -2,29 +2,26 @@ import page from "page";
 import { getUserStatut } from '../components/auth';
 import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 
-
-// renderProfile permet de créer la page liée au profile
+// Render the user profile page
 export async function renderProfile() {
-	console.log("renderProfile called");
-	try { //on tente de récupérer la route du backend
+	try {
+		// Fetch profile data
 		const res = await fetch("/api/profile", { method: "GET" });
-		
+
 		if (!res.ok) {
-			document.getElementById("app")!.innerHTML = 
-			`
-				<p class="text-white text-1xl">Erreur lors du chargement de la page</p>
+			// Display error if user not logged in
+			document.getElementById("app")!.innerHTML = `
+				<p class="text-white text-1xl">Error loading page</p>
 				<h2 class="text-white text-9xl">401</h2>
-				<p class="text-white text-2xl">Vous devez vous connecter</p>
-				<img src="/images/hellokittyangry.png" class="mx-auto w-64 -mt-10"></img>
-			`
-			return ;
+				<p class="text-white text-2xl">You must log in</p>
+				<img src="/images/hellokittyangry.png" class="mx-auto w-64 -mt-10" />
+			`;
+			return;
 		}
-		// quand on a récupéré la réponse du back (les infos de profile),
-		// on les met dans userData puis dans le html qui sera injecté
+
 		const userData = await res.json();
-		console.log("IMAGE DE PROFILE QUI SERA CHARGEE = ");
-		console.log(userData.picture);
-		
+
+		// Fallback to default picture if missing
 		if (!userData.picture || userData.picture.trim() === "") {
 			userData.picture = "/uploads/default.jpg";
 		}
@@ -134,84 +131,58 @@ export async function renderProfile() {
 			</section>
 
 		`;
-					
-		// injection du html
-		document.getElementById("app")!.innerHTML = html;
 
-		// créé le bouton de retour arriere
+		// Inject HTML
+		document.getElementById("app")!.innerHTML = html;
 		setupBackButton();
 
 		const saveBtn = document.getElementById("save") as HTMLButtonElement;
 		const fileInput = document.getElementById("changePicture") as HTMLInputElement;
 		const nameInput = document.getElementById("nameInput") as HTMLInputElement;
 
-		// va enregistrer si une modif d'information a été faite
+		// Enable save button if changes are detected
 		function checkChanges() {
-			const newName = nameInput.value;
-			let nameChanged = false;
-			let pictureChanged = false;
-
-			if (newName != userData.name)
-				nameChanged = true;
-			else
-				nameChanged = false;
-
-			if (fileInput.files && fileInput.files.length > 0)
-				pictureChanged = true;
-			else
-				pictureChanged = false;
-
-			if (nameChanged || pictureChanged)
-				saveBtn.disabled = false;
-			else
-				saveBtn.disabled = true;
+			const nameChanged = nameInput.value !== userData.name;
+			const pictureChanged = fileInput.files && fileInput.files.length > 0;
+			saveBtn.disabled = !(nameChanged || pictureChanged);
 		}
-		
+
 		nameInput.addEventListener("input", checkChanges);
 		fileInput.addEventListener("change", checkChanges);
 
-		document.getElementById("save")?.addEventListener("click", async() => {
-			const newName = (document.getElementById("nameInput") as HTMLInputElement).value;
-			const fileData = new FormData();
-
-			fileData.append("name", newName);
-
+		// Handle profile update
+		document.getElementById("save")?.addEventListener("click", async () => {
+			const newName = nameInput.value;
+			const formData = new FormData();
+			formData.append("name", newName);
 			if (fileInput.files && fileInput.files.length > 0) {
-				fileData.append("changePicture", fileInput.files[0]);
+				formData.append("changePicture", fileInput.files[0]);
 			}
 
-			const uploadRes = await fetch("/api/profile", {
-			method: "POST",
-			body: fileData
-		});
+			const uploadRes = await fetch("/api/profile", { method: "POST", body: formData });
 
 			if (uploadRes.ok) {
 				const updatedUserData = await uploadRes.json();
-				alert("Profil mis à jour!");
-			
+				alert("Profile updated successfully!");
 				const img = document.getElementById("profilePicture") as HTMLImageElement | null;
 				if (img && updatedUserData.picture) {
 					img.src = `${updatedUserData.picture}?t=${Date.now()}`;
 				}
 			} else {
-				let errorMsg = "Erreur lors de la mise à jour du profil.";
-			
+				let errorMsg = "Error updating profile.";
 				try {
 					const errorData = await uploadRes.json();
 					if (errorData.error || errorData.message) {
 						errorMsg = errorData.error || errorData.message;
 					}
 				} catch (err) {
-					console.error("Erreur inattendue lors du parsing JSON :", err);
+					console.error("Unexpected JSON parsing error:", err);
 				}
-			
 				alert(errorMsg);
 			}
-
 		});
-	}
-	catch (error) {
-		console.error("Erreur lors du chargement du profil :", error);
-		document.getElementById("app")!.innerHTML = "<p>Vous devez vous connecter</p>";
+	} catch (error) {
+		console.error("Error loading profile:", error);
+		document.getElementById("app")!.innerHTML = "<p>You must log in</p>";
 	}
 }
