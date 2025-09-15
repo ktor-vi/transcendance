@@ -4,14 +4,14 @@ import { backButton, setupBackButton } from '../components/backButton.js';
 
 export function renderLogin() {
 	const html = `
-	<section class="flex flex-col items-center text-center mt-[2vh] space-y-4">
+	<section class="flex flex-col items-center text-center">
 	<img src="/images/hellokittycomputer.png" class="hellokitty-computer">
 		<h1 class="text-6xl">CONNECTEZ-VOUS</h1>
-		<form id="loginForm">
+		<form class="flex flex-col items-center text-center mt-8 space-y-4"id="loginForm">
 			<input type="email" id="email" placeholder="Email" required/>
 			<input type="password" id="password" placeholder="Mot de passe" required/>
 		</form>
-			<button class="button bg-purple-400 hover:bg-purple-600" id="login" data-nav>Se connecter</a>
+			<button class="button bg-purple-400 hover:bg-purple-600 mt-8 mb-4" id="login" data-nav>Se connecter</button>
 		${backButton()}
 		</section>
 	`;

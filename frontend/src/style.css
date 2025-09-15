@@ -30,11 +30,10 @@ html, body {
 	}
 
 	input {
-		@apply relative inline-flex items-center justify-center text-sm h-10 px-6 py-2 rounded-xl text-white transition;
+		background-color: #F1F2F2;
+		@apply relative inline-flex items-center justify-center text-sm h-10 px-6 py-2 rounded-xl text-white bg-[#F1F2F2]/80 transition;
 
 		box-shadow: 8px 8px 15px 0px rgba(0,0,0,.3);
-		background-color: #F1F2F2;
-		
 	}
 }
 
