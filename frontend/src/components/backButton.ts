@@ -6,6 +6,10 @@ export function backButton() {
 	return '<button class="back-button" id="goBack">Retour</button>'
 }
 
+export function backButtonArrow() {
+	return '<button class="back-button-arrow" id="goBack">Retour</button>'
+}
+
 // setupBackButton sert à "surveiller" si on clique sur le bouton
 // et agir en conséquences
 // on chope l'élément html ayant la balise "goBack", et si on clique dessus

@@ -1,6 +1,6 @@
 import page from "page";
 
-import { backButton, setupBackButton } from '../components/backButton.js';
+import { backButton, backButtonArrow, setupBackButton } from '../components/backButton.js';
 import { renderError } from '../components/renderError.js';
 
 export async function renderFriends() {
@@ -28,20 +28,24 @@ export async function renderFriends() {
 		const totalFriends = friendsData.total;	
 
 		const html = `
-			<h1 style="text-align: center;">Demandes d'amis :</h1>
- 			${requests > 0 ?
-				`<p id="requestsMsg">Vous avez ${requests} demande(s) d'amis</p>
-				<a href="/friends/requests" data-nav class="inline-block mt-4 px-4 py-2">Voir les demandes</a>`
-				: `<p>Vous n'avez aucune demande d'amis</p>`
-			}
-			<h1 style="text-align: center;">Liste d'amis</h1>
-			${totalFriends === 0 ?
-				`<p>Vous n'avez pas d'amis</p>
-				<img src="/images/hellokittysad1.png" alt=":-(" class="w-20 mx-auto"></img>
-				`
-				: `<ul id="friendsList" style="background: none;"></ul>`
-			}
-			${backButton()}
+			<section class="flex flex-col items-center text-center">
+				 <div class="self-start ml-16 mt-12">
+    				${backButtonArrow()}
+ 				 </div>
+				<h1 class="text-4xl mt-4 mb-4">DEMANDES D'AMIS</h1>
+ 				${requests > 0 ?
+					`<p id="requestsMsg">Vous avez ${requests} demande(s) d'amis</p>
+					<a href="/friends/requests" data-nav>Voir les demandes</a>`
+					: `<h3>Vous n'avez aucune demande d'amis</h3>`
+				}
+				<h1 class="text-4xl mt-16">LISTE D'AMIS</h1>
+				${totalFriends === 0 ?
+					`<p>Vous n'avez pas d'amis</p>
+					<img src="/images/hellokittysad1.png" alt=":-("></img>
+					`
+					: `<ul class="w-3/4 mx-auto" id="friendsList"></ul>`
+				}
+			</section>
 			`;
 
 			document.getElementById("app")!.innerHTML = html;
@@ -56,18 +60,18 @@ export async function renderFriends() {
 				listFriends.innerHTML = "";
 
 				const header: HTMLLIElement = document.createElement("li");
-				header.className = "grid grid-cols-[1fr_auto_1fr] items-center p-2 border-b font-bold";
+				header.className = "columns-title mt-4";
 
 				const h1: HTMLSpanElement = document.createElement("span");
-				h1.textContent = "Nom";
+				h1.textContent = "NOM";
 				h1.className = "text-left";
 
 				const h2: HTMLSpanElement = document.createElement("span");
-				h2.textContent = "Statut";
+				h2.textContent = "STATUT";
 				h2.className = "text-center";
 
 				const h3: HTMLSpanElement = document.createElement("span");
-				h3.textContent = "Ami depuis le";
+				h3.textContent = "AMI.E.S DEPUIS LE";
 				h3.className = "text-right";
 
 				header.appendChild(h1);
@@ -77,7 +81,7 @@ export async function renderFriends() {
 
 				for (const friend of friends) {
 					const li = document.createElement("li");
-					li.className = "grid grid-cols-[1fr_auto_1fr] items-center p-2 border-b";
+					li.className = "grid grid-cols-[1fr_auto_1fr] items-center p-2 border-b-2 border-white";
 
 					const span1 = document.createElement("a");
 					span1.href = `/user/${encodeURIComponent(friend.friend_name)}`;
