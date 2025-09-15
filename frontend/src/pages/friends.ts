@@ -34,14 +34,14 @@ export async function renderFriends() {
  				 </div>
 				<h1 class="text-4xl mt-4 mb-4">DEMANDES D'AMIS</h1>
  				${requests > 0 ?
-					`<p id="requestsMsg">Vous avez ${requests} demande(s) d'amis</p>
-					<a href="/friends/requests" data-nav>Voir les demandes</a>`
+					`<h3 id="requestsMsg">Vous avez ${requests} demande(s) d'amis</h3>
+					<a class="button bg-purple-300 hover:bg-purple-400 mt-4 h-8 w-60 text-xs" href="/friends/requests" data-nav>Voir les demandes</a>`
 					: `<h3>Vous n'avez aucune demande d'amis</h3>`
 				}
 				<h1 class="text-4xl mt-16">LISTE D'AMIS</h1>
 				${totalFriends === 0 ?
-					`<p>Vous n'avez pas d'amis</p>
-					<img src="/images/hellokittysad1.png" alt=":-("></img>
+					`<h3 class="mt-4">Vous n'avez pas d'amis</h3>
+					<img class="w-60" src="/images/hellokittysad1.png" alt=":-("></img>
 					`
 					: `<ul class="w-3/4 mx-auto" id="friendsList"></ul>`
 				}

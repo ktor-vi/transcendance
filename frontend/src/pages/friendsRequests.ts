@@ -1,6 +1,6 @@
 import page from "page";
 
-import { backButton, setupBackButton } from '../components/backButton.js';
+import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 import { renderError } from '../components/renderError.js';
 
 export async function renderFriendsRequests() {
@@ -15,9 +15,13 @@ export async function renderFriendsRequests() {
 			}
 		
 			const html = `
-			<h1 style="text-align: center;">Demandes d'amis :</h1>
-			<ul id="requestsList" style="background: none;"></ul>
-			${backButton()}
+			<section class="flex flex-col items-center text-center">
+				 <div class="self-start ml-16 mt-12">
+					${backButtonArrow()}
+				 </div>
+				<h1 class="text-4xl mt-4 mb-4">DEMANDES D'AMIS</h1>
+				<ul class="w-3/4 mx-auto" id="requestsList" style="background: none;"></ul>
+			</section>
 			`;
 		
 			document.getElementById("app")!.innerHTML = html;
@@ -34,15 +38,18 @@ export async function renderFriendsRequests() {
 				listRequests.innerHTML = "";
 				for (const line of requestsData) {
 					const li = document.createElement("li");
-					li.className = "flex items-center justify-between p-2 border-b";
+					li.className = "grid grid-cols-[1fr_auto_1fr] items-center p-2 border-b-2 border-white";
 		
 					const span1 = document.createElement("span");
 					span1.textContent = `${line.sender_name}`;
+					span1.className ="text-left";
 		
 					const span2 = document.createElement("span");
 					span2.textContent = `${line.request_date}`;
+					span2.className = "text-center text-fuchsia-900";
 		
 					const divButtons = document.createElement("div");
+					divButtons.className = "text-right";
 		
 					const accept = document.createElement("button");
 					accept.className = "icons-btn";
