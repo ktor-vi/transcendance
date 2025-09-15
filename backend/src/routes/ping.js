@@ -1,14 +1,19 @@
 import { updateUserPing } from '../utils/connectedUsers.js';
 
 export default async function pingRoutes(fastify) {
+	// POST /ping : update user's last activity timestamp
 	fastify.post('/ping', async (req, reply) => {
 		const user = req.session.get('user');
+
+		// reject if user not logged in
 		if (!user) {
-			console.log('Ping reçu mais pas de user connecté');
-			return reply.code(401).send({ error: 'Non connecté' });
+			return reply.code(401).send({ error: 'User not logged in' });
 		}
-		console.log('Ping reçu de', user.name);
+
+		// update user's last ping timestamp
 		updateUserPing(user.name);
+
 		return { ok: true };
 	});
 }
+

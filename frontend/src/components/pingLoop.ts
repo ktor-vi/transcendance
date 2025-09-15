@@ -1,17 +1,15 @@
-let pingInterval: NodeJS.Timeout | null = null; // protection démarrage en boucle
+let pingInterval: NodeJS.Timeout | null = null;
 
+// Starts periodic ping to keep session alive
 export function startPingLoop() {
-	console.log("Démarrage des pings...\n");
-	if (pingInterval)
-		return ;
+	if (pingInterval) return;
+
+	console.log("Ping loop started"); // info only
 	pingInterval = setInterval(async () => {
 		try {
-			await fetch('/api/ping', {
-					method: 'POST',
-					credentials: 'include',
-				});
+			await fetch('/api/ping', { method: 'POST', credentials: 'include' });
 		} catch (err) {
-			console.error('Erreur de ping: ', err);
+			console.error('Ping error:', err); // important error
 		}
-	}, 20000); // on va ping toutes les 20 secondes
+	}, 20000); // ping every 20 seconds
 }

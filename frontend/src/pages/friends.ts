@@ -4,29 +4,29 @@ import { backButton, backButtonArrow, setupBackButton } from '../components/back
 import { renderError } from '../components/renderError.js';
 
 export async function renderFriends() {
-	try
-	{
+	try {
+		//  Fetch pending friend requests
 		const resRequests = await fetch("/api/requests", { method: "GET" });
-
-			if (!resRequests.ok) {
-				const errorData = await resRequests.json();
-				const error = new Error(errorData.error || "Erreur inconnue");
-				error.status = errorData.status || resRequests.status;
-				throw error;
+		if (!resRequests.ok) {
+			const errorData = await resRequests.json();
+			const error = new Error(errorData.error || "Unknown error");
+			error.status = errorData.status || resRequests.status;
+			throw error;
 		}
+		const requests = await resRequests.json();
 
-		let	requests = await resRequests.json();
-
+		//  Fetch friends list
 		const resFriends = await fetch("/api/friends", { method: "GET" });
-		if (!resFriends.ok)	{
-				const errorData = await resFriends.json();
-				const error = new Error(errorData.error || "Erreur inconnue");
-				error.status = errorData.status || resFriends.status;
-				throw error;
+		if (!resFriends.ok) {
+			const errorData = await resFriends.json();
+			const error = new Error(errorData.error || "Unknown error");
+			error.status = errorData.status || resFriends.status;
+			throw error;
 		}
 		const friendsData = await resFriends.json();
-		const totalFriends = friendsData.total;	
+		const totalFriends = friendsData.total;
 
+		//  Render main HTML
 		const html = `
 			<section class="flex flex-col items-center text-center">
 				 <div class="self-start ml-16 mt-12">
@@ -48,16 +48,23 @@ export async function renderFriends() {
 			</section>
 			`;
 
-			document.getElementById("app")!.innerHTML = html;
-			setupBackButton();
+		const listFriends = document.getElementById("friendsList");
+		const friends = friendsData.friends;
 
-			const listFriends = document.getElementById("friendsList");
-			const friends = friendsData.friends;
+		if (listFriends) {
+			listFriends.innerHTML = "";
 
+			//  Render table header
+			const header: HTMLLIElement = document.createElement("li");
+			header.className = "grid grid-cols-[1fr_auto_1fr] items-center p-2 border-b font-bold";
 
+			const h1 = document.createElement("span");
+			h1.textContent = "Name";
+			h1.className = "text-left";
 
-			if (listFriends) {
-				listFriends.innerHTML = "";
+			const h2 = document.createElement("span");
+			h2.textContent = "Status";
+			h2.className = "text-center";
 
 				const header: HTMLLIElement = document.createElement("li");
 				header.className = "columns-title mt-4";
@@ -74,10 +81,8 @@ export async function renderFriends() {
 				h3.textContent = "AMI.E.S DEPUIS LE";
 				h3.className = "text-right";
 
-				header.appendChild(h1);
-				header.appendChild(h2);
-				header.appendChild(h3);
-				listFriends.appendChild(header);
+				const statusContainer = document.createElement("div");
+				statusContainer.className = "flex items-center gap-2 justify-center";
 
 				for (const friend of friends) {
 					const li = document.createElement("li");
@@ -121,18 +126,20 @@ export async function renderFriends() {
 					}
 					status.className = "w-7 shrink-0";
 
-					const span2 = document.createElement("span");
-					span2.textContent = `${friend.friends_since}`;
-					span2.className = "text-right text-white";
+				const span2 = document.createElement("span");
+				span2.textContent = friend.friends_since;
+				span2.className = "text-right text-white";
 
-					li.appendChild(span1);
-					li.appendChild(statusContainer);
-					li.appendChild(span2);
+				li.appendChild(span1);
+				li.appendChild(statusContainer);
+				li.appendChild(span2);
 
-					listFriends.appendChild(li);
-				}
+				listFriends.appendChild(li);
 			}
+		}
+
 	} catch (error: any) {
 		renderError(error);
 	}
 }
+

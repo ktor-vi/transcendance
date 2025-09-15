@@ -1,8 +1,8 @@
 import page from "page";
-
 import { backButton, setupBackButton } from '../components/backButton.js';
 
 export function renderLogin() {
+	// Render login form
 	const html = `
 	<section class="flex flex-col items-center text-center">
 	<img src="/images/hellokittycomputer.png" class="hellokitty-computer">
@@ -20,21 +20,28 @@ export function renderLogin() {
 
 	document.getElementById("app")!.innerHTML = html;
 	setupBackButton();
+
+	// Handle login form submit
 	document.getElementById("loginForm")?.addEventListener("submit", async (e) => {
 		e.preventDefault();
-		const email = (document.getElementById("email") as HTMLInputElement).value;	const password = (document.getElementById("password") as HTMLInputElement).value;
+
+		const email = (document.getElementById("email") as HTMLInputElement).value;
+		const password = (document.getElementById("password") as HTMLInputElement).value;
 
 		const res = await fetch("api/login", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email, password }),
 		});
+
 		if (res.status === 401) {
-				const data = await res.json();
-				alert(data.message);
-				return ;
+			const data = await res.json();
+			alert(data.message);
+			return;
 		} else {
+			// Navigate to dashboard on successful login
 			page("/dashboard");
 		}
 	});
 }
+
