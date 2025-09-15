@@ -19,7 +19,7 @@ html, body {
 }
 
 @layer base {
-	h1, button, a {
+	h1, button, a, p, li {
 		@apply text-white;
 		text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 	}
@@ -109,5 +109,38 @@ body {
 		opacity: 0.4;                                /* force du grain */
 		pointer-events: none;                        /* ne bloque pas le clic */
 		border-radius: inherit;                      /* suit les arrondis du bouton */
+	}
+
+	.back-button-arrow {
+		@apply bg-purple-400 relative inline-flex items-center justify-center text-sm h-12 px-6 py-2 mt-6 rounded-xl text-white transition;
+
+		text-transform: uppercase;
+		box-shadow: inset 8px 8px 8px 0px rgba(255,255,255,.5),
+					inset -5px -5px 8px rgba(0,0,0,0.2),
+					8px 8px 15px 0px rgba(0,0,0,.3);
+
+		background-image: url('/images/arrow-back.svg');
+  		background-repeat: no-repeat;
+  		background-position: 12px center; /* place la flèche à gauche */
+  		background-size: 2em; /* taille de la flèche */
+  		padding-left: 4rem; /* pour que le texte ne chevauche pas l’icône */
+	}
+
+	.back-button-arrow:hover {
+		@apply bg-purple-600;
+	}
+
+	.back-button-arrow::after {
+		content: "";
+		position: absolute;
+		top: 0; left: 0; right: 0; bottom: 0;
+		background: url('/images/noise.png') repeat; /* petite image PNG de bruit */
+		opacity: 0.4;                                /* force du grain */
+		pointer-events: none;                        /* ne bloque pas le clic */
+		border-radius: inherit;                      /* suit les arrondis du bouton */
+	}
+
+	.columns-title {
+		@apply text-fuchsia-900 grid grid-cols-[1fr_auto_1fr] items-center p-2;
 	}
 }
