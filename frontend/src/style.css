@@ -19,8 +19,22 @@ html, body {
 }
 
 @layer base {
-	h1 {
+	h1, button, a {
 		@apply text-white;
+		text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	}
+
+	h3 {
+		@apply text-fuchsia-900;
+		text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	}
+
+	input {
+		@apply relative inline-flex items-center justify-center text-sm h-10 px-6 py-2 rounded-xl text-white transition;
+
+		box-shadow: 8px 8px 15px 0px rgba(0,0,0,.3);
+		background-color: #F1F2F2;
+		
 	}
 }
 
@@ -44,4 +58,48 @@ body {
 
 .hellokitty-computer {
 	@apply w-48 h-auto mb-4;
+}
+
+@layer components {
+	.button {
+		@apply relative inline-flex items-center justify-center text-sm h-12 px-6 py-2 rounded-xl text-white transition;
+
+		text-transform: uppercase;
+		box-shadow: inset 8px 8px 8px 0px rgba(255,255,255,.5),
+					inset -5px -5px 8px rgba(0,0,0,0.2),
+					8px 8px 15px 0px rgba(0,0,0,.3);
+	}
+
+	.button::after {
+		content: "";
+		position: absolute;
+		top: 0; left: 0; right: 0; bottom: 0;
+		background: url('/images/noise.png') repeat; /* petite image PNG de bruit */
+		opacity: 0.4;                                /* force du grain */
+		pointer-events: none;                         /* ne bloque pas le clic */
+		border-radius: inherit;                        /* suit les arrondis du bouton */
+	}
+
+	.back-button {
+		@apply bg-violet-500 relative inline-flex items-center justify-center text-sm h-12 px-6 py-2 rounded-xl text-white transition;
+
+		text-transform: uppercase;
+		box-shadow: inset 8px 8px 8px 0px rgba(255,255,255,.5),
+					inset -5px -5px 8px rgba(0,0,0,0.2),
+					8px 8px 15px 0px rgba(0,0,0,.3);
+	}
+
+	.back-button:hover {
+		@apply bg-violet-600;
+	}
+
+	.back-button::after {
+		content: "";
+		position: absolute;
+		top: 0; left: 0; right: 0; bottom: 0;
+		background: url('/images/noise.png') repeat; /* petite image PNG de bruit */
+		opacity: 0.4;                                /* force du grain */
+		pointer-events: none;                        /* ne bloque pas le clic */
+		border-radius: inherit;                      /* suit les arrondis du bouton */
+	}
 }

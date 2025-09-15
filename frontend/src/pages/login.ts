@@ -4,13 +4,16 @@ import { backButton, setupBackButton } from '../components/backButton.js';
 
 export function renderLogin() {
 	const html = `
-	<h1>Connectez-vous</h1>
+	<section class="flex flex-col items-center text-center mt-[2vh] space-y-4">
+	<img src="/images/hellokittycomputer.png" class="hellokitty-computer">
+		<h1 class="text-6xl">CONNECTEZ-VOUS</h1>
 		<form id="loginForm">
 			<input type="email" id="email" placeholder="Email" required/>
 			<input type="password" id="password" placeholder="Mot de passe" required/>
-			<button id="login" data-nav>Se connecter</a>
 		</form>
+			<button class="button bg-purple-400 hover:bg-purple-600" id="login" data-nav>Se connecter</a>
 		${backButton()}
+		</section>
 	`;
 
 	document.getElementById("app")!.innerHTML = html;
