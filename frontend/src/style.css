@@ -31,10 +31,19 @@ html, body {
 
 	input {
 		background-color: #F1F2F2;
-		@apply relative inline-flex items-center justify-center text-sm h-10 px-6 py-2 rounded-xl text-white bg-[#F1F2F2]/80 transition;
+		@apply relative inline-flex items-center justify-center text-sm h-10 px-6 py-2 rounded-xl text-gray-400 bg-[#F1F2F2]/80 transition;
 
 		box-shadow: 8px 8px 15px 0px rgba(0,0,0,.3);
 	}
+
+.form-field {
+	@apply relative inline-flex items-center justify-center text-sm h-10 px-6 py-2 rounded-xl text-gray-400 transition;
+	@apply w-[270px];
+	background-color: rgba(241, 242, 242, 0.8); /* fond semi-transparent */
+	box-shadow: 8px 8px 15px 0px rgba(0,0,0,.3);
+}
+
+
 }
 
 body {
@@ -80,7 +89,7 @@ body {
 	}
 
 	.back-button {
-		@apply bg-violet-500 relative inline-flex items-center justify-center text-sm h-12 px-6 py-2 rounded-xl text-white transition;
+		@apply bg-violet-500 relative inline-flex items-center justify-center text-sm h-12 px-6 py-2 mt-6 rounded-xl text-white transition;
 
 		text-transform: uppercase;
 		box-shadow: inset 8px 8px 8px 0px rgba(255,255,255,.5),

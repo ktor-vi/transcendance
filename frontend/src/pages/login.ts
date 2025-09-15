@@ -6,12 +6,14 @@ export function renderLogin() {
 	const html = `
 	<section class="flex flex-col items-center text-center">
 	<img src="/images/hellokittycomputer.png" class="hellokitty-computer">
-		<h1 class="text-6xl">CONNECTEZ-VOUS</h1>
-		<form class="flex flex-col items-center text-center mt-8 space-y-4"id="loginForm">
-			<input type="email" id="email" placeholder="Email" required/>
-			<input type="password" id="password" placeholder="Mot de passe" required/>
+		<h1 class="text-4xl">CONNECTEZ-VOUS</h1>
+		<form class="flex flex-col items-center text-center mt-4" id="loginForm">
+			<input class="mt-4" type="email" id="email" placeholder="Email" required/>
+			<input class="mt-4" type="password" id="password" placeholder="Mot de passe" required/>
+		<div class="mt-8">
+			<button class="button bg-purple-400 hover:bg-purple-600" id="login" data-nav>Se connecter</button>
+		</div>
 		</form>
-			<button class="button bg-purple-400 hover:bg-purple-600 mt-8 mb-4" id="login" data-nav>Se connecter</button>
 		${backButton()}
 		</section>
 	`;
