@@ -4,27 +4,29 @@ import { backButton, setupBackButton } from '../components/backButton.js';
 
 export function renderRegister() {
 	const html = `
-	<h1>Créer un compte</h1>
-		<form id="registerForm">
-			<input type="text" id="name" placeholder="Pseudo" required />
-			<input type="email" id="email" placeholder="Email" required />
-			<input type="password" id="password" placeholder="Mot de passe" required />
-		<div>
-			<label for="questions">Choisis une question</label>
-			<select id="questions">
-				<option></option>
-				<option value="1">Quel est le nom de ton premier animal de compagnie ?</option>
-				<option value="2">Quel est le premier jeu-vidéo auquel tu as joué ?</option>
-				<option value="3">Quel est le prénom de votre meilleur·e ami·e d'enfance ?</option>
-				<option value="4">Quel était le nom de votre école primaire ?</option>
-				<option value="5">Quel était le prénom de votre instituteur·trice préféré·e ?</option>
-			</select>
-			<input type="text" id="response" placeholder="Réponse" required />
-		</div>
-			<button id="register" data-nav>S'inscrire</a>
-		</form>
-		
+	<section class="flex flex-col items-center text-center">
+	<img src="/images/hellokittycomputer.png" class="hellokitty-computer">
+		<h1 class="text-4xl">CRÉER UN COMPTE</h1>
+			<form class="flex flex-col items-center text-center mt-8 space-y-4" id="registerForm">
+				<input type="text" id="name" placeholder="Pseudo" required />
+				<input type="email" id="email" placeholder="Email" required />
+				<input type="password" id="password" placeholder="Mot de passe" required />
+				<div class="flex flex-col space-y-4">
+					<select id="questions" required class="form-field">
+						<option value="" disabled selected hidden>Choisis une question</option>
+						<option value="1">Quel est le nom de ton premier animal de compagnie ?</option>
+						<option value="2">Quel est le premier jeu-vidéo auquel tu as joué ?</option>
+						<option value="3">Quel est le prénom de votre meilleur·e ami·e d'enfance ?</option>
+						<option value="4">Quel était le nom de votre école primaire ?</option>
+						<option value="5">Quel était le prénom de votre instituteur·trice préféré·e ?</option>
+					</select>
+				</div>
+			<input type="text" id="response" placeholder="Réponse" required class="form-field" />
+
+			<button class="button bg-purple-400 hover:bg-purple-600 mt-8 mb-4" id="register" data-nav>S'inscrire</a>
+			</form>
 		${backButton()}
+		</section>
 	`;
 
 	document.getElementById("app")!.innerHTML = html;
