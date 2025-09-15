@@ -7,12 +7,12 @@ const FIELD_DEPTH = 7.5;
 const PDL_SPD = 0.25;
 const MAX_SCORE = 11;
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
 export default fp(async function (fastify) {
   const rooms = new Map();
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
 
   function createRoom(forcedId = null) {
     const roomId = forcedId || crypto.randomUUID().slice(0, 8);
@@ -38,8 +38,8 @@ export default fp(async function (fastify) {
       gameEnded: false,
       winner: null,
       players: new Map(), // playerNumber -> playerName
-      playersReady: 0, // 🔧 NOUVEAU: Compteur de joueurs connectés
-      gameActive: false, // 🔧 NOUVEAU: Jeu actif ou en attente
+      playersReady: 0, // Compteur de joueurs connectés
+      gameActive: false, // Jeu actif ou en attente
     };
 
     // Créer la room
@@ -47,7 +47,7 @@ export default fp(async function (fastify) {
       gameState,
       roomId,
       lastUpdateTime: Date.now(),
-      loop: null, // 🔧 MODIFICATION: Pas de boucle au début
+      loop: null, // Pas de boucle au début
     };
 
     rooms.set(roomId, room);
