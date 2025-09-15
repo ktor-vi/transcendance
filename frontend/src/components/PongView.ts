@@ -30,8 +30,7 @@ const SHINY_IMAGE = "https://playground.babylonjs.com/textures/flare.png";
 
 const FIELD_WIDTH = 13.5;
 const FIELD_DEPTH = 7.5;
-const PADDLE_HEIGHT = 0.75;
-const WALL_HEIGHT = PADDLE_HEIGHT * 2;
+const WALL_HEIGHT = 1.5;
 
 export class PongView {
   engine: Engine;
@@ -74,19 +73,21 @@ export class PongView {
     skybox.renderingGroupId = 0;
 
     new HemisphericLight("light", new Vector3(0, 1, 0), this.scene);
-
-    const ground = new GroundView(this.scene, FIELD_WIDTH, FIELD_DEPTH, FIELD_IMAGE, 0.5);
   }
 
   applyTextures() {
     let toRender = this.scene.getActiveMeshCandidates().data;
     for (let i = 0; i < toRender.length; i++){
-      if (toRender[i].name === "wall")
+      if (toRender[i].name === "wall"){
+        // let height = toRender[i].hitbox.y;
         applyTexture(toRender[i], WALL_IMAGE, WALL_HEIGHT / TILE_SIZE, FIELD_DEPTH / TILE_SIZE, this.scene);
+      }
       else if (toRender[i].name === "paddle")
         applyTexture(toRender[i], PADDLE_IMAGE, 1, 1, this.scene);
       else if (toRender[i].name === "ball")
         applyTexture(toRender[i], BALL_IMAGE, 1, 1, this.scene);
+      else if (toRender[i].name === "ground")
+        applyTexture(toRender[i], FIELD_IMAGE, FIELD_WIDTH / TILE_SIZE, FIELD_DEPTH / TILE_SIZE, this.scene);
     }
   }
 
@@ -110,14 +111,6 @@ export class PongView {
     stunningEffects.disposeOnStop = true;
     stunningEffects.start();
   }  
-}
-
-class GroundView {
-  mesh: any;
-  constructor(scene: any, width: number, depth: number, texturePath: string, tileSize: number){
-    this.mesh = MeshBuilder.CreateGround("ground", {width: width, height: depth}, scene);
-    applyTexture(this.mesh, texturePath, width / tileSize,  depth / tileSize, scene);
-  }
 }
 
 function applyTexture(mesh: AbstractMesh, texturePath: string, uscale: number, vscale: number, scene: Scene){

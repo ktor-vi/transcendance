@@ -33,6 +33,7 @@ export class PongModel {
   paddles: Paddle[];
   goals: Goal[];
   ball: Ball;
+  ground: Ground;
 
   constructor(engine: Engine, scene: Scene, numberOfPlayers: number) {
     this.engine = engine;
@@ -42,6 +43,7 @@ export class PongModel {
     this.walls = [];
     this.paddles = [];
     this.goals = [];
+    this.ground = new Ground(this.scene, FIELD_WIDTH, FIELD_DEPTH, 0.5);
     this.createImpostors();
     this.camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), this.scene);
     this.camera.setTarget(Vector3.Zero());
@@ -147,5 +149,12 @@ class Wall {
     this.hitbox.renderingGroupId = 1;
     this.hitbox.position.set(x, WALL_HEIGHT / 2, z);
     this.hitbox.physicsImpostor = new PhysicsImpostor(this.hitbox, PhysicsImpostor.BoxImpostor, {mass: 0, restitution: 1});
+  }
+}
+
+class Ground {
+  mesh: any;
+  constructor(scene: any, width: number, depth: number, tileSize: number){
+    this.mesh = MeshBuilder.CreateGround("ground", {width: width, height: depth}, scene);
   }
 }
