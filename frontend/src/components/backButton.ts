@@ -3,7 +3,7 @@ import page from "page";
 // &lt = le caractère "<"
 // backButton renvoie simplement le html du bouton
 export function backButton() {
-	return '<button id="goBack">&lt Go back</button>'
+	return '<button class="back-button" id="goBack">Retour</button>'
 }
 
 // setupBackButton sert à "surveiller" si on clique sur le bouton
