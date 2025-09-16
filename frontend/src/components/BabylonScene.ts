@@ -3,20 +3,11 @@ import {
   Engine,
   Scene,
   Vector3,
-  Color3,
-  Color4,
-  HemisphericLight,
-  DirectionalLight,
-  MeshBuilder,
-  StandardMaterial,
   UniversalCamera,
 } from "@babylonjs/core";
+
 import { PongModel } from "./PongModel";
 import { PongView } from "./PongView";
-
-// 🔧 Gestionnaire global simple
-// let globalEngines = new Map<HTMLCanvasElement, Engine>(); // canvas -> engine
-// let activeScenes = new Map<string, any>(); // roomId -> sceneData
 
 export function createBabylonScene(canvas: HTMLCanvasElement) {
   const engine = new Engine(canvas, true);
