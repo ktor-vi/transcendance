@@ -58,10 +58,10 @@ body {
 body::before {
 	content: "";
 	position: absolute;  /* se base sur le body */
-	top: 50px;           /* distance du haut */
+	top: 40px;           /* distance du haut */
 	left: 40px;
 	right: 40px;
-	bottom: 50px;        /* distance du bas du contenu, pas de la fenêtre */
+	bottom: 40px;        /* distance du bas du contenu, pas de la fenêtre */
 	border: 6px solid white;
 	pointer-events: none;
 	z-index: 1;

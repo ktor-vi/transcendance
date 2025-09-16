@@ -58,7 +58,7 @@ export async function renderProfile() {
 				<input class="hidden" id="changePicture" name="changePicture" type="file"/>
 				<label class="mb-4" for="changePicture">
 				<img id="profilePicture" src="${userData.picture}" alt="[default]" 
-					 class="flex items-center w-[100px] h-[100px] object-cover rounded-full shadow-lg"/>
+					 class="flex items-center w-[150px] h-[150px] object-cover rounded-full shadow-lg"/>
 				</label>
 					
 				<input class="mb-4" type="text" id="nameInput" value="${userData.name}" />
@@ -95,7 +95,7 @@ export async function renderProfile() {
 					</div>
 				
 					<h1 class="mt-4 mb-4">HISTORIQUE</h1>
-					<table class="history-table">
+					<table class="history-table mb-16">
 					<thead>
 						<tr>
 						<th>Type</th>
@@ -108,7 +108,7 @@ export async function renderProfile() {
 					</thead>
 					<tbody>
 						${history.map((entry: any) => `
-						<tr>
+						<tr class="h-12 border-b-2 border-white">
 							<td>${entry.type}</td>
 							<td>${entry.player_1}</td>
 							<td>${entry.player_2}</td>
