@@ -14,12 +14,8 @@
 	z-index: 2;
 }
 
-html, body {
-	height: 100%;
-}
-
 @layer base {
-	h1, button, a, p, li {
+	h1, button, a, p, li, th {
 		@apply text-white;
 		text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 	}
@@ -31,7 +27,7 @@ html, body {
 
 	input {
 		background-color: #F1F2F2;
-		@apply relative inline-flex items-center justify-center text-sm h-10 px-6 py-2 rounded-xl text-gray-400 bg-[#F1F2F2]/80 transition;
+		@apply relative inline-flex items-center justify-center text-sm h-10 px-6 py-2 rounded-xl text-gray-400 bg-[#F1F2F2]/60 transition;
 
 		box-shadow: 8px 8px 15px 0px rgba(0,0,0,.3);
 	}
@@ -52,17 +48,27 @@ body {
 	background-image: url('/images/background.png');
 	background-repeat: no-repeat;
 	background-size: cover;
-	background-position: center 100px; /* décale l’image de 100px vers le bas */
-	background-attachment: fixed;
+	background-position: center 100px;
 	margin: 0;
 	padding: 0;
-	height: 100%;
-	overflow-x: hidden;
-	overflow-y: hidden;
-	
-	outline: 6px solid white;	 /* l’épaisseur de la ligne */
-	outline-offset: -40px;			/* décalage de 20px vers l’intérieur */
+	min-height: 100vh; /* hauteur du contenu réel */
+	position: relative; /* pour que ::before se base dessus */
 }
+
+body::before {
+	content: "";
+	position: absolute;  /* se base sur le body */
+	top: 50px;           /* distance du haut */
+	left: 40px;
+	right: 40px;
+	bottom: 50px;        /* distance du bas du contenu, pas de la fenêtre */
+	border: 6px solid white;
+	pointer-events: none;
+	z-index: 1;
+	box-sizing: border-box;
+}
+
+
 
 .hellokitty-computer {
 	@apply w-48 h-auto mb-4;
@@ -83,9 +89,9 @@ body {
 		position: absolute;
 		top: 0; left: 0; right: 0; bottom: 0;
 		background: url('/images/noise.png') repeat; /* petite image PNG de bruit */
-		opacity: 0.4;                                /* force du grain */
-		pointer-events: none;                         /* ne bloque pas le clic */
-		border-radius: inherit;                        /* suit les arrondis du bouton */
+		opacity: 0.4;																/* force du grain */
+		pointer-events: none;												 /* ne bloque pas le clic */
+		border-radius: inherit;												/* suit les arrondis du bouton */
 	}
 
 	.back-button {
@@ -106,8 +112,8 @@ body {
 		position: absolute;
 		top: 0; left: 0; right: 0; bottom: 0;
 		background: url('/images/noise.png') repeat; /* petite image PNG de bruit */
-		opacity: 0.4;                                /* force du grain */
-		pointer-events: none;                        /* ne bloque pas le clic */
+		opacity: 0.4;								/* force du grain */
+		pointer-events: none;			                  /* ne bloque pas le clic */
 		border-radius: inherit;                      /* suit les arrondis du bouton */
 	}
 
@@ -143,4 +149,35 @@ body {
 	.columns-title {
 		@apply text-fuchsia-900 grid grid-cols-[1fr_auto_1fr] items-center p-2;
 	}
+
+	.stats-history h1 {
+		@apply text-2xl;
+	}
+
+	.stats-table {
+		@apply text-white w-[270px] mx-auto border-separate;
+		border-spacing: 0 0.5rem; /* espace vertical entre les lignes */
+	}
+
+	.stats-table th {
+		@apply font-bold text-left pr-6 align-top;
+	}
+
+	.stats-table td {
+		@apply text-right align-top;
+	}
+
+	.history-table tbody tr {
+	  @apply rounded-lg text-white;
+	}
+
+	.history-table th {
+	  @apply font-bold text-center px-4 py-2;
+	}
+
+	.history-table td {
+	  @apply px-4 py-2;
+	}
+
+
 }
