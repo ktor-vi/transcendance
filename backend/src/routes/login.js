@@ -23,4 +23,5 @@ export default async function loginRoutes(fastify) {
 			req.session.set('user', user);
 			return (reply.code(201).send({ success: true }));
 		});
+		
 }
