@@ -11,8 +11,8 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
 
   const engine = new Engine(canvas, true);
   const scene = new Scene(engine);
-  const pong = new PongModel(engine, scene, 2);
-  const view = new PongView(engine, scene);
+  const pong = new PongModel(engine, scene, 2, true);
+  const view = new PongView(engine, scene, true);
 
   let score = { p1: 0, p2: 0 };
   let scoreCallback: ((score: { p1: number; p2: number }) => void) | null = null;

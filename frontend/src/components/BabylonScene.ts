@@ -11,7 +11,7 @@ import {
   StandardMaterial,
   UniversalCamera,
 } from "@babylonjs/core";
-import { PongModel } from "./PongModelNoPhysics";
+import { PongModel } from "./PongModel";
 import { PongView } from "./PongView";
 
 // 🔧 Gestionnaire global simple
@@ -21,8 +21,8 @@ import { PongView } from "./PongView";
 export function createBabylonScene(canvas: HTMLCanvasElement) {
   const engine = new Engine(canvas, true);
   const scene = new Scene(engine);
-  const pong = new PongModel(engine, scene, 2);
-  const view = new PongView(engine, scene);
+  const pong = new PongModel(engine, scene, 2, false);
+  const view = new PongView(engine, scene, false);
 
   let webSocket: WebSocket | null = null;
   let playerNumber = 0;
