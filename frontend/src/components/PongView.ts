@@ -28,6 +28,7 @@ const WALL_IMAGE = "https://www.babylonjs-playground.com/textures/crate.png";
 const TILE_SIZE = 0.5;
 const SHINY_IMAGE = "https://playground.babylonjs.com/textures/flare.png";
 
+//care !!!!
 const FIELD_WIDTH = 13.5;
 const FIELD_DEPTH = 7.5;
 const WALL_HEIGHT = 1.5;
@@ -36,14 +37,25 @@ export class PongView {
   engine: Engine;
   scene: Scene;
   startButton: Button;
-  constructor(engine: Engine, scene: Scene) {
+
+  /**
+   * construct the graphic view of the pong
+   * @param engine - the same babylon engine than the model
+   * @param scene - the same babylon scene than the model
+   * @param button - is the start/restart button enabled
+   */
+  constructor(engine: Engine, scene: Scene, button: boolean) {
     this.engine = engine;
     this.scene = scene;
-    this.createUI();
+    if (button)
+      this.createUI();
     this.createEnvironment();
     this.applyTextures();
   }
 
+  /**
+   * create a button to start/restart the game (enabled only for local play)
+   */
   createUI() {
     this.startButton = Button.CreateSimpleButton("startButton", "Start / Restart");
     this.startButton.width = "150px";
@@ -57,6 +69,9 @@ export class PongView {
     advancedTexture.addControl(this.startButton);
   }
 
+  /**
+   * Create a skybox and the light of the scene
+   */
   createEnvironment() {
     //a nice background (visible if a problem occurs with the skybox + impact calcul of all colors)
     this.scene.clearColor = new Color4(1, 0, 0, 0.1);
@@ -75,13 +90,14 @@ export class PongView {
     new HemisphericLight("light", new Vector3(0, 1, 0), this.scene);
   }
 
+  /**
+   * apply all textures depending of the object
+   */
   applyTextures() {
     let toRender = this.scene.getActiveMeshCandidates().data;
     for (let i = 0; i < toRender.length; i++){
-      if (toRender[i].name === "wall"){
-        // let height = toRender[i].hitbox.y;
+      if (toRender[i].name === "wall")
         applyTexture(toRender[i], WALL_IMAGE, WALL_HEIGHT / TILE_SIZE, FIELD_DEPTH / TILE_SIZE, this.scene);
-      }
       else if (toRender[i].name === "paddle")
         applyTexture(toRender[i], PADDLE_IMAGE, 1, 1, this.scene);
       else if (toRender[i].name === "ball")
@@ -91,6 +107,10 @@ export class PongView {
     }
   }
 
+  /**
+   * launch particules at the given position for a stunning shiny effect
+   * @param position - position of the effect
+   */
   shiny(position: Vector3) {
     const stunningEffects = new ParticleSystem("stars", 1000, this.scene);
     stunningEffects.renderingGroupId = 1;
@@ -113,6 +133,14 @@ export class PongView {
   }  
 }
 
+/**
+ * Apply one texture
+ * @param mesh - on this mesh
+ * @param texturePath - from this file
+ * @param uscale - multiply it if needed
+ * @param vscale - multiply it on the other axis
+ * @param scene - babylon scene
+ */
 function applyTexture(mesh: AbstractMesh, texturePath: string, uscale: number, vscale: number, scene: Scene){
   mesh.renderingGroupId = 1;
   let visual = new StandardMaterial("visual", scene);
