@@ -15,14 +15,12 @@ export async function renderUserProfile(ctx: any) {
             error.status = errorData.status || res.status;
             throw error;
         }
-
         const historyRes = await fetch(`/api/user/history/${encodeURIComponent(userName)}`, { method: "GET" });
     
         const userData = await res.json();
         
         console.log("User FRONTEND = ");
         console.log(userData.email);
-
         if (!historyRes.ok) {
             document.getElementById("app")!.innerHTML =
             `
@@ -34,28 +32,25 @@ export async function renderUserProfile(ctx: any) {
             return;
         }
         const history = await historyRes.json();
-
+        
         // --- GESTION DES BOUTONS ---
         let buttonRequests = `<button id="friendshipButton">Envoyer une demande d'amitié</button>`;
-
         const us = await fetch("/api/profile", { method: "GET" });
         const usData = await us.json();
         if (userName == usData.name)
             buttonRequests = "";
-
         const alreadyFriends = await fetch(`/api/friends/isFriend/${encodeURIComponent(userName)}`, { method: "GET" });
         const alreadyFriendsData = await alreadyFriends.json();
         const friendship = alreadyFriendsData.friendship;
-
         if (friendship == true)
             buttonRequests = `<button id="friendshipButton" disabled>Vous êtes déjà amis</button>`;
-
+        
         // --- AJOUT DU BOUTON TESTER DM ---
         // On ajoute ce bouton seulement si ce n'est pas le profil de l'utilisateur connecté
         if (userName !== usData.name) {
-            buttonRequests += `<button id="dmButton">Tester DM</button>`;
+            buttonRequests += `<button id="dmButton" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded ml-2">Envoyer un message privé</button>`;
         }
-
+        
         const html = `
         <div style="display: flex; flex-direction: column; align-items: center;">
             <h1 style="text-align: center;">Profile de ${userName}</h1>
@@ -66,7 +61,6 @@ export async function renderUserProfile(ctx: any) {
             alt="[photo de profil]" 
             style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
         </div>
-
         ${!history.length ?
             `<p>L'historique apparaîtra quand la personne aura fait au moins 1 match </p>`
         :
@@ -103,20 +97,17 @@ export async function renderUserProfile(ctx: any) {
         }
         ${backButton()}
         `;
-
+        
         document.getElementById("app")!.innerHTML = html;
-
+        
         // --- GESTION DU BOUTON D'AMI ---
-        document.getElementById("friendshipButton")?.addEventListener("click", async() =>
-        {
+        document.getElementById("friendshipButton")?.addEventListener("click", async() => {
             try {
                 const receiver = userName;
-                const resRequest =
-                await fetch("/api/friendshipButton", {
+                const resRequest = await fetch("/api/friendshipButton", {
                     method: "POST",
                     body: receiver
                 });
-
                 if (resRequest.status != 200) {
                     const data = await resRequest.json();
                     alert(data.message);
@@ -127,78 +118,46 @@ export async function renderUserProfile(ctx: any) {
                 console.error("Erreur lors de l'envoi de la requête");
             }
         });
-
-        // --- BOUTON TESTER DM ---
-	/*const dmButton = document.getElementById("dmButton");
-	if (dmButton) {
-    // On crée la WebSocket une seule fois et on la réutilise
-    let socket: WebSocket | null = null;
-
-    const createSocket = (receiverId: string) => {
-        // Si la socket existe déjà et est ouverte, on la réutilise
-        if (socket && socket.readyState === WebSocket.OPEN) return socket;
-
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const host = window.location.host;
-        // Ajout du receiverId dans la query string
-        const dmSocketUrl = `${protocol}//${host}/dm?receiverId=${encodeURIComponent(receiverId)}`;
-
-        socket = new WebSocket(dmSocketUrl);
-
-        socket.addEventListener('open', () => {
-            console.log("WebSocket connectée pour DM avec receiverId =", receiverId);
-        });
-
-        socket.addEventListener('message', (event) => {
-            const msg = JSON.parse(event.data);
-            console.log("Message reçu via DM WS:", msg);
-        });
-
-        socket.addEventListener('close', (event) => {
-            console.log("WS DM fermée", event.code, event.reason);
-        });
-
-        socket.addEventListener('error', (err) => console.error("WS DM erreur:", err));
-
-        return socket;
-    };
-
-    dmButton.addEventListener("click", () => {
-        const receiverId = userName; // ou la variable qui contient l'ID du destinataire
-        const ws = createSocket(receiverId);
-
-        const sendDM = () => {
-            ws.send(JSON.stringify({
-                type: "dmMessage",
-                to: receiverId,
-                content: "Test DM !"
-            }));
-        };
-
-        if (ws.readyState === WebSocket.OPEN) {
-            sendDM();
-        } else {
-            ws.addEventListener('open', sendDM, { once: true });
+        
+        // --- BOUTON DM CORRIGÉ ---
+// --- AJOUT DU BOUTON DM ---
+if (userName !== usData.name && userData) {
+    // On montre le bouton DM seulement si ce n'est pas le profil de l'utilisateur connecté
+    // ET si l'utilisateur est en ligne
+    const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`);
+    const statutData = await statutRes.json();
+    if (statutData.online) {
+        buttonRequests += `<button id="dmButton">Envoyer un message à ${userName}</button>`;
+    }
+}
+ 	const dmButton = document.getElementById("dmButton");
+if (dmButton) {
+    dmButton.addEventListener("click", async () => {
+        const app = document.getElementById("app");
+        if (!app) return;
+        
+        try {
+            // Récupérer les IDs numériques
+            const res = await fetch(`/api/user/${encodeURIComponent(userName)}`);
+            const userData = await res.json();
+            const receiverId = userData.id;
+            
+            const meRes = await fetch("/api/me");
+            const meData = await meRes.json();
+            const senderId = meData.id;
+            
+            // Injecter le chat avec le nom d'utilisateur pour l'affichage
+            app.innerHTML = renderDmChat(userName); // ou userData.username si disponible
+            
+            // Initialiser la WebSocket avec les IDs numériques
+            initDmChat(receiverId, senderId);
+            
+        } catch (error) {
+            console.error("[DM] Erreur lors de l'initialisation du chat:", error);
+            alert("Erreur lors de l'ouverture du chat privé");
         }
     });
-}*/
-const dmButton = document.getElementById("dmButton");
-if (dmButton) {
-  dmButton.addEventListener("click", () => {
-    const app = document.getElementById("app");
-    if (!app) return;
-
-    // Injecte le chat
-    app.innerHTML = renderDmChat(userName);
-
-    // Récupère le senderId côté front (depuis session ou fetch /api/me)
-    const me = (window as any).me?.username || "unknown";
-
-    // Initialise la WebSocket et le chat
-    initDmChat(userName, me);
-  });
-}
-	
+} 
         // --- GESTION STATUT UTILISATEUR ---
         const statusContainer = document.getElementById("userStatut");
         if (statusContainer) {
@@ -206,20 +165,15 @@ if (dmButton) {
             statusWrapper.style.display = "flex";
             statusWrapper.style.alignItems = "center";
             statusWrapper.style.gap = "6px";
-
             const statusImg = document.createElement("img");
             statusImg.className = "w-9 h-9";
-
             const statusText = document.createElement("span");
-
             try {
                 const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`);
                 if (!statutRes.ok)
                     throw new Error(`Error with HTTP status`);
-
                 const data = await statutRes.json();
                 console.log("Réponse statut : ", data);
-
                 if (data.online) {
                     statusText.textContent = "Connecté.e";
                     statusImg.alt = "Connecté.e";
@@ -229,19 +183,15 @@ if (dmButton) {
                     statusImg.alt = "Déconnecté.e";
                     statusImg.src = `/images/disconnected.svg`;
                 }
-
                 statusWrapper.appendChild(statusImg);
                 statusWrapper.appendChild(statusText);
                 statusContainer.appendChild(statusWrapper);
-
             } catch (err) {
                 console.error("Erreur avec le statut: ", err);
             }
         }
-
         setupBackButton();
     } catch (error: any) {
         renderError(error);
     }
 }
-
