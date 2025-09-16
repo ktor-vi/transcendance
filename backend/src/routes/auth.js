@@ -44,5 +44,10 @@ export default async function authRoutes(fastify)
     return user;
   });
 
+  fastify.get("/", async (req, reply) => {
+	return reply
+    .code(200)
+    .send({ success: true, message: "Successfully accepted back-end certificate" });
+});
 }
 
