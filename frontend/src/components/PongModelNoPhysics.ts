@@ -23,7 +23,6 @@ const WALL_DEPTH = FIELD_DEPTH;
 export class PongModel {
   engine: Engine;
   scene: Scene;
-  camera: FreeCamera;
   numberOfPlayers: number;
   walls: Wall[];
   paddles: Paddle[];
@@ -38,8 +37,6 @@ export class PongModel {
     this.paddles = [];
     this.ground = new Ground(this.scene, FIELD_WIDTH, FIELD_DEPTH, 0.5);
     this.createImpostors();
-    this.camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), this.scene);
-    this.camera.setTarget(Vector3.Zero());
   }
 
   createImpostors() : void {

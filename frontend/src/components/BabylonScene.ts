@@ -196,6 +196,10 @@ export function createBabylonScene(canvas: HTMLCanvasElement) {
       camera.rotation.y = Math.PI;
     }
   }
+  scene.registerBeforeRender(() => {
+    if (pong.collision())
+      view.shiny(pong.ball.hitbox.position);
+  });
 
   engine.runRenderLoop(() => {
     scene.render();
