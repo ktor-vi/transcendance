@@ -6,10 +6,7 @@ import {
   MeshBuilder,
   FreeCamera,
   PhysicsImpostor,
-  CannonJSPlugin,
 } from "@babylonjs/core";
-
-import * as CANNON from "cannon";
 
 // Paramètres du terrain
 const FIELD_WIDTH = 13.5;
@@ -18,7 +15,7 @@ const PADDLE_WIDTH = 3;
 const PADDLE_HEIGHT = 0.75;
 const PADDLE_DEPTH = 0.25;
 const PADDLE_SPEED = 0.25;
-const BALL_SIZE = 1;
+const BALL_SIZE = 0.5;
 const WALL_WIDTH = PADDLE_DEPTH;
 const WALL_HEIGHT = PADDLE_HEIGHT * 2;
 const WALL_DEPTH = FIELD_DEPTH;
@@ -30,18 +27,15 @@ export class PongModel {
   numberOfPlayers: number;
   walls: Wall[];
   paddles: Paddle[];
-  goals: Goal[];
   ball: Ball;
   ground: Ground;
 
   constructor(engine: Engine, scene: Scene, numberOfPlayers: number) {
     this.engine = engine;
     this.scene = scene;
-    this.scene.enablePhysics(new Vector3(0, 0, 0), new CannonJSPlugin(true, 10, CANNON));
     this.numberOfPlayers = numberOfPlayers;
     this.walls = [];
     this.paddles = [];
-    this.goals = [];
     this.ground = new Ground(this.scene, FIELD_WIDTH, FIELD_DEPTH, 0.5);
     this.createImpostors();
     this.camera = new FreeCamera("camera", new Vector3(0, FIELD_DEPTH, -1.5 * FIELD_DEPTH), this.scene);
@@ -53,23 +47,13 @@ export class PongModel {
     this.walls[0] = new Wall(this.scene, (FIELD_WIDTH - WALL_WIDTH) / 2, 0);
     this.walls[1] = new Wall(this.scene, (WALL_WIDTH - FIELD_WIDTH) / 2, 0);
     this.paddles[0] = new Paddle(this.scene, FIELD_DEPTH / 2, Math.PI);
-    this.goals[0] = new Goal(this.scene, (FIELD_DEPTH + BALL_SIZE) / 2, Math.PI);
     this.paddles[1] = new Paddle(this.scene, FIELD_DEPTH / 2, 0);
-    this.goals[1] = new Goal(this.scene, (FIELD_DEPTH + BALL_SIZE) / 2, 0);
   }
 
   collision() : boolean {
     for (let i = 0; i < this.numberOfPlayers; i++) {
       if (this.ball.hitbox.intersectsMesh(this.paddles[i].hitbox))
         return true;
-    }
-    return false;
-  }
-
-  score(player: number) : boolean {
-    if (this.ball.hitbox.intersectsMesh(this.goals[player].hitbox)){
-      this.goals[player].score++;
-      return true;
     }
     return false;
   }
@@ -89,20 +73,6 @@ class Paddle {
       this.hitbox.position.x += PADDLE_SPEED;
     if (direction === "left")
       this.hitbox.position.x -= PADDLE_SPEED;
-  }
-}
-
-class Goal {
-  hitbox: AbstractMesh;
-  score: number;
-  constructor(scene: Scene, radius: number, angle: number) {
-    this.hitbox = MeshBuilder.CreateBox("goal", { width: FIELD_WIDTH, height: WALL_HEIGHT, depth: PADDLE_DEPTH }, scene);
-    this.hitbox.visibility = 0;
-    this.hitbox.rotation.y = angle;
-    this.hitbox.position.x = radius * Math.sin(angle);
-    this.hitbox.position.y = WALL_HEIGHT / 2;
-    this.hitbox.position.z = radius * Math.cos(angle);
-    this.score = 0;
   }
 }
 
