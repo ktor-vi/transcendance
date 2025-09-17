@@ -1431,46 +1431,7 @@ export function renderTournamentPage(): string {
     }
   }
 
-  function broadcastNewTournamentMessage() {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.host;
-    const socketUrl = `${protocol}//${host}/chat`;
-
-    const socket = new WebSocket(socketUrl);
-    const message = "Nouveau tournoi créé, allez "
-
-    if (!message) return;
-
-    socket.onopen = () => {
-      console.log("📡 WebSocket chat tournoi connecté");
-      const payload = {
-        type: "chatMessage",
-        content: message,
-        user: "Annonce", // Optionnel, le serveur peut overrider
-      }
-      try {
-        socket.send(JSON.stringify(payload));
-      } catch (err) {
-        console.error("[CHAT GLOBAL] Erreur envoi message:", err);
-      }
-    }
-    };
-    // Vérifier que la socket est ouverte avant d'envoyer
-//     if (socket.readyState !== WebSocket.OPEN) {
-//       console.warn("[CHAT GLOBAL] Socket fermée, impossible d'envoyer le message");
-//     }
-
-// ;
-
-//     try {
-//       socket.send(JSON.stringify(payload));
-//     } catch (err) {
-//       console.error("[CHAT GLOBAL] Erreur envoi message:", err);
-//     }
-  // }
-
   function connectTournamentWebSocket(): void {
-    broadcastNewTournamentMessage();
     if (tournamentWebSocket) {
       tournamentWebSocket.close();
     }

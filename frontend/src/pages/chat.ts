@@ -1,130 +1,84 @@
 export function renderChat() {
-  setTimeout(() => {
-    // Construction de l'URL WebSocket basée sur la location actuelle
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.host;
-    const socketUrl = `${protocol}//${host}/chat`;
+	setTimeout(() => {
+		// Build WebSocket URL dynamically based on current location
+		const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+		const host = window.location.host;
+		const socketUrl = `${protocol}//${host}/chat`;
 
-    console.log(`[CHAT] Tentative de connexion à: ${socketUrl}`);
+		console.log(`[CHAT] Connecting to: ${socketUrl}`);
+		const socket = new WebSocket(socketUrl);
 
-    const socket = new WebSocket(socketUrl);
+		// Socket connection opened
+		socket.addEventListener("open", () => {
+			console.log("[CHAT] Connected to WebSocket server");
+		});
 
-    socket.addEventListener("open", () => {
-      console.log("[CHAT] Connecté au serveur WebSocket");
-    });
+		// Receive messages from server
+		socket.addEventListener("message", (event) => {
+			try {
+				const data = JSON.parse(event.data);
+				if (data.type === "chatMessage") {
+					addMessage(`${data.user}: ${data.content}`);
+				}
+			} catch {
+				// Ignore invalid messages
+			}
+		});
 
-    socket.addEventListener("message", (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "chatMessage") {
-          addMessage(`${data.user}: ${data.content}`);
-        }
-      } catch (err) {
-        console.error("[CHAT] Message invalide:", event.data, err);
-      }
-    });
+		// Reconnect on close
+		socket.addEventListener("close", () => {
+			console.log("[CHAT] Disconnected, reconnecting in 3s...");
+			setTimeout(() => renderChat(), 3000);
+		});
 
-    socket.addEventListener("close", (event) => {
-      console.log(
-        `[CHAT] Déconnecté du serveur (Code: ${event.code}, Raison: ${event.reason})`
-      );
+		// Send a chat message
+		function sendMessage() {
+			const message = input.value.trim();
+			if (!message) return;
+			if (socket.readyState !== WebSocket.OPEN) {
+				addMessage("⚠️ Connection closed, reconnecting...");
+				return;
+			}
+			socket.send(JSON.stringify({ type: "chatMessage", content: message, user: "lol" }));
+			addMessage(`Me: ${message}`);
+			input.value = "";
+		}
 
-      // Tentative de reconnexion automatique après 3 secondes
-      setTimeout(() => {
-        console.log("[CHAT] Tentative de reconnexion...");
-        renderChat(); // Relance la fonction pour reconnecter
-      }, 3000);
-    });
+		// DOM elements
+		const input = document.getElementById("chatInput") as HTMLInputElement;
+		const btn = document.getElementById("sendBtn") as HTMLButtonElement;
+		if (!input || !btn) return;
 
-    socket.addEventListener("error", (err) => {
-      console.error("[CHAT] Erreur WebSocket:", err);
-    });
+		function addMessage(msg: string) {
+			const node = document.createElement("p");
+			node.textContent = msg;
+			node.classList.add("text-violet-400", "py-1");
 
-    function sendMessage() {
-      const message = input.value.trim();
+			const chatMessages = document.getElementById("chatMessages");
+			if (chatMessages) {
+				chatMessages.appendChild(node);
+				chatMessages.scrollTop = chatMessages.scrollHeight; // auto-scroll
+			}
+		}
 
-      if (!message) return;
+		btn.addEventListener("click", sendMessage);
+		input.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
+	}, 0);
 
-      // Vérifier que la socket est ouverte avant d'envoyer
-      if (socket.readyState !== WebSocket.OPEN) {
-        console.warn("[CHAT] Socket fermée, impossible d'envoyer le message");
-        addMessage("⚠️ Connexion fermée, reconnexion en cours...");
-        return;
-      }
-
-      const payload = {
-        type: "chatMessage",
-        content: message,
-        user: "lol", // Optionnel, le serveur peut overrider
-      };
-
-      try {
-        socket.send(JSON.stringify(payload));
-        addMessage(`Moi: ${message}`);
-        input.value = "";
-      } catch (err) {
-        console.error("[CHAT] Erreur envoi message:", err);
-        addMessage("⚠️ Erreur lors de l'envoi du message");
-      }
-    }
-
-    // Récupération des éléments DOM
-    const input = document.getElementById("chatInput") as HTMLInputElement;
-    const btn = document.getElementById("sendBtn") as HTMLButtonElement;
-
-    if (!input || !btn) {
-      console.error("[CHAT] Éléments DOM introuvables");
-      return;
-    }
-
-    function addMessage(msg: string) {
-      const node = document.createElement("p");
-      node.textContent = msg;
-      node.classList.add("text-violet-400", "py-1");
-
-      const chatMessages = document.getElementById("chatMessages");
-      if (chatMessages) {
-        chatMessages.appendChild(node);
-        // Auto-scroll vers le bas
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      } else {
-        console.error("[CHAT] Zone de messages introuvable");
-      }
-    }
-
-    btn.addEventListener("click", sendMessage);
-
-    input.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        sendMessage();
-      }
-    });
-  }, 0);
-
-  // HTML de base
-  return `
-    <div class="flex flex-col h-[90vh] max-h-screen px-4 py-2">  
-      <h1 class="text-xl font-bold mb-2">Live Chat</h1>
-      <!-- Zone des messages -->
-      <div id="chatMessages" class="flex-1 overflow-y-auto border rounded p-4 bg-white shadow-inner mb-4">
-        <p class="text-gray-500 italic">En attente de connexion...</p>
-      </div>
-
-      <!-- Barre d'envoi -->
-      <div class="flex items-center border rounded p-2 bg-white shadow">
-        <input
-          id="chatInput"
-          type="text"
-          placeholder="Écris un message..."
-          class="flex-1 px-4 py-2 border rounded mr-2 focus:outline-none focus:ring focus:border-blue-300"
-        />
-        <button
-          id="sendBtn"
-          class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
-        >
-          Envoyer
-        </button>
-      </div>
-    </div>
-  `;
+	// HTML structure for chat page
+	return `
+		<div class="flex flex-col h-[90vh] max-h-screen px-4 py-2">
+			<h1 class="text-xl font-bold mb-2">Live Chat</h1>
+			<div id="chatMessages" class="flex-1 overflow-y-auto border rounded p-4 bg-white shadow-inner mb-4">
+				<p class="text-gray-500 italic">Waiting for connection...</p>
+			</div>
+			<div class="flex items-center border rounded p-2 bg-white shadow">
+				<input id="chatInput" type="text" placeholder="Write a message..."
+					class="flex-1 px-4 py-2 border rounded mr-2 focus:outline-none focus:ring focus:border-blue-300" />
+				<button id="sendBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded">
+					Send
+				</button>
+			</div>
+		</div>
+	`;
 }
