@@ -398,6 +398,9 @@ async function websocketHandler(fastify) {
           handleInput(msg);
           break;
 
+        case "chatMatch":
+          fastify.createRoom(msg.roomId);
+          break;
         default:
           console.log("Type de message non géré:", msg.type);
       }

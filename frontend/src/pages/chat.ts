@@ -105,7 +105,6 @@ export function renderChat() {
   return `
     <div class="flex flex-col h-[90vh] max-h-screen px-4 py-2">  
       <h1 class="text-xl font-bold mb-2">Live Chat</h1>
-
       <!-- Zone des messages -->
       <div id="chatMessages" class="flex-1 overflow-y-auto border rounded p-4 bg-white shadow-inner mb-4">
         <p class="text-gray-500 italic">En attente de connexion...</p>

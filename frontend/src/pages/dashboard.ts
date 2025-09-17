@@ -36,11 +36,40 @@ export function renderDashboard() {
           welcomeEl.innerText = `Bienvenue ${
             user.name || user.email || "utilisateur"
           } !`;
+
+        // ✅ NOUVEAU : Vérifier s'il y a un match depuis le chat
+        checkChatMatch();
       })
       .catch(() => {
         profileReady = true;
         window.location.href = "/";
       });
+
+    // ✅ NOUVELLE FONCTION : Vérifier et gérer un match depuis le chat
+    function checkChatMatch() {
+      const chatMatchRoomId = sessionStorage.getItem("chatMatchRoomId");
+
+      if (chatMatchRoomId) {
+        console.log(`🎮 Match depuis chat détecté: ${chatMatchRoomId}`);
+
+        // Nettoyer le sessionStorage
+        sessionStorage.removeItem("chatMatchRoomId");
+
+        // Afficher un message à l'utilisateur
+        const scoreEl = document.getElementById("score");
+        if (scoreEl) {
+          scoreEl.innerText = `🎮 Connexion à la partie ${chatMatchRoomId}...`;
+          scoreEl.className = "text-xl font-bold mt-2 text-blue-600";
+        }
+
+        // Joindre la room automatiquement
+        setTimeout(() => {
+          joinRoom(chatMatchRoomId);
+        }, 1000);
+      }
+    }
+
+    // [... reste du code existant inchangé ...]
 
     document
       .getElementById("keyboardPlayBtn")
@@ -122,6 +151,9 @@ export function renderDashboard() {
               handleError(data);
               break;
 
+            case "chatMatch":
+              handleChatMatch(data);
+              break;
             default:
               console.log("🔍 Type de message non géré:", data.type);
           }
@@ -143,6 +175,10 @@ export function renderDashboard() {
       return ws;
     }
 
+    function handleChatMatch(data) {
+      console.log("🎮 Chat match reçu:", data.roomId);
+      joinRoom(data.roomId);
+    }
     // 🔧 FONCTION : Gérer l'assignation du joueur
     function handlePlayerAssignment(data) {
       console.log("🎮 Assignation joueur:", data);
@@ -402,7 +438,7 @@ export function renderDashboard() {
       console.log("🧹 Dashboard réinitialisé");
     }
 
-    // 🔧 FONCTION PRINCIPALE : Rejoindre une room
+    // 🔧 FONCTION PRINCIPALE : Rejoindre une room (inchangée)
     function joinRoom(roomId: string | null) {
       if (isJoining) {
         console.warn("⚠️ Connexion déjà en cours...");
@@ -455,12 +491,12 @@ export function renderDashboard() {
       console.log("🎲 Matchmaking automatique demandé");
       joinRoom("auto");
     });
-    
+
     // document = obj global = page html chargee dans le browser -> DOM = Document Obj Model
     // getElmtById = method de DOM qui selectionne un element HTML par son ID
     // eventListener = surveillance de l'evenement clique rattache au bouton
     document.getElementById("liveChatBtn")?.addEventListener("click", () => {
-	    page("/chat");
+      page("/chat");
     });
 
     document
@@ -482,7 +518,7 @@ export function renderDashboard() {
     });
   }, 300);
 
-	return `
+  return `
 	<div class="w-full my-4 flex flex-row justify-between items-center px-4">
 		<h1 class>Transcendance</h1>
 		<div class="absolute left-1/2 transform -translate-x-1/2 flex flex-row items-center gap-8">
@@ -495,6 +531,7 @@ export function renderDashboard() {
 	    <div class="px-4">
       <h2 id="welcome" class="text-xl mb-4 font-semibold"></h2>
       <div class="mb-4 flex flex-col md:flex-row gap-2 items-start md:items-center">
+      		<input id="roomIdInput" placeholder="ID de la room (laisser vide pour créer)" class="border px-3 py-2 rounded w-full md:w-64" />
         <button id="joinRoomBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
           🎮 Rejoindre Room
         </button>
