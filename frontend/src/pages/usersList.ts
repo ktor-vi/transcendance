@@ -20,10 +20,12 @@ export async function renderUsersList() {
 		const users = await res.json();
 		
 		const html = `
-		<input type="text" id="searchInput" placeholder="Rechercher un utilisateur..." />
-		<h1 style="text-align: center;">Liste des utilisateurs</h1>
-		<ul id="userList" style="background: none;"></ul>
+		<section class="flex flex-col items-center text-center">
+		<input type="text" id="searchInput" class="mt-16 mb-8" placeholder="Rechercher un utilisateur..." />
+		<h1 class="text-2xl">Liste des utilisateurs</h1>
+		<ul id="userList""></ul>
 		${backButton()}
+		</section>
 		`;
 	
 		// injection du html

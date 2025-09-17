@@ -518,11 +518,10 @@ export function renderDashboard() {
  			<h1 class="absolute top-[180px] left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-white drop-shadow-lg w-full">
 			    LANCE UNE PARTIE !
  			</h1>
-			<a href="/pong" data-nav class="button bg-purple-400 hover:bg-purple-600 w-40 text-lg">JOUER</a>
+			<a href="/pong" data-nav class="button bg-purple-400 hover:bg-purple-600 w-40 text-xl">JOUER</a>
 			</div>
 
 		<button id="logout" class="button bg-red-400 hover:bg-red-500 w-10 fixed bottom-16 left-16">
-  			<img src="/images/logout.svg" class="absolute top-1/2 left-1/2 w-10 h-10 -scale-x-100 -translate-x-1/2 -translate-y-1/2" alt="Logout">
 		</button>
 
 		</section>

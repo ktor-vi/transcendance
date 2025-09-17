@@ -146,6 +146,26 @@ body::before {
 		border-radius: inherit;                      /* suit les arrondis du bouton */
 	}
 
+	#logout {
+ 		position: fixed; /* reste fixé à l'écran */
+    	bottom: 70px;    /* distance depuis le bas */
+    	left: 70px;      /* distance depuis la gauche */
+	}
+
+	#logout::before {
+		content: '';
+		position: absolute;
+		left: 50%;
+		transform: translateX(-50%) scaleX(-1);
+		width: 35px; /* largeur de ton image */
+		height: 35px; /* hauteur de ton image */
+		background-image: url('/images/logout.svg');
+		background-size: contain;
+		background-repeat: no-repeat;
+		pointer-events: none; /* pour ne pas interférer avec le clic */
+	}
+
+
 	.columns-title {
 		@apply text-fuchsia-900 grid grid-cols-[1fr_auto_1fr] items-center p-2;
 	}
