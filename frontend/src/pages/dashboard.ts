@@ -2,6 +2,13 @@ import page from "page";
 import { createBabylonScene } from "../components/BabylonScene";
 import { GameInstance } from "../types/GameTypes";
 
+async function getPicture() {
+	const res = await fetch("/api/profile", { method: "GET" });
+	const userData = await res.json();
+
+	return (userData.picture);
+}
+
 export function renderDashboard() {
   setTimeout(() => {
     // 🔧 TOUTES LES VARIABLES AU MÊME NIVEAU
@@ -482,43 +489,42 @@ export function renderDashboard() {
     });
   }, 300);
 
-	return `
-	<div class="w-full my-4 flex flex-row justify-between items-center px-4">
-		<h1 class>Transcendance</h1>
-		<div class="absolute left-1/2 transform -translate-x-1/2 flex flex-row items-center gap-8">
-			<a href="/profile" data-nav class="px-4 py-2">Profil</a>
-			<a href="/users-list" data-nav class="px-4 py-2">Utilisateurs</a>
-			<a href="/friends" data-nav class="px-4 py-2">Amitiés</a>
+  
+  getPicture().then((userPicture) => {
+    const profileImg = document.querySelector<HTMLImageElement>(
+      'a[href="/profile"] img'
+    );
+    if (profileImg) {
+      profileImg.src = userPicture;
+    }
+  });
+
+  return `
+    <section class="flex flex-col items-center text-center">
+    	<div class="dashboard-buttons w-full flex items-center justify-between px-8">
+				<h1 class="ml-8 text-4xl -mt-4">TRANSCENDENCE</h1>
+
+				<img src="/images/hellokittycomputer.png" class="hellokitty-computer">
+				<div class="flex space-x-6 mr-8 -mt-4">
+					<a href="/users-list" data-nav class="button bg-rose-300 hover:bg-rose-400 h-8">Utilisateurs</a>
+					<a href="/friends" data-nav class="button bg-orange-300 hover:bg-orange-400 h-8">Amitiés</a>
+					</div>
+					<a href="/profile" data-nav>
+						<img src="/images/default-profile.png" alt="Profil" class="w-28 h-28 -mt-4 rounded-full object-cover shadow-lg">
+					</a>
 		</div>
-		<button id="logout" class="bg-red-500 text-white px-4 py-2 rounded relative -top-2">Déconnexion</button>
-	</div>
-	    <div class="px-4">
-      <h2 id="welcome" class="text-xl mb-4 font-semibold"></h2>
-      <div class="mb-4 flex flex-col md:flex-row gap-2 items-start md:items-center">
-        <button id="joinRoomBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
-          🎮 Rejoindre Room
-        </button>
-        <button id="matchmakeBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors">
-          🎲 Matchmaking
-        </button>
-        <button id="goToTournamentBtn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors">
-          🏆 Tournoi
-        </button>
-        <button id="keyboardPlayBtn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors">
-          ⌨️ Clavier
-        </button>
-	<button id="liveChatBtn" class="bg-fuchsia-400 text-white px-4 py-2 rounded">Chat</button>
-      </div>
+		<div class="relative w-[350px]">
+ 			<img src="/images/rocket.png" alt="jolie fusée" class="h-[350px] w-full object-cover">
+ 			<h1 class="absolute top-[180px] left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-white drop-shadow-lg w-full">
+			    LANCE UNE PARTIE !
+ 			</h1>
+			<a href="/pong" data-nav class="button bg-purple-400 hover:bg-purple-600 w-40 text-lg">JOUER</a>
+			</div>
 
-      <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
-        <div id="roomInfo" class="text-sm text-gray-600 italic">Aucune partie en cours</div>
-        <h2 id="score" class="text-xl font-bold mt-2"></h2>
-      </div>
+		<button id="logout" class="button bg-red-400 hover:bg-red-500 w-10 fixed bottom-16 left-16">
+  			<img src="/images/logout.svg" class="absolute top-1/2 left-1/2 w-10 h-10 -scale-x-100 -translate-x-1/2 -translate-y-1/2" alt="Logout">
+		</button>
 
-      <div class="game-container">
-        <h1 id="launch" class="text-5xl text-center text-gray-400 my-8">🚀 Lancez une partie !</h1>
-        <canvas id="renderCanvas" class="border w-full h-[70vh] rounded shadow-lg"></canvas>
-      </div>
-    </div>
+		</section>
 	`;
 }
