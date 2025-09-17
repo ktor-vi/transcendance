@@ -1,6 +1,6 @@
 import page from "page";
 
-import { backButton, setupBackButton } from '../components/backButton.js';
+import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 import { renderError } from '../components/renderError.js';
 
 export async function renderUserProfile(ctx: any) {
@@ -39,7 +39,7 @@ export async function renderUserProfile(ctx: any) {
 		const plays = historyData.plays;
 		const ratio = historyData.ratio;
 
-		let buttonRequests = `<button id="friendshipButton">Envoyer une demande d'amitié</button>`;
+		let buttonRequests = `<button class="button bg-purple-300 hover:bg-purple-400" id="friendshipButton">Envoyer une demande d'amitié</button>`;
 
 		const us = await fetch("/api/profile", { method: "GET" });
 		const usData = await us.json();
@@ -53,73 +53,80 @@ export async function renderUserProfile(ctx: any) {
 		if (friendship == true)
 			buttonRequests = `<button id="friendshipButton disabled">Vous êtes déjà amis</button>`;
 
+		console.log("La pp du profil est = ");
+		console.log(userData.picture);
 			const html = `
-			 <section class="flex flex-col items-center gap-4 min-h-screen overflow-y-auto p-5">
-				<h1 style="text-align: center;">Profile de ${userName}</h1>
+			 <section class="flex flex-col items-center text-center">
+			 <div class="self-start ml-16 mt-12">
+				${backButtonArrow()}
+			</div>
+				<h1 class="text-4xl mb-4">${userName}</h1>
 				 ${buttonRequests}
-				<div id="userStatut"></div>
+				<div class="flex items-center gap-4" id="userStatut"></div>
 					<img 
 					src="${userData.picture}"
-					alt="[photo de profil]" 
-					style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
-				</div>
-
-			<div id="stats" style="display: flex; justify-content: center; margin: 20px 0;">
-  				<table border="1" style="width: 70%; text-align: center;">
-					<thread>
-						<tr>
-							<th>Victoires</th>
-							<th>Parties jouées</th>
-							<th>Ratio de victoires</th>
-						</tr>
-					</thread>
-					<tbody>
-						<tr>
-							<td>${wins}</td>
-							<td>${plays}</td>
-							<td>${ratio}%</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+					alt="[photo de profil]"
+					class="flex items-center w-[150px] h-[150px] object-cover rounded-full shadow-lg"
+				/>
 
 			${!history.length ?
-				`<p>L'historique apparaîtra quand la personne aura fait au moins 1 match </p>`
+				`<p class="mt-8 text-xl">Les stats et l'historique <br>apparaîtront quand ${userName} aura fait au moins 1 match </p>
+				<img class="w-48" src="/images/hellokittytired.png" alt="Hello Kitty fatiguée"/>`
 			:
-				`<table border="1" style="width: 100%; text-align: center;">
-				<h2 class="text-2xl text-text font-bold m-4">Historique</h2>
+
+				`
+				<div id="stats">
+				<h1 class="text-2xl mt-8 mb-4">STATS</h1>
+  					<table class="stats-table w-[270px] mx-auto">
+						<tbody>
+							<tr>
+								<th class="pr-4 text-right font-bold">Victoires</th>
+								<td class="text-left">${wins}</td>
+							</tr>
+							<tr>
+								<th class="pr-4 text-right font-bold">Parties jouées</th>
+								<td class="text-left">${plays}</td>
+							</tr>
+							<tr>
+								<th class="pr-4 text-right font-bold">Ratio de victoires</th>
+								<td class="text-left">${ratio}%</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+					<h1 class="text-2xl mt-8 mb-4">HISTORIQUE</h1>
+					<table class="history-table mb-24">
 					<thead>
 						<tr>
-							<th>Type</th>
-							<th>Joueur 1</th>
-							<th>Joueur 2</th>
-							<th>Score</th>
-							<th>Vainqueur</th>
-							<th>Date</th>
+						<th>Type</th>
+						<th>Joueur 1</th>
+						<th>Joueur 2</th>
+						<th>Score</th>
+						<th>Vainqueur</th>
+						<th>Date</th>
 						</tr>
 					</thead>
 					<tbody>
 						${history.map((entry: any) => `
-							<tr>
-								<td>${entry.type}</td>
-								<td>
-									<a href='/user/${encodeURIComponent(entry.player_1)}' class="bg-transparent text-white m-0 p-2 text-left">${(entry.player_1)}</a>
-								</td>
-								<td>
-									<a href='/user/${encodeURIComponent(entry.player_2)}' class="bg-transparent text-white m-0 p-2 text-left">${(entry.player_2)}</a>
-								</td>
-								<td>${entry.scores}</td>
-								<td>
-									<a href='/user/${encodeURIComponent(entry.winner)}' class="bg-transparent text-white m-0 p-2 text-left">${(entry.winner)}</a>
-								</td>
-								<td>${entry.created_at}</td>
-							</tr>
+						<tr class="h-12 border-b-2 border-white">
+							<td>${entry.type}</td>
+							<td>
+							<a href='/user/${encodeURIComponent(entry.player_1)}'>${(entry.player_1)}</a>
+							</td>
+							<td>
+							<a href='/user/${encodeURIComponent(entry.player_2)}'>${(entry.player_2)}</a>
+							</td>
+							<td>${entry.scores}</td>
+							<td>
+							<a href='/user/${encodeURIComponent(entry.winner)}'>${(entry.winner)}</a>
+							</td>
+							<td>${entry.created_at}</td>
+						</tr>
 						`).join("")}
 					</tbody>
 					</table>
 				`
 			}
-				${backButton()}
 				</section>
 			`;
 
@@ -151,10 +158,6 @@ export async function renderUserProfile(ctx: any) {
 		if (statusContainer) {
 			// créer un conteneur pour aligner l'image et le texte horizontalement
 			const statusWrapper = document.createElement("span");
-			statusWrapper.style.display = "flex";
-			statusWrapper.style.alignItems = "center";
-			statusWrapper.style.gap = "6px"; // petit écart entre image et texte
-
 			const statusImg = document.createElement("img");
 			statusImg.className = "w-9 h-9"; // largeur/hauteur de l'image
 
@@ -168,19 +171,14 @@ export async function renderUserProfile(ctx: any) {
 					const data = await statutRes.json();
 					console.log("Réponse statut : ", data);
 
-					if (data.online) {
-							statusText.textContent = "Connecté.e";
-							statusImg.alt = "Connecté.e";
-							statusImg.src = `/images/available.svg`;
-					} else {
-							statusText.textContent = "Déconnecté.e";
-							statusImg.alt = "Déconnecté.e";
-							statusImg.src = `/images/disconnected.svg`;
-					}
+					statusImg.alt = data.online ? "Connecté.e" : "Déconnecté.e";
+					statusImg.src = data.online ? "/images/available.svg" : "/images/disconnected.svg";
+					statusText.textContent = data.online ? "Connecté.e" : "Déconnecté.e";
 
 					// ajouter l'image et le texte dans le conteneur
 					statusWrapper.appendChild(statusImg);
 					statusWrapper.appendChild(statusText);
+					statusWrapper.className = "inline-flex items-center gap-2 text-white mt-4";
 
 					// puis ajouter le conteneur dans le DOM
 					statusContainer.appendChild(statusWrapper);
