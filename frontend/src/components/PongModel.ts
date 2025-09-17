@@ -14,11 +14,11 @@ import * as CANNON from "cannon";
 // Paramètres du terrain
 const FIELD_WIDTH = 13.5;
 const FIELD_DEPTH = 7.5;
-const PADDLE_WIDTH = 3; 
+const PADDLE_WIDTH = 3;
 const PADDLE_HEIGHT = 0.75;
 const PADDLE_DEPTH = 0.25;
 const PADDLE_SPEED = 0.25;
-const BALL_SIZE = 1;
+const BALL_SIZE = 0.5;
 const WALL_WIDTH = PADDLE_DEPTH;
 const WALL_HEIGHT = PADDLE_HEIGHT * 2;
 const WALL_DEPTH = FIELD_DEPTH;
@@ -64,8 +64,8 @@ export class PongModel {
    */
   createImpostors(local: boolean) : void {
     this.ball = new Ball(this.scene, 0, 0, local);
-    this.walls[0] = new Wall(this.scene, (FIELD_WIDTH - WALL_WIDTH) / 2, 0);
-    this.walls[1] = new Wall(this.scene, (WALL_WIDTH - FIELD_WIDTH) / 2, 0);
+    this.walls[0] = new Wall(this.scene, (FIELD_WIDTH + BALL_SIZE) / 2, 0);
+    this.walls[1] = new Wall(this.scene, (- FIELD_WIDTH - BALL_SIZE) / 2, 0);
     this.paddles[0] = new Paddle(this.scene, FIELD_DEPTH / 2, Math.PI);
     this.paddles[1] = new Paddle(this.scene, FIELD_DEPTH / 2, 0);
     if (local){
@@ -233,6 +233,6 @@ class Ground {
    * @param depth - size of the ground on z axis
    */
   constructor(scene: any){
-    this.mesh = MeshBuilder.CreateGround("ground", {width: FIELD_WIDTH, height: FIELD_DEPTH}, scene);
+    this.mesh = MeshBuilder.CreateGround("ground", {width: FIELD_WIDTH + BALL_SIZE, height: FIELD_DEPTH}, scene);
   }
 }
