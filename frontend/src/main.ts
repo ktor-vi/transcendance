@@ -3,6 +3,7 @@ import page from "page";
 import './style.css';
 import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
+import { renderPong } from "./pages/pong";
 import { renderNotFound } from "./pages/notFound";
 import { renderKeyboardPlay } from "./pages/keyboardPlay";
 import { renderProfile } from "./pages/profile";
@@ -43,6 +44,8 @@ page("/", () => render(renderHome()));
 // Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
 page("/dashboard", () => 
 	render(renderDashboard()));
+
+page("/pong", () => renderPong());
 
 page("/profile", () => 
 	renderProfile());
