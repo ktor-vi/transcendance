@@ -95,7 +95,7 @@ export async function renderProfile() {
 					</div>
 				
 					<h1 class="mt-4 mb-4">HISTORIQUE</h1>
-					<table class="history-table mb-16">
+					<table class="history-table mb-24">
 					<thead>
 						<tr>
 						<th>Type</th>
@@ -110,10 +110,16 @@ export async function renderProfile() {
 						${history.map((entry: any) => `
 						<tr class="h-12 border-b-2 border-white">
 							<td>${entry.type}</td>
-							<td>${entry.player_1}</td>
-							<td>${entry.player_2}</td>
+							<td>
+							<a href='/user/${encodeURIComponent(entry.player_1)}'>${(entry.player_1)}</a>
+							</td>
+							<td>
+							<a href='/user/${encodeURIComponent(entry.player_2)}'>${(entry.player_2)}</a>
+							</td>
 							<td>${entry.scores}</td>
-							<td>${entry.winner}</td>
+							<td>
+							<a href='/user/${encodeURIComponent(entry.winner)}'>${(entry.winner)}</a>
+							</td>
 							<td>${entry.created_at}</td>
 						</tr>
 						`).join("")}

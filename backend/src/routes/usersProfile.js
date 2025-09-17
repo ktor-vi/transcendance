@@ -24,11 +24,6 @@ export default async function userProfileRoutes(fastify)
 		console.log(userInfos.picture);
 		console.log("PATH");
 
-		try {
-			await fs.access(userInfos.picture);
-		} catch {
-			userInfos.picture = "/uploads/default.jpg";
-		}
 		if (userInfos)
 			reply.send(userInfos);
 		else
