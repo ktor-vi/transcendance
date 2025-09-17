@@ -3,182 +3,155 @@ import { renderDmChat, initDmChat } from './dmChat';
 import { backButton, setupBackButton } from '../components/backButton.js';
 import { renderError } from '../components/renderError.js';
 
+// Render user profile page
 export async function renderUserProfile(ctx: any) {
-    console.log("renderUserProfile called");
-    try {
-        const userName = ctx.params.name;
-        const res = await fetch(`/api/user/${encodeURIComponent(userName)}`, { method: "GET" });
-        if (!res.ok)
-        {
-            const errorData = await res.json();
-            const error = new Error(errorData.error || "Erreur inconnue");
-            error.status = errorData.status || res.status;
-            throw error;
-        }
-        const historyRes = await fetch(`/api/user/history/${encodeURIComponent(userName)}`, { method: "GET" });
-    
-        const userData = await res.json();
-        
-        console.log("User FRONTEND = ");
-        console.log(userData.email);
-        if (!historyRes.ok) {
-            document.getElementById("app")!.innerHTML =
-            `
-                <p class="text-white text-1xl">Erreur lors du chargement de la page</p>
-                <h2 class="text-white text-9xl">404</h2>
-                <p class="text-white text-2xl">Cet utilisateur n'existe pas</p>
-                <img src="/images/hellokittysad2.png" class="mx-auto w-48"></img>
-            `;
-            return;
-        }
-        const history = await historyRes.json();
-        
-        // --- GESTION DES BOUTONS ---
-        let buttonRequests = `<button id="friendshipButton">Envoyer une demande d'amitié</button>`;
-        const us = await fetch("/api/profile", { method: "GET" });
-        const usData = await us.json();
-        if (userName == usData.name)
-            buttonRequests = "";
-        const alreadyFriends = await fetch(`/api/friends/isFriend/${encodeURIComponent(userName)}`, { method: "GET" });
-        const alreadyFriendsData = await alreadyFriends.json();
-        const friendship = alreadyFriendsData.friendship;
-        if (friendship == true)
-            buttonRequests = `<button id="friendshipButton" disabled>Vous êtes déjà amis</button>`;
-        
-        // --- AJOUT DU BOUTON TESTER DM ---
-        // On ajoute ce bouton seulement si ce n'est pas le profil de l'utilisateur connecté
-        if (userName !== usData.name) {
-            buttonRequests += `<button id="dmButton" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded ml-2">Envoyer un message privé</button>`;
-        }
-        
-        const html = `
-        <div style="display: flex; flex-direction: column; align-items: center;">
-            <h1 style="text-align: center;">Profile de ${userName}</h1>
-            ${buttonRequests}
-            <div id="userStatut"></div>
-            <img 
-            src="${userData.picture}"
-            alt="[photo de profil]" 
-            style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
-        </div>
-        ${!history.length ?
-            `<p>L'historique apparaîtra quand la personne aura fait au moins 1 match </p>`
-        :
-            `<table border="1" style="width: 100%; text-align: center;">
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Joueur 1</th>
-                        <th>Joueur 2</th>
-                        <th>Score</th>
-                        <th>Vainqueur</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${history.map((entry: any) => `
-                        <tr>
-                            <td>${entry.type}</td>
-                            <td>
-                                <a href='/user/${encodeURIComponent(entry.player_1)}' class="bg-transparent text-white m-0 p-2 text-left">${(entry.player_1)}</a>
-                            </td>
-                            <td>
-                                <a href='/user/${encodeURIComponent(entry.player_2)}' class="bg-transparent text-white m-0 p-2 text-left">${(entry.player_2)}</a>
-                            </td>
-                            <td>${entry.scores}</td>
-                            <td>
-                                <a href='/user/${encodeURIComponent(entry.winner)}' class="bg-transparent text-white m-0 p-2 text-left">${(entry.winner)}</a>
-                            </td>
-                            <td>${entry.created_at}</td>
-                        </tr>
-                    `).join("")}
-                </tbody>
-            </table>`
-        }
-        ${backButton()}
-        `;
-        
-        document.getElementById("app")!.innerHTML = html;
-        
-        // --- GESTION DU BOUTON D'AMI ---
-        document.getElementById("friendshipButton")?.addEventListener("click", async() => {
-            try {
-                const receiver = userName;
-                const resRequest = await fetch("/api/friendshipButton", {
-                    method: "POST",
-                    body: receiver
-                });
-                if (resRequest.status != 200) {
-                    const data = await resRequest.json();
-                    alert(data.message);
-                    return ;
-                } else
-                    alert(`La demande a bien été envoyée à ${receiver} !`)
-            } catch {
-                console.error("Erreur lors de l'envoi de la requête");
-            }
-        });
-        
-        // --- BOUTON DM CORRIGÉ ---
-// --- AJOUT DU BOUTON DM ---
-if (userName !== usData.name && userData) {
-    // On montre le bouton DM seulement si ce n'est pas le profil de l'utilisateur connecté
-    // ET si l'utilisateur est en ligne
-    const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`);
-    const statutData = await statutRes.json();
-    if (statutData.online) {
-        buttonRequests += `<button id="dmButton">Envoyer un message à ${userName}</button>`;
-    }
-}
- 	const dmButton = document.getElementById("dmButton");
-if (dmButton) {
-    dmButton.addEventListener("click", async () => {
-        const app = document.getElementById("app");
-        if (!app) return;
-        
-        try {
-            // Récupérer les IDs numériques
-            const res = await fetch(`/api/user/${encodeURIComponent(userName)}`);
-            const userData = await res.json();
-            const receiverId = userData.id;
-            
-            const meRes = await fetch("/api/me");
-            const meData = await meRes.json();
-            const senderId = meData.id;
-            
-            // Injecter le chat avec le nom d'utilisateur pour l'affichage
-            app.innerHTML = renderDmChat(userName); // ou userData.username si disponible
-            
-            // Initialiser la WebSocket avec les IDs numériques
-            initDmChat(receiverId, senderId);
-            
-        } catch (error) {
-            console.error("[DM] Erreur lors de l'initialisation du chat:", error);
-            alert("Erreur lors de l'ouverture du chat privé");
-        }
-    });
-} 
-        // --- GESTION STATUT UTILISATEUR ---
-        const statusContainer = document.getElementById("userStatut");
-        if (statusContainer) {
-            const statusWrapper = document.createElement("span");
-            statusWrapper.style.display = "flex";
-            statusWrapper.style.alignItems = "center";
-            statusWrapper.style.gap = "6px";
-            const statusImg = document.createElement("img");
-            statusImg.className = "w-9 h-9";
-            const statusText = document.createElement("span");
-            try {
-                const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`);
-                if (!statutRes.ok)
-                    throw new Error(`Error with HTTP status`);
-                const data = await statutRes.json();
-                console.log("Réponse statut : ", data);
-                if (data.online) {
-                    statusText.textContent = "Connecté.e";
-                    statusImg.alt = "Connecté.e";
-                    statusImg.src = `/images/available.svg`;
-                } else {
+	try {
+		const userName = ctx.params.name;
+
+		// Fetch user profile data
+		const res = await fetch(`/api/user/${encodeURIComponent(userName)}`, { method: "GET" });
+		if (!res.ok) {
+			const errorData = await res.json();
+			const error = new Error(errorData.error || "Unknown error");
+			error.status = errorData.status || res.status;
+			throw error;
+		}
+
+		const historyRes = await fetch(`/api/user/history/${encodeURIComponent(userName)}`, { method: "GET" });
+		const userData = await res.json();
+
+		if (!historyRes.ok) {
+			document.getElementById("app")!.innerHTML = `
+				<p class="text-white text-1xl">Error loading page</p>
+				<h2 class="text-white text-9xl">404</h2>
+				<p class="text-white text-2xl">User does not exist</p>
+				<img src="/images/hellokittysad2.png" class="mx-auto w-48"></img>
+			`;
+			return;
+		}
+
+		const history = await historyRes.json();
+
+		// Friendship button logic
+		let buttonRequests = `<button id="friendshipButton">Send Friend Request</button>`;
+		const us = await fetch("/api/profile", { method: "GET" });
+		const usData = await us.json();
+
+		if (userName === usData.name) buttonRequests = "";
+
+		const alreadyFriends = await fetch(`/api/friends/isFriend/${encodeURIComponent(userName)}`, { method: "GET" });
+		const alreadyFriendsData = await alreadyFriends.json();
+		if (alreadyFriendsData.friendship) buttonRequests = `<button id="friendshipButton" disabled>Already Friends</button>`;
+
+		// DM button for other users
+		if (userName !== usData.name) {
+			buttonRequests += `<button id="dmButton" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded ml-2">Send Private Message</button>`;
+		}
+
+		// HTML template
+		const html = `
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<h1 style="text-align: center;">Profile of ${userName}</h1>
+			${buttonRequests}
+			<div id="userStatut"></div>
+			<img src="${userData.picture}" alt="[profile picture]" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/>
+		</div>
+		${!history.length ?
+			`<p>History will appear after the user has played at least 1 match</p>` :
+			`<table border="1" style="width: 100%; text-align: center;">
+				<thead>
+					<tr>
+						<th>Type</th>
+						<th>Player 1</th>
+						<th>Player 2</th>
+						<th>Score</th>
+						<th>Winner</th>
+						<th>Date</th>
+					</tr>
+				</thead>
+				<tbody>
+					${history.map((entry: any) => `
+						<tr>
+							<td>${entry.type}</td>
+							<td><a href='/user/${encodeURIComponent(entry.player_1)}' class="bg-transparent text-white m-0 p-2 text-left">${entry.player_1}</a></td>
+							<td><a href='/user/${encodeURIComponent(entry.player_2)}' class="bg-transparent text-white m-0 p-2 text-left">${entry.player_2}</a></td>
+							<td>${entry.scores}</td>
+							<td><a href='/user/${encodeURIComponent(entry.winner)}' class="bg-transparent text-white m-0 p-2 text-left">${entry.winner}</a></td>
+							<td>${entry.created_at}</td>
+						</tr>
+					`).join("")}
+				</tbody>
+			</table>`
+		}
+		${backButton()}
+		`;
+
+		document.getElementById("app")!.innerHTML = html;
+
+		// Friendship button click
+		document.getElementById("friendshipButton")?.addEventListener("click", async () => {
+			try {
+				const receiver = userName;
+				const resRequest = await fetch("/api/friendshipButton", { method: "POST", body: receiver });
+				if (resRequest.status !== 200) {
+					const data = await resRequest.json();
+					alert(data.message);
+				} else {
+					alert(`Friend request sent to ${receiver}!`);
+				}
+			} catch {
+				console.error("Error sending request");
+			}
+		});
+
+		// DM button click
+		const dmButton = document.getElementById("dmButton");
+		if (dmButton) {
+			dmButton.addEventListener("click", async () => {
+				const app = document.getElementById("app");
+				if (!app) return;
+
+				try {
+					const res = await fetch(`/api/user/${encodeURIComponent(userName)}`);
+					const userData = await res.json();
+					const receiverId = userData.id;
+
+					const meRes = await fetch("/api/me");
+					const meData = await meRes.json();
+					const senderId = meData.id;
+
+					app.innerHTML = renderDmChat(userName);
+					initDmChat(receiverId, senderId);
+				} catch (error) {
+					console.error("DM initialization error:", error);
+					alert("Error opening private chat");
+				}
+			});
+		}
+
+		// Display user online status
+		const statusContainer = document.getElementById("userStatut");
+		if (statusContainer) {
+			const statusWrapper = document.createElement("span");
+			statusWrapper.style.display = "flex";
+			statusWrapper.style.alignItems = "center";
+			statusWrapper.style.gap = "6px";
+
+			const statusImg = document.createElement("img");
+			statusImg.className = "w-9 h-9";
+
+			const statusText = document.createElement("span");
+			try {
+				const statutRes = await fetch(`/api/user/${encodeURIComponent(userName)}/online`);
+				if (!statutRes.ok) throw new Error(`Error with HTTP status`);
+				const data = await statutRes.json();
+
+				if (data.online) {
+					statusText.textContent = "Online";
+					statusImg.alt = "Online";
+					statusImg.src = `/images/available.svg`;
+
+		} else {
                     statusText.textContent = "Déconnecté.e";
                     statusImg.alt = "Déconnecté.e";
                     statusImg.src = `/images/disconnected.svg`;
