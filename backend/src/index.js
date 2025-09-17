@@ -32,6 +32,7 @@ import friendshipRequestsRoutes from "./routes/friendshipRequests.js";
 import friendsRoutes from "./routes/friends.js";
 import tournamentRoutes from "./routes/tournament.js";
 import pingRoutes from "./routes/ping.js";
+import blockChat from "./routes/blockChat.js";
 
 // ───────────────────────────────────────────────
 // Server initialization
@@ -77,6 +78,7 @@ fastify.register(profileRoutes, apiPrefix);
 fastify.register(registerRoutes, apiPrefix);
 fastify.register(loginRoutes, apiPrefix);
 fastify.register(forgotPwdRoutes, apiPrefix);
+fastify.register(blockChat, apiPrefix);
 
 // Public routes (no /api prefix)
 fastify.register(authRoutes);

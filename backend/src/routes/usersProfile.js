@@ -34,7 +34,7 @@ export default async function userProfileRoutes(fastify)
 		else
 			reply.code(404).send({ success: false, message: "Problème pendant l'affichage du profil" });
 	});
-//////////////////////////////////////////////////////////////////
+	
 	fastify.get('/user/history/:name', async (req, reply) => {
 		const historyDb = await openDbHistory();
 		const userName = req.params.name;
