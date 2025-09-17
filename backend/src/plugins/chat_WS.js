@@ -1,7 +1,7 @@
 import fp from "fastify-plugin"; // Import Fastify plugin helper
 import { getOrCreateConversation } from "./conversationService.js";
 import sqlite3pkg from "sqlite3";
-import { WebSocket } from "ws";
+import { promisify } from "util";
 const sqlite3 = sqlite3pkg.verbose();
 const db = new sqlite3.Database("./data/users.sqlite3");
 
@@ -195,13 +195,30 @@ export default fp(async function (fastify) {
               }
             }
           );
-
+          const dbGetAsync = promisify(db.get.bind(db));
+          const blockedStatus = await dbGetAsync(
+            // `SELECT * FROM blockedUsers WHERE (blocker_id = ? AND blocked_id = ?) or (blocker_id = ? OR blocked_id = ?)`,
+            // [receiverId, senderId, senderId, receiverId],
+            `SELECT * FROM blockedUsers WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? OR blocked_id = ?)`,
+            [receiverId, senderId, senderId, receiverId],
+            (err) => {
+              if (err) {
+                console.error("[BLOCKED DM] Erreur DB:", err);
+              } else {
+                console.log("[BLOCKED DM]");
+              }
+            }
+          );
+          console.log("status: ", blockedStatus);
+          if(blockedStatus)
+            return;
           // c) Prépare le payload pour le destinataire
           const dmPayload = JSON.stringify({
             type: "dmMessage",
             conversationId: conversationId,
             from: senderId,
             to: receiverId,
+	    fromName: req.session.user.name,
             content: msg.content,
             timestamp: new Date().toISOString(),
           });

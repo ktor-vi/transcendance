@@ -82,6 +82,13 @@ CREATE TABLE IF NOT EXISTS
 		FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
 		FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS
+	blockedUsers (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		blocked_id INTEGER NOT NULL,
+		blocker_id INTEGER NOT NULL
+);
 `;
 
 	db.exec(createSQTable, (err) => { // execute une cmd sql

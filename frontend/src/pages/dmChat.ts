@@ -3,37 +3,40 @@ import page from "page";
 
 export function renderDmChat(receiverId: string) {
   return `
-    <div class="flex flex-col h-[90vh] max-h-screen px-4 py-2">
-      <h1 class="text-xl font-bold mb-2">DM avec ${receiverId}</h1>
-      <div id="matchDiv">
-        <button id="inviteMatchBtn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors">
-          🎮 Lancer une partie
-        </button>
-      </div>
-      <div id="dmMessages" class="flex-1 overflow-y-auto border rounded p-4 bg-white shadow-inner mb-4">
-        <p class="text-gray-500 italic">En attente de connexion...</p>
-      </div>
+	<div class="flex flex-col h-[90vh] max-h-screen px-4 py-2">
+	<h1 class="text-xl font-bold mb-2">DM avec ${receiverId}</h1>
+	<div id="matchDiv">
+	<button id="inviteMatchBtn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors">
+	🎮 Lancer une partie
+	</button>
+	<div id="blockDiv">
 
-      <div class="flex items-center border rounded p-2 bg-white shadow">
-        <input
-          id="dmInput"
-          type="text"
-          placeholder="Écris un message privé..."
-          class="flex-1 px-4 py-2 border rounded mr-2 focus:outline-none focus:ring focus:border-green-300"
-        />
-        <button
-          id="dmSendBtn"
-          class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded"
-        >
-          Envoyer
-        </button>
-      </div>
-    </div>
-  `;
+	</div>
+	</div>
+	<div id="dmMessages" class="flex-1 overflow-y-auto border rounded p-4 bg-white shadow-inner mb-4">
+	<p class="text-gray-500 italic">En attente de connexion...</p>
+	</div>
+
+	<div class="flex items-center border rounded p-2 bg-white shadow">
+	<input
+	id="dmInput"
+	type="text"
+	placeholder="Écris un message privé..."
+	class="flex-1 px-4 py-2 border rounded mr-2 focus:outline-none focus:ring focus:border-green-300"
+	/>
+	<button
+	id="dmSendBtn"
+	class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded"
+	>
+	Envoyer
+	</button>
+	</div>
+	</div>
+	`;
 }
 
 // --- Partie front après injection du HTML ---
-export function initDmChat(receiverId: string, senderId: string) {
+export async function initDmChat(receiverId: string, senderId: string) {
   const dmContainer = document.getElementById("dmMessages");
   const input = document.getElementById("dmInput") as HTMLInputElement;
   const btn = document.getElementById("dmSendBtn") as HTMLButtonElement;
@@ -211,5 +214,61 @@ export function initDmChat(receiverId: string, senderId: string) {
 
     // Rediriger vers le dashboard
     page("/dashboard");
+  }
+  const blockDiv = document.getElementById("blockDiv");
+  const blockbtn = document.createElement("button");
+  blockbtn.className =
+    "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors";
+  blockbtn.innerHTML = `Block`;
+  blockbtn?.addEventListener("click", block);
+
+  const unblockbtn = document.createElement("button");
+  unblockbtn.className =
+    "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors";
+  unblockbtn.innerHTML = `Unblock`;
+  unblockbtn?.addEventListener("click", unblock);
+  let blocked = false;
+
+  fetch("/api/blockedStatus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ senderId, receiverId }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.blocked == true) {
+        blocked = true;
+        blockDiv?.appendChild(unblockbtn);
+        blockbtn.style.visibility = "visible";
+      } else if (data.blocked == false) {
+        blocked = false;
+        blockDiv?.appendChild(blockbtn);
+        unblockbtn.style.visibility = "visible";
+      }
+    });
+
+  async function block() {
+    blocked = true;
+    blockbtn.style.visibility = "hidden";
+    blockDiv?.appendChild(unblockbtn);
+    unblockbtn.style.visibility = "visible";
+    console.log(`[BLOCK DEBUG FRONT] ${senderId}, ${receiverId}, ${blocked}`);
+    await fetch("/api/blocking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ senderId, receiverId, blocked }),
+    });
+  }
+
+  async function unblock() {
+    blocked = false;
+    unblockbtn.style.visibility = "hidden";
+    blockDiv?.appendChild(blockbtn);
+    blockbtn.style.visibility = "visible";
+    await fetch("/api/blocking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ senderId, receiverId, blocked }),
+    });
   }
 }
