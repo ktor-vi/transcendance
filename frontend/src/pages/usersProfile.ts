@@ -26,10 +26,14 @@ export async function renderUserProfile(ctx: any) {
 		if (!historyRes.ok) {
 			document.getElementById("app")!.innerHTML =
 			`
-				<p class="text-white text-1xl">Erreur lors du chargement de la page</p>
-				<h2 class="text-white text-9xl">404</h2>
+			<section class="flex flex-col items-center text-center">
+			<div class="mt-16">
+			<p class="text-white text-1xl">Erreur lors du chargement de la page</p>
+			<h2 class="text-white text-9xl">404</h2>
 				<p class="text-white text-2xl">Cet utilisateur n'existe pas</p>
 				<img src="/images/hellokittysad2.png" class="mx-auto w-48"></img>
+			</div>
+			</section>
 			`;
 			return;
 		}
