@@ -5,8 +5,9 @@ import { backButton, setupBackButton } from '../components/backButton.js';
 export async function renderForgotPwd() {
 	console.log("ForgotPassword called");
 	try {
-		const html =
-		`
+		
+		const html = `
+			<script>0</script>
 		<section class="flex flex-col items-center text-center">
 		<img src="/images/hellokittycomputer.png" class="hellokitty-computer">
 		<h1 class="text-4xl">Mot de passe oublié</h1>

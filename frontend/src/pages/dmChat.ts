@@ -4,6 +4,7 @@ import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 
 export function renderDmChat(receiverId: string) {
 	return `
+	<script>0</script>
 <section class="flex flex-col items-center text-center">
 	<div class="self-start ml-16 mt-12">
 	${backButtonArrow()}

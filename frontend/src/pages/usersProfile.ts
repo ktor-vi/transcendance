@@ -62,6 +62,7 @@ export async function renderUserProfile(ctx: any) {
 		console.log("La pp du profil est = ");
 		console.log(userData.picture);
 			const html = `
+				<script>0</script>
 			 <section class="flex flex-col items-center text-center">
 			 <div class="self-start ml-16 mt-12">
 				${backButtonArrow()}
@@ -75,12 +76,11 @@ export async function renderUserProfile(ctx: any) {
 					class="flex items-center w-[150px] h-[150px] object-cover rounded-full shadow-lg"
 				/>
 
-			${!history.length ?
-				`<p class="mt-8 text-xl">Les stats et l'historique <br>apparaîtront quand ${userName} aura fait au moins 1 match </p>
+			${
+        !history.length
+          ? `<p class="mt-8 text-xl">Les stats et l'historique <br>apparaîtront quand ${userName} aura fait au moins 1 match </p>
 				<img class="w-48" src="/images/hellokittytired.png" alt="Hello Kitty fatiguée"/>`
-			:
-
-				`
+          : `
 				<div id="stats">
 				<h1 class="text-2xl mt-8 mb-4">STATS</h1>
   					<table class="stats-table w-[270px] mx-auto">
@@ -113,26 +113,30 @@ export async function renderUserProfile(ctx: any) {
 						</tr>
 					</thead>
 					<tbody>
-						${history.map((entry: any) => `
+						${history
+              .map(
+                (entry: any) => `
 						<tr class="h-12 border-b-2 border-white">
 							<td>${entry.type}</td>
 							<td>
-							<a href='/user/${encodeURIComponent(entry.player_1)}'>${(entry.player_1)}</a>
+							<a href='/user/${encodeURIComponent(entry.player_1)}'>${entry.player_1}</a>
 							</td>
 							<td>
-							<a href='/user/${encodeURIComponent(entry.player_2)}'>${(entry.player_2)}</a>
+							<a href='/user/${encodeURIComponent(entry.player_2)}'>${entry.player_2}</a>
 							</td>
 							<td>${entry.scores}</td>
 							<td>
-							<a href='/user/${encodeURIComponent(entry.winner)}'>${(entry.winner)}</a>
+							<a href='/user/${encodeURIComponent(entry.winner)}'>${entry.winner}</a>
 							</td>
 							<td>${entry.created_at}</td>
 						</tr>
-						`).join("")}
+						`
+              )
+              .join("")}
 					</tbody>
 					</table>
 				`
-			}
+      }
 				</section>
 			`;
 
