@@ -189,7 +189,7 @@ export function renderTournamentPage(): string {
             );
 
             const firstPlayer = tournamentData.players.find(
-              (p) =>
+              (p: Player) =>
                 p.name === firstMatch.player1 || p.name === firstMatch.player2
             );
 

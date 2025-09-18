@@ -21,17 +21,21 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   }
 
   // Determine les controles
-  pong.camera.attachControl(canvas, true);
+  if (pong.camera)
+    pong.camera.attachControl(canvas, true);
 
   let gameStarted = false;
 
   // Écouteur de clic sur le bouton
-  view.startButton.onPointerUpObservable.add(() => {
+  if (view.startButton)
+    view.startButton.onPointerUpObservable.add(() => {
     score.p1 = 0;
     score.p2 = 0;
     if (scoreCallback) scoreCallback(score);
-    pong.ball.reset();
-    pong.ball.launch();
+    if (pong.ball){
+      pong.ball.reset();
+      pong.ball.launch();
+    }
     gameStarted = true;
   });
 
@@ -63,7 +67,7 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
     if (keysOne.right) pong.paddles[0].move("right");
     if (keysTwo.left) pong.paddles[1].move("left");
     if (keysTwo.right) pong.paddles[1].move("right");
-    if (pong.collision())
+    if (pong.collision() && pong.ball)
       view.shiny(pong.ball.hitbox.position);
   });
 
@@ -71,7 +75,7 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   engine.runRenderLoop(() => {
 
     if (gameStarted) {
-      if(score.p1 > 10 || score.p2 > 10){
+      if((score.p1 > 10 || score.p2 > 10) && pong.ball){
         pong.ball.reset();
         gameStarted = false;
       }
@@ -82,8 +86,10 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
         score.p2++;
         if (scoreCallback) scoreCallback(score);
         setTimeout(() => {
-          pong.ball.reset();
-          pong.ball.launch();
+          if (pong.ball){
+            pong.ball.reset();
+            pong.ball.launch();
+          }
           gameStarted = true;
         }, 1000);
       }
@@ -94,8 +100,10 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
         score.p1++;
         if (scoreCallback) scoreCallback(score);
         setTimeout(() => {
-          pong.ball.reset();
-          pong.ball.launch();
+          if (pong.ball){
+            pong.ball.reset();
+            pong.ball.launch();
+          }
           gameStarted = true;
         }, 1000);
       }
@@ -108,13 +116,15 @@ export function createBabylonKeyboardPlay(canvas: HTMLCanvasElement) {
   });
   return {
     start: () => {
-      pong.ball.reset();
+      if (pong.ball)
+        pong.ball.reset();
       // gameStarted = true;
     },
     reset: () => {
       score = { p1: 0, p2: 0 };
       if (scoreCallback) scoreCallback(score);
-      pong.ball.reset();
+      if (pong.ball)
+        pong.ball.reset();
       gameStarted = true;
     },
     onScoreUpdate,
