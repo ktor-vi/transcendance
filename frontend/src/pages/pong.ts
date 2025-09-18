@@ -3,10 +3,10 @@ import { createBabylonScene } from "../components/BabylonScene";
 import { GameInstance } from "../types/GameTypes";
 
 async function getPicture() {
-    const res = await fetch("/api/profile", { method: "GET" });
-    const userData = await res.json();
+  const res = await fetch("/api/profile", { method: "GET" });
+  const userData = await res.json();
 
-    return (userData.picture);
+  return userData.picture;
 }
 
 export function renderPong() {
@@ -61,7 +61,7 @@ export function renderPong() {
 
     // 🔧 FONCTION : Créer une connexion WebSocket
     function createWebSocketConnection(roomId: string | null): WebSocket {
-      const ws = new WebSocket(`wss://${window.location.hostname}:3000/ws`);
+      const ws = new WebSocket(`wss://${window.location.hostname}:5173/ws`);
 
       ws.onopen = () => {
         console.log("🔗 WebSocket dashboard connecté");
@@ -462,12 +462,12 @@ export function renderPong() {
       console.log("🎲 Matchmaking automatique demandé");
       joinRoom("auto");
     });
-    
+
     // document = obj global = page html chargee dans le browser -> DOM = Document Obj Model
     // getElmtById = method de DOM qui selectionne un element HTML par son ID
     // eventListener = surveillance de l'evenement clique rattache au bouton
     document.getElementById("liveChatBtn")?.addEventListener("click", () => {
-        page("/chat");
+      page("/chat");
     });
 
     document
@@ -489,7 +489,6 @@ export function renderPong() {
     });
   }, 300);
 
-  
   getPicture().then((userPicture) => {
     const profileImg = document.querySelector<HTMLImageElement>(
       'a[href="/profile"] img'
@@ -500,33 +499,93 @@ export function renderPong() {
   });
 
   const html = `
-    <section class="flex flex-col items-center text-center">
-        <div class="dashboard-buttons w-full flex items-center justify-between px-8">
-            <h1 class="ml-8 text-4xl -mt-4">TRANSCENDENCE</h1>
-            <img src="/images/hellokittycomputer.png" class="hellokitty-computer">
-            <div class="flex space-x-6 mr-8 -mt-4">
-                <a href="/users-list" data-nav class="button bg-rose-300 hover:bg-rose-400 h-8">Utilisateurs</a>
-                <a href="/friends" data-nav class="button bg-orange-300 hover:bg-orange-400 h-8">Amitiés</a>
-                </div>
-                <a href="/profile" data-nav>
-                    <img src="/images/default-profile.png" alt="Profil" class="w-28 h-28 -mt-4 rounded-full object-cover shadow-lg">
+<script>0</script>
+
+<section class="flex flex-col items-center text-center min-h-screen pt-4 pb-16 relative">
+    <div class="dashboard-buttons w-full flex items-center justify-between px-8 mb-8">
+        <h1 class="ml-8 text-4xl -mt-4 font-bold text-pink-600">TRANSCENDENCE</h1>
+
+        <img src="/images/hellokittycomputer.png"
+             alt="Hello Kitty Computer"
+             class="hellokitty-computer h-20">
+
+        <div class="flex items-center space-x-6">
+            <div class="flex space-x-6 mr-4">
+                <a href="/users-list"
+                   data-nav
+                   class="button bg-rose-300 hover:bg-rose-400 h-8 px-4 py-1 rounded transition-colors">
+                    Utilisateurs
                 </a>
+                <a href="/friends"
+                   data-nav
+                   class="button bg-orange-300 hover:bg-orange-400 h-8 px-4 py-1 rounded transition-colors">
+                    Amitiés
+                </a>
+            </div>
+
+            <a href="/profile" data-nav class="block">
+                <img src="/images/default-profile.png"
+                     alt="Profil"
+                     class="w-14 h-14 -mt-2 rounded-full object-cover shadow-lg hover:shadow-xl transition-shadow">
+            </a>
         </div>
-        <div class="relative w-[350px]">
-            <button id="goToTournamentBtn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors">
+    </div>
+
+    <div class="flex flex-row space-y-3 items-baseline w-80vw mb-8 ">
+        <input id="roomIdInput"
+               placeholder="ID de la room"
+               class="border px-3 h-12 rounded w-[150px] h-10 focus:outline-none focus:ring-2 focus:ring-blue-300">
+
+
+            <button id="joinRoomBtn"
+                    class="mx-4 button bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition-colors flex items-center justify-center">
+                🎮 Rejoindre Room
+            </button>
+
+            <button id="matchmakeBtn"
+                    class="mx-4 button bg-green-500 hover:bg-green-600 text-white py-2 rounded transition-colors flex items-center justify-center">
+                🎲 Matchmaking
+            </button>
+
+            <button id="goToTournamentBtn"
+                    class="mx-4 button bg-orange-500 hover:bg-orange-600 text-white py-2 rounded transition-colors flex items-center justify-center">
                 🏆 Tournoi
             </button>
-            <button id="keyboardPlayBtn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors">
+
+            <button id="keyboardPlayBtn"
+                    class="mx-4 button bg-purple-600 hover:bg-purple-700 text-white py-2 rounded transition-colors flex items-center justify-center">
                 ⌨️ Local
             </button>
-	        <button id="liveChatBtn" class="bg-fuchsia-400 text-white px-4 py-2 rounded">Chat</button>
+
+
+        <button id="liveChatBtn"
+                class="mx-4 button bg-fuchsia-400 hover:bg-fuchsia-500 text-white px-4 py-2 rounded transition-colors">
+            Chat
+        </button>
+    </div>
+
+    <div class="game-container w-full max-w-4xl mx-auto">
+        <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+            <div id="roomInfo" class="text-sm text-gray-600 italic mb-1">Aucune partie en cours</div>
+            <h2 id="score" class="text-xl font-bold mt-2 min-h-[2rem]"></h2>
         </div>
 
-        <button id="logout" class="button bg-red-400 hover:bg-red-500 w-10 fixed bottom-16 left-16">
-            <img src="/images/logout.svg" class="absolute top-1/2 left-1/2 w-10 h-10 -scale-x-100 -translate-x-1/2 -translate-y-1/2" alt="Logout">
-        </button>
+        <h1 id="launch" class="text-5xl text-center text-gray-400 my-8 select-none">🚀 Lancez une partie !</h1>
 
-        </section>
+        <canvas id="renderCanvas"
+                class="border border-gray-300 w-full h-[70vh] rounded-lg shadow-lg bg-gray-800">
+        </canvas>
+    </div>
+
+    <button id="logout"
+            class="button bg-red-400 hover:bg-red-500 w-12 h-12 fixed bottom-6 left-6 rounded-full shadow-md transition-colors"
+            aria-label="Déconnexion">
+        <img src="/images/logout.svg"
+             alt="Déconnexion"
+             class="w-8 h-8 mx-auto -scale-x-100">
+    </button>
+</section>
+
     `;
-	document.getElementById("app")!.innerHTML = html;
+  document.getElementById("app")!.innerHTML = html;
 }
