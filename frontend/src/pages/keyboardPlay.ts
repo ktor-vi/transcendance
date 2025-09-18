@@ -1,5 +1,5 @@
 import page from "page";
-import { createBabylonKeyboardPlay } from "../components/BabylonKeyboardPlay";
+import { createBabylonKeyboardPlay } from "../components/PongController";
 
 export type KeyboardInstance = {
 	start: () => void;
