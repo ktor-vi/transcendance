@@ -10,7 +10,7 @@ export async function renderFriendsRequests() {
 			if (!resRequests.ok) {
 				const errorData = await resRequests.json();
 				const error = new Error(errorData.error || "Erreur inconnue");
-				error.status = errorData.status || resRequests.status;
+				// error.status = errorData.status || resRequests.status;
 				throw error;
 			}
 		
@@ -69,7 +69,7 @@ export async function renderFriendsRequests() {
 							}
 							if (!resAccept) {
 								const error = new Error("Erreur");
-								error.status = "404";
+								// error.status = "404";
 								throw error;
 							}
 							alert(`Vous avez accepté la demande d'amitié de ${line.sender_name}`)
@@ -97,7 +97,7 @@ export async function renderFriendsRequests() {
 							}
 							if (!resDecline) {
 								const error = new Error("Erreur");
-								error.status = "404";
+								// error.status = "404";
 								throw error;
 							}
 							alert(`Vous avez décliné la demande d'amitié de ${line.sender_name}`)
