@@ -1,6 +1,7 @@
 export function renderHome()
 {
 	return `
+		<script>0</script>
 	<section class="flex flex-col items-center text-center">
 	<img src="/images/hellokittycomputer.png" class="hellokitty-computer">
 		<h1 class="text-6xl">TRANSCENDENCE</h1>
