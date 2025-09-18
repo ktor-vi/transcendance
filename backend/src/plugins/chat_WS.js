@@ -1,430 +1,228 @@
-import fp from "fastify-plugin"; // Import Fastify plugin helper
+import fp from "fastify-plugin";
 import { getOrCreateConversation } from "./conversationService.js";
 import sqlite3pkg from "sqlite3";
 import { promisify } from "util";
+
 const sqlite3 = sqlite3pkg.verbose();
 const db = new sqlite3.Database("./data/users.sqlite3");
 
 export default fp(async function (fastify) {
-  // Declare and export Fastify plugin
+	// --- Global Chat ---
+	const clients = new Set();
 
-  const clients = new Set(); // Store connected clients (each entry = a socket)
-  // Note: For associating with DB later, using a Map with userId -> socket might be better
+	fastify.get("/chat", { websocket: true }, (socket, req) => {
+		console.log("[CHAT] Connected:", req.socket.remoteAddress);
 
-  // WebSocket entry point
-  fastify.get("/chat", { websocket: true }, (socket, req) => {
-    console.log("Meow: chat client connected");
+		clients.add(socket);
+		console.log(`[CHAT] Clients: ${clients.size}`);
 
-    console.log(
-      `[CHAT] New WebSocket connection from ${req.socket.remoteAddress}`
-    );
-    console.log(`[CHAT] Request headers:`, req.headers);
+		socket.on("message", (raw) => {
+			let msg;
+			try {
+				msg = JSON.parse(raw);
+			} catch (err) {
+				console.error("[CHAT] Invalid JSON:", err);
+				return;
+			}
 
-    clients.add(socket);
-    console.log(
-      `[CHAT] Client added. Total connected clients: ${clients.size}`
-    );
+			if (msg.type === "chatMessage") {
+				const payload = JSON.stringify({
+					type: "chatMessage",
+					user: msg.user ?? "Anonymous",
+					content: msg.content,
+				});
 
-    // Listen for messages from client
-    socket.on("message", (raw) => {
-      console.log(`[CHAT] Received message:`, raw.toString());
+				let broadcastCount = 0;
+				for (const client of clients) {
+					if (client !== socket && client.readyState === 1) {
+						try {
+							client.send(payload);
+							broadcastCount++;
+						} catch (err) {
+							console.error("[CHAT] Send error:", err);
+							clients.delete(client);
+						}
+					}
+				}
+				console.log(`[CHAT] Broadcasted to ${broadcastCount}`);
+			}
+		});
 
-      let msg;
-      try {
-        msg = JSON.parse(raw);
-        console.log(`[CHAT] Parsed message:`, msg);
-      } catch (err) {
-        console.error("[CHAT] JSON parsing error:", err);
-        return;
-      }
+		socket.on("close", () => {
+			clients.delete(socket);
+			console.log(`[CHAT] Client disconnected. Left: ${clients.size}`);
+		});
 
-      if (msg.type === "chatMessage") {
-        const payload = JSON.stringify({
-          type: "chatMessage",
-          user: msg.user ?? "Anonymous",
-          content: msg.content,
-        });
+		socket.on("error", (err) => {
+			console.error("[CHAT] Socket error:", err);
+			clients.delete(socket);
+		});
+	});
 
-        console.log(`[CHAT] Broadcasting to ${clients.size} clients:`, payload);
+	// --- Direct Messages ---
+	const dmClients = new Map(); // userId -> socket
 
-        let broadcastCount = 0;
-        for (const client of clients) {
-          if (client !== socket && client.readyState === 1) {
-            try {
-              client.send(payload);
-              broadcastCount++;
-            } catch (err) {
-              console.error("[CHAT] Error sending to a client:", err);
-              clients.delete(client);
-            }
-          }
-        }
+	fastify.get("/dm", { websocket: true }, (socket, req) => {
+		const senderId = req.session?.user?.id;
+		const receiverId = Number(req.query.receiverId);
 
-        console.log(`[CHAT] Message broadcasted to ${broadcastCount} clients`);
-      } else {
-        console.log(`[CHAT] Ignored message type: ${msg.type}`);
-      }
-    });
+		if (!senderId || !receiverId || senderId.toString() === receiverId.toString()) {
+			socket.send(JSON.stringify({ type: "error", message: "Invalid DM session/receiver" }));
+			socket.close(4001, "Invalid DM");
+			return;
+		}
 
-    // Handle client disconnect
-    socket.on("close", (code, reason) => {
-      clients.delete(socket);
-      console.log(
-        `[CHAT] Client disconnected (Code: ${code}, Reason: ${reason}). Remaining clients: ${clients.size}`
-      );
-    });
+		dmClients.set(senderId.toString(), socket);
+		socket.send(JSON.stringify({ type: "dmConnected", senderId, receiverId }));
 
-    // Handle socket errors
-    socket.on("error", (err) => {
-      console.error("[CHAT] Socket error:", err);
-      clients.delete(socket);
-      console.log(
-        `[CHAT] Client removed after error. Remaining clients: ${clients.size}`
-      );
-    });
-  });
+		socket.on("message", async (raw) => {
+			let msg;
+			try {
+				msg = JSON.parse(raw);
+			} catch {
+				return;
+			}
 
-  // --- Direct Messages (DM) ---
-  const dmClients = new Map(); // userId -> socket
+			// --- DM text ---
+			if (msg.type === "dmMessage" && msg.content) {
+				try {
+					const conversationId = await getOrCreateConversation(senderId, receiverId);
 
-  fastify.get("/dm", { websocket: true }, (socket, req) => {
-    console.log("[DM] 🔍 Nouvelle connexion WebSocket DM");
-    console.log("[DM] Headers:", req.headers);
-    console.log("[DM] Query params:", req.query);
-    console.log("[DM] Session complète:", req.session);
-    console.log("[DM] req.session?.userId:", req.session?.userId);
+					// save to DB
+					db.run(
+						`INSERT INTO messages (conversation_id, sender_id, content) VALUES (?, ?, ?)`,
+						[conversationId, senderId, msg.content]
+					);
 
-    // 1️⃣ Debug complet de la session
-    const senderId = req.session?.user?.id;
-    console.log("[DM] SenderId extrait:", senderId, typeof senderId);
+					// check block
+					const dbGetAsync = promisify(db.get.bind(db));
+					const blocked = await dbGetAsync(
+						`SELECT * FROM blockedUsers WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? OR blocked_id = ?)`,
+						[receiverId, senderId, senderId, receiverId]
+					);
+					if (blocked) return;
 
-    if (!senderId) {
-      console.log(
-        "[DM] ❌ Pas de senderId dans la session, fermeture WebSocket"
-      );
-      socket.send(
-        JSON.stringify({
-          type: "error",
-          message: "Session utilisateur non trouvée",
-        })
-      );
-      socket.close(4001, "No user session");
-      return;
-    }
+					// send to receiver
+					const dmPayload = JSON.stringify({
+						type: "dmMessage",
+						conversationId,
+						from: senderId,
+						to: receiverId,
+						fromName: req.session.user.name,
+						content: msg.content,
+						timestamp: new Date().toISOString(),
+					});
 
-    // 2️⃣ Debug du query parameter receiver
-    const receiverId = Number(req.query.receiverId);
-    console.log(
-      "[DM] ReceiverId depuis query params:",
-      receiverId,
-      typeof receiverId
-    );
+					const receiverKey = receiverId.toString();
+					if (dmClients.has(receiverKey)) {
+						try {
+							dmClients.get(receiverKey).send(dmPayload);
+						} catch {
+							dmClients.delete(receiverKey);
+						}
+					}
 
-    if (!receiverId) {
-      console.log("[DM] ❌ Pas de receiverId dans les query params");
-      socket.send(
-        JSON.stringify({
-          type: "error",
-          message: "ID destinataire manquant dans l'URL",
-        })
-      );
-      socket.close(4002, "No receiver ID");
-      return;
-    }
+					// confirm to sender
+					socket.send(JSON.stringify({
+						type: "dmSent",
+						conversationId,
+						to: receiverId,
+						content: msg.content,
+						timestamp: new Date().toISOString(),
+					}));
+				} catch (err) {
+					console.error("[DM] Error:", err);
+					socket.send(JSON.stringify({ type: "error", message: "DM failed" }));
+				}
+			}
 
-    // 3️⃣ Vérifier que senderId != receiverId
-    if (senderId.toString() === receiverId.toString()) {
-      console.log("[DM] ❌ Tentative d'envoi de DM à soi-même");
-      socket.send(
-        JSON.stringify({
-          type: "error",
-          message: "Impossible d'envoyer un DM à soi-même",
-        })
-      );
-      socket.close(4003, "Cannot DM self");
-      return;
-    }
+			// --- Match invite ---
+			else if (msg.type === "matchInvite") {
+				const conversationId = await getOrCreateConversation(senderId, receiverId);
+				const dmPayload = JSON.stringify({
+					type: "dmMessage",
+					conversationId,
+					from: senderId,
+					to: receiverId,
+					content: "invites you to a match",
+					timestamp: new Date().toISOString(),
+				});
+				const confirmationPayload = JSON.stringify({
+					type: "matchInvitation",
+					conversationId,
+					from: senderId,
+					to: receiverId,
+					content: "confirmed",
+					timestamp: new Date().toISOString(),
+				});
+				const receiverKey = receiverId.toString();
+				if (dmClients.has(receiverKey)) {
+					try {
+						dmClients.get(receiverKey).send(dmPayload);
+						dmClients.get(receiverKey).send(confirmationPayload);
+					} catch {
+						dmClients.delete(receiverKey);
+					}
+				}
+			}
 
-    console.log("[DM] ✅ Connexion valide:", { senderId, receiverId });
+			// --- Match confirmation ---
+			else if (msg.type === "matchConfirmation") {
+				const conversationId = await getOrCreateConversation(senderId, receiverId);
+				const roomId = crypto.randomUUID().slice(0, 8);
 
-    // 4️⃣ Stocke le socket pour l'utilisateur connecté
-    dmClients.set(senderId.toString(), socket);
-    console.log("[DM] Socket stocké pour utilisateur:", senderId);
-    console.log("[DM] Clients DM connectés:", Array.from(dmClients.keys()));
+				const dmPayload = JSON.stringify({
+					type: "dmMessage",
+					conversationId,
+					from: senderId,
+					to: receiverId,
+					content: "is ready for match",
+					timestamp: new Date().toISOString(),
+				});
+				const launchPayload = JSON.stringify({
+					type: "launchMatch",
+					conversationId,
+					from: senderId,
+					to: receiverId,
+					content: roomId,
+					timestamp: new Date().toISOString(),
+				});
 
-    // Confirmer la connexion au client
-    socket.send(
-      JSON.stringify({
-        type: "dmConnected",
-        senderId: senderId,
-        receiverId: receiverId,
-      })
-    );
+				const receiverKey = receiverId.toString();
+				if (dmClients.has(receiverKey)) {
+					try {
+						dmClients.get(receiverKey).send(dmPayload);
+						dmClients.get(receiverKey).send(launchPayload);
+					} catch {
+						dmClients.delete(receiverKey);
+					}
+				}
 
-    socket.on("message", async (raw) => {
-      console.log("[DM] Message reçu:", raw.toString());
-      let msg;
-      try {
-        msg = JSON.parse(raw);
-        console.log("[DM] Message parsé:", msg);
-      } catch (err) {
-        console.error("[DM] Erreur parsing JSON:", err);
-        return;
-      }
+				const senderKey = senderId.toString();
+				if (dmClients.has(senderKey)) {
+					try {
+						dmClients.get(senderKey).send(launchPayload);
+					} catch {
+						dmClients.delete(senderKey);
+					}
+				}
 
-      if (msg.type === "dmMessage" && msg.content) {
-        console.log("[DM] Traitement du message DM:", msg.content);
+				socket.send(JSON.stringify({
+					type: "dmSent",
+					conversationId,
+					to: receiverId,
+					content: `Match confirmed - Room: ${roomId}`,
+					timestamp: new Date().toISOString(),
+				}));
+			}
+		});
 
-        try {
-          // a) Crée ou récupère la conversation
-          const conversationId = await getOrCreateConversation(
-            senderId,
-            receiverId
-          );
-          console.log("[DM] ConversationId:", conversationId);
+		// cleanup on close/error
+		const cleanup = () => dmClients.delete(senderId.toString());
+		socket.on("close", cleanup);
+		socket.on("error", cleanup);
+	});
 
-          // b) Sauvegarde le message en DB
-          db.run(
-            `INSERT INTO messages (conversation_id, sender_id, content) VALUES (?, ?, ?)`,
-            [conversationId, senderId, msg.content],
-            (err) => {
-              if (err) {
-                console.error("[DM] Erreur DB:", err);
-              } else {
-                console.log("[DM] Message sauvegardé en DB");
-              }
-            }
-          );
-          const dbGetAsync = promisify(db.get.bind(db));
-          const blockedStatus = await dbGetAsync(
-            // `SELECT * FROM blockedUsers WHERE (blocker_id = ? AND blocked_id = ?) or (blocker_id = ? OR blocked_id = ?)`,
-            // [receiverId, senderId, senderId, receiverId],
-            `SELECT * FROM blockedUsers WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? OR blocked_id = ?)`,
-            [receiverId, senderId, senderId, receiverId],
-            (err) => {
-              if (err) {
-                console.error("[BLOCKED DM] Erreur DB:", err);
-              } else {
-                console.log("[BLOCKED DM]");
-              }
-            }
-          );
-          console.log("status: ", blockedStatus);
-          if(blockedStatus)
-            return;
-          // c) Prépare le payload pour le destinataire
-          const dmPayload = JSON.stringify({
-            type: "dmMessage",
-            conversationId: conversationId,
-            from: senderId,
-            to: receiverId,
-	    fromName: req.session.user.name,
-            content: msg.content,
-            timestamp: new Date().toISOString(),
-          });
-
-          console.log("[DM] Payload à envoyer:", dmPayload);
-
-          // d) Envoie le message au destinataire si connecté
-          const receiverKey = receiverId.toString();
-          if (dmClients.has(receiverKey)) {
-            console.log("[DM] ✅ Destinataire connecté, envoi du message");
-            try {
-              dmClients.get(receiverKey).send(dmPayload);
-              console.log("[DM] Message envoyé au destinataire");
-            } catch (err) {
-              console.error("[DM] Erreur lors de l'envoi:", err);
-              dmClients.delete(receiverKey);
-            }
-          } else {
-            console.log("[DM] ⚠️ Destinataire non connecté");
-          }
-
-          // e) Confirme l'envoi à l'expéditeur
-          socket.send(
-            JSON.stringify({
-              type: "dmSent",
-              conversationId: conversationId,
-              to: receiverId,
-              content: msg.content,
-              timestamp: new Date().toISOString(),
-            })
-          );
-        } catch (err) {
-          console.error("[DM] Erreur lors du traitement:", err);
-          socket.send(
-            JSON.stringify({
-              type: "error",
-              message: "Erreur lors de l'envoi du message",
-            })
-          );
-        }
-      } else if (msg.type === "matchInvite" && msg.content) {
-        console.log("[DM] Traitement de l'invite au match :", msg.content);
-
-        try {
-          // a) Crée ou récupère la conversation
-          const conversationId = await getOrCreateConversation(
-            senderId,
-            receiverId
-          );
-          console.log("[DM] ConversationId:", conversationId);
-
-          // c) Prépare le payload pour le destinataire
-          const dmPayload = JSON.stringify({
-            type: "dmMessage",
-            conversationId: conversationId,
-            from: senderId,
-            to: receiverId,
-            content: `vous invite à un match`,
-            timestamp: new Date().toISOString(),
-          });
-          const confirmationPayload = JSON.stringify({
-            type: "matchInvitation",
-            conversationId: conversationId,
-            from: senderId,
-            to: receiverId,
-            content: `confirmed`,
-            timestamp: new Date().toISOString(),
-          });
-          console.log("[DM] Payload à envoyer:", dmPayload);
-
-          // d) Envoie le message au destinataire si connecté
-          const receiverKey = receiverId.toString();
-          if (dmClients.has(receiverKey)) {
-            console.log("[DM] ✅ Destinataire connecté, envoi du message");
-            try {
-              dmClients.get(receiverKey).send(dmPayload);
-              dmClients.get(receiverKey).send(confirmationPayload);
-              console.log("[DM] Message envoyé au destinataire");
-            } catch (err) {
-              console.error("[DM] Erreur lors de l'envoi:", err);
-              dmClients.delete(receiverKey);
-            }
-          }
-        } catch (err) {
-          console.error("[DM] Erreur lors du traitement:", err);
-          socket.send(
-            JSON.stringify({
-              type: "error",
-              message: "Erreur lors de l'envoi du message",
-            })
-          );
-        }
-      } else if (msg.type === "matchConfirmation" && msg.content) {
-        console.log(
-          "[DM] Traitement de la confirmation de match :",
-          msg.content
-        );
-
-        try {
-          // a) Crée ou récupère la conversation
-          const conversationId = await getOrCreateConversation(
-            senderId,
-            receiverId
-          );
-          console.log("[DM] ConversationId:", conversationId);
-
-          // b) Générer un roomId unique pour la partie
-          const roomId = crypto.randomUUID().slice(0, 8);
-          console.log("[DM] Nouveau roomId généré:", roomId);
-
-          // c) Prépare le payload pour le destinataire
-          const dmPayload = JSON.stringify({
-            type: "dmMessage",
-            conversationId: conversationId,
-            from: senderId,
-            to: receiverId,
-            content: "est prêt pour le match",
-            timestamp: new Date().toISOString(),
-          });
-
-          const launchPayload = JSON.stringify({
-            type: "launchMatch",
-            conversationId: conversationId,
-            from: senderId,
-            to: receiverId,
-            content: roomId, // ✅ Utiliser le roomId généré
-            timestamp: new Date().toISOString(),
-          });
-
-          console.log("[DM] Payloads à envoyer:", { dmPayload, launchPayload });
-
-          // d) Envoie le message au destinataire si connecté
-          const receiverKey = receiverId.toString();
-          if (dmClients.has(receiverKey)) {
-            console.log("[DM] ✅ Destinataire connecté, envoi des messages");
-            try {
-              dmClients.get(receiverKey).send(dmPayload);
-              dmClients.get(receiverKey).send(launchPayload);
-              console.log("[DM] Messages envoyés au destinataire");
-            } catch (err) {
-              console.error("[DM] Erreur lors de l'envoi:", err);
-              dmClients.delete(receiverKey);
-            }
-          } else {
-            console.log("[DM] ⚠️ Destinataire non connecté");
-          }
-
-          // e) Envoie aussi le launchPayload à l'expéditeur
-          const senderKey = senderId.toString();
-          if (dmClients.has(senderKey)) {
-            console.log("[DM] ✅ Envoi du lancement au sender aussi");
-            try {
-              dmClients.get(senderKey).send(launchPayload);
-              console.log("[DM] Message de lancement envoyé au sender");
-            } catch (err) {
-              console.error("[DM] Erreur lors de l'envoi au sender:", err);
-              dmClients.delete(senderKey);
-            }
-          } else {
-            console.log("[DM] ⚠️ Sender non connecté");
-          }
-
-          // f) Confirme l'envoi à l'expéditeur
-          socket.send(
-            JSON.stringify({
-              type: "dmSent",
-              conversationId: conversationId,
-              to: receiverId,
-              content: `Match confirmé - Room: ${roomId}`,
-              timestamp: new Date().toISOString(),
-            })
-          );
-        } catch (err) {
-          console.error(
-            "[DM] Erreur lors du traitement de la confirmation:",
-            err
-          );
-          socket.send(
-            JSON.stringify({
-              type: "error",
-              message: "Erreur lors de la confirmation du match",
-            })
-          );
-        }
-      } else {
-        console.log("[DM] Type de message ignoré:", msg.type);
-      }
-    });
-
-    // Nettoyage à la fermeture ou erreur
-    const cleanup = () => {
-      dmClients.delete(senderId.toString());
-      console.log("[DM] Nettoyage effectué pour utilisateur:", senderId);
-      console.log("[DM] Clients restants:", Array.from(dmClients.keys()));
-    };
-
-    socket.on("close", (code, reason) => {
-      console.log("[DM] Connexion fermée:", { code, reason });
-      cleanup();
-    });
-
-    socket.on("error", (err) => {
-      console.error("[DM] Erreur socket:", err);
-      cleanup();
-    });
-  });
-
-  console.log("[DM PLUGIN] Direct messaging WebSocket ready");
+	console.log("[DM PLUGIN] Ready");
 });
+
