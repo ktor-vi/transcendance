@@ -1,84 +1,63 @@
 let socket: WebSocket;
 let isConnecting = false;
 let connectionId: string | null = null;
-let gameInstance = null;
 
-export function connectWebSocket(
-  onMessage: (data: any) => void,
-  onOpenMessage?: () => any
-) {
-  // Éviter les connexions multiples
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    console.warn("[WS] Connexion déjà active");
-    return socket;
-  }
+// Connect to backend WebSocket
+export function connectWebSocket(onMessage: (data: any) => void, onOpenMessage?: () => any) {
+	if (socket?.readyState === WebSocket.OPEN) return socket;
+	if (isConnecting) return;
 
-  if (isConnecting) {
-    console.warn("[WS] Connexion déjà en cours");
-    return;
-  }
+	socket?.close();
+	isConnecting = true;
+	connectionId = crypto.randomUUID();
+	const hostname = import.meta.env.VITE_HOSTNAME;
+	socket = new WebSocket(`wss://${hostname}:3000/ws`);
 
-  // Fermer l'ancienne connexion si elle existe
-  if (socket) {
-    socket.close();
-  }
+	socket.addEventListener("open", () => {
+		console.log("[WSS] Connected"); // informational
+		isConnecting = false;
 
-  isConnecting = true;
-  connectionId = crypto.randomUUID();
-  const hostname = import.meta.env.VITE_HOSTNAME;
-  socket = new WebSocket(`wss://${hostname}:3000/ws`);
+		if (onOpenMessage) {
+			const msg = onOpenMessage();
+			if (msg) {
+				msg.connectionId = connectionId;
+				socket.send(JSON.stringify(msg));
+			}
+		}
+	});
 
-  socket.addEventListener("open", () => {
-    console.log("[WSS] Connecté");
-    isConnecting = false;
+	socket.addEventListener("message", (event) => {
+		try {
+			onMessage(JSON.parse(event.data));
+		} catch (err) {
+			console.error("[WS] Invalid message:", err);
+		}
+	});
 
-    if (onOpenMessage) {
-      const msg = onOpenMessage();
-      if (msg) {
-        msg.connectionId = connectionId;
-        socket.send(JSON.stringify(msg));
-      }
-    }
-  });
+	socket.addEventListener("close", () => {
+		console.warn("[WS] Disconnected");
+		isConnecting = false;
+		connectionId = null;
+	});
 
-  socket.addEventListener("message", (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      onMessage(data);
-    } catch (err) {
-      console.error("[WS] Message invalide :", err);
-    }
-  });
+	socket.addEventListener("error", (err) => {
+		console.error("[WS] Error:", err);
+		isConnecting = false;
+		connectionId = null;
+	});
 
-  socket.addEventListener("close", () => {
-    console.warn("[WS] Déconnecté");
-    isConnecting = false;
-    connectionId = null;
-  });
-
-  socket.addEventListener("error", (err) => {
-    console.error("[WS] Erreur :", err);
-    isConnecting = false;
-    connectionId = null;
-  });
-
-  return socket;
+	return socket;
 }
 
-export function sendMove(input: {
-  type: "input";
-  left: boolean;
-  right: boolean;
-}) {
-  if (socket?.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify(input));
-  }
+// Send input move to server
+export function sendMove(input: { type: "input"; left: boolean; right: boolean }) {
+	if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(input));
 }
 
+// Close WebSocket connection
 export function closeConnection() {
-  if (socket) {
-    socket.close();
-    isConnecting = false;
-    connectionId = null;
-  }
+	if (socket) socket.close();
+	isConnecting = false;
+	connectionId = null;
 }
+
