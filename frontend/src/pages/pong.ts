@@ -57,7 +57,6 @@ export function renderPong() {
       });
 
     const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
-    const launch = document.getElementById("launch") as HTMLTitleElement;
     canvas.style.visibility = "hidden";
 
     // 🔧 FONCTION : Créer une connexion WebSocket
@@ -181,7 +180,6 @@ export function renderPong() {
       }
 
       // Préparer l'interface pour le jeu
-      launch.style.visibility = "hidden";
       canvas.style.visibility = "visible";
 
       try {
@@ -388,7 +386,6 @@ export function renderPong() {
       }
 
       // Réinitialiser l'interface
-      launch.style.visibility = "visible";
       canvas.style.visibility = "hidden";
 
       const info = document.getElementById("roomInfo");
@@ -520,11 +517,17 @@ export function renderPong() {
 		<button class="button bg-lime-300 hover:bg-lime-400" id="goToTournamentBtn">Tournoi</button>
 	</div>
 	<div class="game-container w-full max-w-4xl mx-auto">
-		<div id="roomInfo" class="mt-4 text-white">AUCUNE PARTIE EN COURS</div>
-		<h3 id="score" class=""></h2>
+      <h3 id="score" class=""></h2>
 	</div>
-		<canvas id="renderCanvas"</canvas>
-	</section>
+
+  <div class="my-6 mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
+  <div id="roomInfo" class="text-sm text-gray-600 italic rounded">Aucune partie en cours</div>
+  <h2 id="score" class="text-xl font-bold mt-2"></h2>
+  </div>
+
+<div class="game-container">
+  <canvas id="renderCanvas" class="border w-full h-[70vh] rounded shadow-lg"></canvas>
+</div>	</section>
 	`;
 	document.getElementById("app")!.innerHTML = html;
 	setupBackButton();
