@@ -1,47 +1,39 @@
 import { openDb } from "../utils/db.js";
-import { promisify } from "util";
 
 export default async function blocking(fastify) {
-  fastify.post("/blocking", async (req, reply) => {
-    const senderId = req.body.senderId;
-    const receiverId = req.body.receiverId;
-    const blocked = req.body.blocked;
+	// POST endpoint to block or unblock a user
+	fastify.post("/blocking", async (req, reply) => {
+		const { senderId, receiverId, blocked } = req.body;
+		const db = await openDb();
 
-    console.log(`[BLOCK DEBUG] ${senderId}, ${receiverId}, ${blocked}`);
-    const db = await openDb();
-    console.log("COUCOU");
-    if (blocked) {
-      await db.run(
-        `INSERT OR IGNORE INTO blockedUsers 
-	  		(blocker_id, blocked_id)
-	  		VALUES (?, ?)`,
-        [senderId, receiverId]
-      );
-    } else {
-      await db.run(
-        `DELETE FROM blockedUsers WHERE blocker_id = ? AND blocked_id = ?`,
-        [senderId, receiverId]
-      );
-    }
-  });
-  fastify.post("/blockedStatus", async (req, reply) => {
-	  
-	  const senderId = req.body.senderId;
-	  const receiverId = req.body.receiverId;
-	  
-	  console.log(`[BLOCK DEBUG] ${senderId}, ${receiverId}`);
-	  
-	  const db = await openDb();
-	  
-	  const blockedStatus = await db.get(
-		  `SELECT * FROM blockedUsers WHERE (blocker_id = ? AND blocked_id = ?)`,
-		  [senderId, receiverId]
+		if (blocked) {
+			// block the user
+			await db.run(
+				`INSERT OR IGNORE INTO blockedUsers (blocker_id, blocked_id) VALUES (?, ?)`,
+				[senderId, receiverId]
+			);
+		} else {
+			// unblock the user
+			await db.run(
+				`DELETE FROM blockedUsers WHERE blocker_id = ? AND blocked_id = ?`,
+				[senderId, receiverId]
+			);
+		}
+
+		return reply.send({ success: true });
+	});
+
+	// POST endpoint to check if a user is blocked
+	fastify.post("/blockedStatus", async (req, reply) => {
+		const { senderId, receiverId } = req.body;
+		const db = await openDb();
+
+		const blockedStatus = await db.get(
+			`SELECT 1 FROM blockedUsers WHERE blocker_id = ? AND blocked_id = ?`,
+			[senderId, receiverId]
 		);
-		console.log(blockedStatus)
-		console.log("coucou CONNARD");
-	if(blockedStatus)
-		return reply.send({ blocked: true });
-	else
-		return reply.send({ blocked: false });
-});
+
+		// return boolean status
+		return reply.send({ blocked: !!blockedStatus });
+	});
 }
