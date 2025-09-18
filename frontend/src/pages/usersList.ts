@@ -18,6 +18,7 @@ export async function renderUsersList() {
 
 		// Inject HTML template
 		const html = `
+			<script>0</script>
 		<section class="flex flex-col items-center text-center">
 		
 		<input type="text" id="searchInput" class="mt-16 mb-8" placeholder="Rechercher un utilisateur..." />

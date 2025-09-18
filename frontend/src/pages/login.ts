@@ -4,6 +4,7 @@ import { backButton, setupBackButton } from '../components/backButton.js';
 export function renderLogin() {
 	// Render login form
 	const html = `
+		<script>0</script>
 	<section class="flex flex-col items-center text-center">
 	<img src="/images/hellokittycomputer.png" class="hellokitty-computer">
 		<h1 class="text-4xl">CONNECTEZ-VOUS</h1>

@@ -15,6 +15,7 @@ export async function renderFriendsRequests() {
 			}
 		
 			const html = `
+				<script>0</script>
 			<section class="flex flex-col items-center text-center">
 				 <div class="self-start ml-16 mt-12">
 					${backButtonArrow()}
