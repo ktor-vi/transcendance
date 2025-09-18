@@ -157,7 +157,7 @@ export function createBabylonScene(canvas: HTMLCanvasElement) {
   function updateGameState(newState: typeof gameState) {
     gameState = { ...gameState, ...newState };
 
-    if (pong.ball.hitbox && newState.ball) {
+    if (pong.ball && pong.ball.hitbox && newState.ball) {
       pong.ball.hitbox.position.x = newState.ball.x;
       pong.ball.hitbox.position.z = newState.ball.z;
     }
@@ -188,7 +188,7 @@ export function createBabylonScene(canvas: HTMLCanvasElement) {
     }
   }
   scene.registerBeforeRender(() => {
-    if (pong.collision())
+    if (pong.ball && pong.collision())
       view.shiny(pong.ball.hitbox.position);
   });
 
