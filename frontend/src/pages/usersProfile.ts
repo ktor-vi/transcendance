@@ -2,8 +2,11 @@ import page from "page";
 
 import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 import { renderError } from '../components/renderError.js';
-import { renderDmChat, initDmChat } from './dmChat.ts';
+import { renderDmChat, initDmChat } from './dmChat';
 
+interface CustomError {
+  status?: number;
+}
 // Render user profile page
 export async function renderUserProfile(ctx: any) {
 	try {
@@ -13,7 +16,7 @@ export async function renderUserProfile(ctx: any) {
 		const res = await fetch(`/api/user/${encodeURIComponent(userName)}`, { method: "GET" });
 		if (!res.ok) {
 			const errorData = await res.json();
-			const error = new Error(errorData.error || "Unknown error");
+			const error = new Error(errorData.error || "Unknown error") as CustomError;
 			error.status = errorData.status || res.status;
 			throw error;
 		}

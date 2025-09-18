@@ -162,9 +162,6 @@ async function websocketHandler(fastify) {
         );
 
         if (allRoundFinished && tournament.state === "running") {
-          console.log(
-            `✅ Tous les matchs du round ${tournament.round} terminés`
-          );
           tournament.state = "completed_round";
         }
       } else {
@@ -378,7 +375,6 @@ async function websocketHandler(fastify) {
         // S'assurer que la room existe
         if (fastify.ensureRoom) {
           fastify.ensureRoom(targetRoomId, msgPlayerName, null);
-          console.log(`✅ Room ${targetRoomId} assurée pour ${msgPlayerName}`);
         }
       }
 
@@ -418,7 +414,7 @@ async function websocketHandler(fastify) {
           type: "assign",
           player: playerNumber,
           roomId: joinedRoom,
-          playerName: playerName, // 🔧 NOUVEAU: Inclure le nom du joueur
+          playerName: playerName, 
         })
       );
 
@@ -443,7 +439,7 @@ async function websocketHandler(fastify) {
             message: "Tous les joueurs sont connectés! La partie commence...",
             playersCount: 2,
             maxPlayers: 2,
-            players: playersNames, // 🔧 NOUVEAU: Inclure les noms des joueurs
+            players: playersNames, 
           });
 
           setTimeout(() => {

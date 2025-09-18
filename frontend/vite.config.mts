@@ -17,13 +17,13 @@ export default defineConfig({
   root: "./",
   server: {
     https: {
-      key: fs.readFileSync("./certs/localhost.key"), // ⚠️ adapte si tes certs sont ailleurs
+      key: fs.readFileSync("./certs/localhost.key"), 
       cert: fs.readFileSync("./certs/localhost.crt"),
     },
     port: 5173,
     host: true,
     hmr: {
-      host: process.env.VITE_HOSTNAME || "localhost", // ✅ évite le /undefined
+      host: process.env.VITE_HOSTNAME || "localhost", 
       protocol: "wss",
       // pas besoin de forcer le port, Vite utilise celui de server.port
     },
@@ -104,7 +104,7 @@ export default defineConfig({
         },
       },
     },
-   // historyApiFallback: true, // ✅ pour le routage SPA (perdu dans le merge)
+   // historyApiFallback: true, 
   },
   build: {
     outDir: "dist",
