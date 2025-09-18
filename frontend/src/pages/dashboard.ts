@@ -509,8 +509,8 @@ export function renderDashboard() {
 					<a href="/users-list" data-nav class="button bg-rose-300 hover:bg-rose-400 h-8">Utilisateurs</a>
 					<a href="/friends" data-nav class="button bg-orange-300 hover:bg-orange-400 h-8">Amitiés</a>
 					</div>
-					<a href="/profile" data-nav>
-						<img src="/images/default-profile.png" alt="Profil" class="w-28 h-28 -mt-4 rounded-full object-cover shadow-lg">
+					<a href="/profile" data-nav class="shrink-0">
+						<img src="/images/default-profile.png" alt="Profil" class="w-28 h-28 -mt-4 rounded-full object-cover shadow-lg shrink-0">
 					</a>
 		</div>
 		<div class="relative w-[350px]">

@@ -4,6 +4,7 @@ import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 import { renderError } from '../components/renderError.js';
 
 export async function renderFriendsRequests() {
+	
 	try {
 			const resRequests = await fetch("/api/friends/requests", { method: "GET" });
 			if (!resRequests.ok) {
@@ -87,53 +88,36 @@ export async function renderFriendsRequests() {
 							method: "POST",
 							headers: {"Content-Type": "application/json"},
 							body: JSON.stringify({ sender_name: line.sender_name }),
-						});
-						if (resAccept.status === 409) {
-							const data = await resAccept.json();
-							alert(data.message);
+							});
+							if (resDecline.status === 409) {
+								const data = await resDecline.json();
+								alert(data.message);
+								li.remove();
+								return ;
+							}
+							if (!resDecline) {
+								const error = new Error("Erreur");
+								error.status = "404";
+								throw error;
+							}
+							alert(`Vous avez décliné la demande d'amitié de ${line.sender_name}`)
 							li.remove();
-							return;
+							} catch (error: any) {
+							renderError(error);
 						}
-						alert(`You accepted the friend request from ${line.sender_name}`);
-						li.remove();
-					} catch (error: any) {
-						renderError(error);
-					}
-				});
-
-				// 🔧 Decline request
-				const decline = document.createElement("button");
-				decline.className = "icons-btn";
-				decline.innerHTML = `<img src="/images/cancel-svgrepo-com.svg" alt="Decline" class="w-10">`;
-				decline.addEventListener("click", async () => {
-					try {
-						const resDecline = await fetch("/api/friends/requests/decline", { 
-							method: "POST",
-							headers: {"Content-Type": "application/json"},
-							body: JSON.stringify({ sender_name: line.sender_name }),
-						});
-						if (resDecline.status === 409) {
-							const data = await resDecline.json();
-							alert(data.message);
-							li.remove();
-							return;
-						}
-						alert(`You declined the friend request from ${line.sender_name}`);
-						li.remove();
-					} catch (error: any) {
-						renderError(error);
-					}
-				});
-
-				divButtons.appendChild(accept);
-				divButtons.appendChild(decline);
-				li.appendChild(span1);
-				li.appendChild(span2);
-				li.appendChild(divButtons);
-				listRequests.appendChild(li);
+					});
+		
+					divButtons.appendChild(accept);
+					divButtons.appendChild(decline);
+		
+					li.appendChild(span1);
+					li.appendChild(span2);
+					li.appendChild(divButtons);
+		
+					listRequests.appendChild(li);
+				}
 			}
-		}
-	} catch (error: any) {
+	} catch (error : any) {
 		renderError(error);
 	}
 }

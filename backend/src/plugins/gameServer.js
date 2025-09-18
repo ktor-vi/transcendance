@@ -11,7 +11,6 @@ function clamp(value, min, max) {
 }
 
 export default fp(async function (fastify) {
-<<<<<<< HEAD
 	const rooms = new Map();
 
 	function clamp(value, min, max) {
@@ -309,4 +308,4 @@ export default fp(async function (fastify) {
 	});
 
 	console.log("🎮 Game server initialized (waiting for 2 players)");
-}
+});
