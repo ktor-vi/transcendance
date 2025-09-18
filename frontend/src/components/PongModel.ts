@@ -9,7 +9,7 @@ import {
   CannonJSPlugin,
 } from "@babylonjs/core";
 
-import * as CANNON from "cannon";
+import * as CANNON from "cannon-es";
 
 // Paramètres du terrain
 const FIELD_WIDTH = 13.5;
