@@ -54,6 +54,10 @@ export async function renderUserProfile(ctx: any) {
 		if (friendship == true)
 			buttonRequests = `<button id="friendshipButton disabled">Vous êtes déjà amis</button>`;
 
+		if (userName !== usData.name) {
+			buttonRequests += `<button id="dmButton" class="button bg-indigo-400 hover:bg-indigo-500 mb-4 mt-4 text-xs h-8">ENVOYER UN MESSAGE</button>`;
+		}
+
 		console.log("La pp du profil est = ");
 		console.log(userData.picture);
 			const html = `
@@ -62,7 +66,7 @@ export async function renderUserProfile(ctx: any) {
 				${backButtonArrow()}
 			</div>
 				<h1 class="text-4xl mb-4">${userName}</h1>
-				 ${buttonRequests}
+				${buttonRequests}
 				<div class="flex items-center gap-4" id="userStatut"></div>
 					<img 
 					src="${userData.picture}"
