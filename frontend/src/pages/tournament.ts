@@ -330,9 +330,9 @@ export function renderTournamentPage(): string {
     // Vérifier si le joueur est qualifié automatiquement
     if (lastTournamentData?.qualified) {
       const isAutoQualified = lastTournamentData.qualified.some(
-        (player: Player) =>
-          player.name === currentUser.name || player.id === currentUser.id
-      );
+        (player: Player) =>{
+          if(currentUser) player.name === currentUser.name || player.id === currentUser.id;
+      });
 
       if (isAutoQualified) {
         console.log(
@@ -835,7 +835,7 @@ export function renderTournamentPage(): string {
             `🔗 Planification connexion ${match.roomId} pour ${currentUser.name}`
           );
           setTimeout(() => {
-            if (!gameConnections.has(match.roomId)) {
+            if (currentUser && !gameConnections.has(match.roomId)) {
               connectToMatch(match.roomId, currentUser.name);
             }
           }, 200);
