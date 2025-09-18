@@ -103,29 +103,122 @@ export class PongModel {
 class Paddle {
   hitbox: AbstractMesh;
 
-  /**
-   * create a mesh box representing a paddle and attach a physiscs impostor to it
-   * @param scene - babylon scene
-   * @param radius - how far the paddle is from the center
-   * @param angle - the angle of the paddle, for now, with 2 players, 0 or 180 degrees
-   */
   constructor(scene: Scene, radius: number, angle: number) {
-    this.hitbox = MeshBuilder.CreateBox("paddle", { width: PADDLE_WIDTH, height: PADDLE_HEIGHT, depth: PADDLE_DEPTH }, scene);
+    this.hitbox = MeshBuilder.CreateBox(
+      "paddle",
+      { width: PADDLE_WIDTH, height: PADDLE_HEIGHT, depth: PADDLE_DEPTH },
+      scene
+    );
     this.hitbox.renderingGroupId = 1;
     this.hitbox.rotation.y = angle;
-    this.hitbox.position.set(radius * Math.sin(angle), PADDLE_HEIGHT / 2, radius * Math.cos(angle));
-    this.hitbox.physicsImpostor = new PhysicsImpostor(this.hitbox, PhysicsImpostor.BoxImpostor, {mass: 0, restitution: 1});
+    this.hitbox.position.set(
+      radius * Math.sin(angle),
+      PADDLE_HEIGHT / 2,
+      radius * Math.cos(angle)
+    );
+
+    if (scene.isPhysicsEnabled()) {
+      this.hitbox.physicsImpostor = new PhysicsImpostor(
+        this.hitbox,
+        PhysicsImpostor.BoxImpostor,
+        { mass: 0, restitution: 1 },
+        scene
+      );
+    }
   }
 
-  /**
-   * update position of the paddle
-   * @param direction - the direction of the movement
-   */
   move(direction: string) {
-    if (direction === "right")
-      this.hitbox.position.x += PADDLE_SPEED;
-    if (direction === "left")
-      this.hitbox.position.x -= PADDLE_SPEED;
+    if (direction === "right") this.hitbox.position.x += PADDLE_SPEED;
+    if (direction === "left") this.hitbox.position.x -= PADDLE_SPEED;
+  }
+}
+
+class Ball {
+  scene: Scene;
+  hitbox: any;
+  start_pos: Vector3;
+
+  constructor(scene: Scene, x: number, z: number, local: boolean) {
+    this.scene = scene;
+    this.hitbox = MeshBuilder.CreateSphere(
+      "ball",
+      { diameter: BALL_SIZE },
+      scene
+    );
+    this.hitbox.renderingGroupId = 1;
+    this.start_pos = new Vector3(x, BALL_SIZE / 2, z);
+    this.hitbox.position.set(x, BALL_SIZE / 2, z);
+
+    if (scene.isPhysicsEnabled()) {
+      this.hitbox.physicsImpostor = new PhysicsImpostor(
+        this.hitbox,
+        PhysicsImpostor.SphereImpostor,
+        { mass: 0.3, restitution: 1 },
+        scene
+      );
+    }
+
+    if (local) {
+      scene.registerBeforeRender(() => {
+        this.keepOnTrack();
+      });
+    }
+  }
+
+  reset() {
+    if (this.hitbox.physicsImpostor) {
+      this.hitbox.physicsImpostor.setLinearVelocity(Vector3.Zero());
+      this.hitbox.physicsImpostor.setAngularVelocity(Vector3.Zero());
+    }
+    this.hitbox.position.set(
+      this.start_pos.x,
+      this.start_pos.y,
+      this.start_pos.z
+    );
+  }
+
+  launch() {
+    if (!this.hitbox.physicsImpostor) return;
+    let speed = new Vector3(
+      Math.random() - 0.5,
+      0,
+      Math.random() > 0.5 ? -1 : 1
+    );
+    speed = speed.normalize().multiplyInPlace(new Vector3(10, 10, 10));
+    this.hitbox.physicsImpostor.setLinearVelocity(speed);
+  }
+
+  keepOnTrack() {
+    this.hitbox.position.y = this.start_pos.y;
+    if (!this.hitbox.physicsImpostor) return;
+    let speed = this.hitbox.physicsImpostor.getLinearVelocity();
+    if (!speed) return;
+    speed.y = 0;
+    speed = speed.normalize().multiplyInPlace(new Vector3(10, 10, 10));
+    this.hitbox.physicsImpostor.setLinearVelocity(speed);
+  }
+}
+
+class Wall {
+  hitbox: AbstractMesh;
+
+  constructor(scene: Scene, x: number, z: number) {
+    this.hitbox = MeshBuilder.CreateBox(
+      "wall",
+      { width: WALL_WIDTH, height: WALL_HEIGHT, depth: WALL_DEPTH },
+      scene
+    );
+    this.hitbox.renderingGroupId = 1;
+    this.hitbox.position.set(x, WALL_HEIGHT / 2, z);
+
+    if (scene.isPhysicsEnabled()) {
+      this.hitbox.physicsImpostor = new PhysicsImpostor(
+        this.hitbox,
+        PhysicsImpostor.BoxImpostor,
+        { mass: 0, restitution: 1 },
+        scene
+      );
+    }
   }
 }
 
@@ -150,78 +243,6 @@ class Goal {
   }
 }
 
-class Ball {
-  scene: Scene;
-  hitbox: any;
-  start_pos: Vector3;
-
-  /**
-   * create a mesh sphere representing the ball and attach a phisics impostor to it
-   * @param scene - babylon scene
-   * @param x - initial x position of the ball
-   * @param z - initial z position of the ball
-   * @param local - is the game local ? false if game is remote
-   */
-  constructor(scene:any, x: number, z: number, local: boolean) {
-    this.scene = scene;
-    this.hitbox = MeshBuilder.CreateSphere("ball", { diameter: BALL_SIZE }, scene);
-    this.hitbox.renderingGroupId = 1;
-    this.start_pos = new Vector3(x, BALL_SIZE / 2, z);
-    this.hitbox.position.set(x, BALL_SIZE / 2, z);
-    this.hitbox.physicsImpostor = new PhysicsImpostor(this.hitbox, PhysicsImpostor.SphereImpostor, {mass: 0.3, restitution: 1});
-    if (local)
-      scene.registerBeforeRender(() => {
-        this.keepOnTrack();
-      });
-  }
-
-  /**
-   * reset position of the ball
-   */
-  reset(){
-    this.hitbox.physicsImpostor.setLinearVelocity(Vector3.Zero());
-    this.hitbox.physicsImpostor.setAngularVelocity(Vector3.Zero());
-    this.hitbox.position.set(this.start_pos.x, this.start_pos.y, this.start_pos.z);
-  }
-
-  /**
-   * launch the ball in a random direction
-   */
-  launch(){
-    let speed = new Vector3((Math.random() - 0.5), 0, (Math.random() > 0.5 ? -1 : 1));
-    speed = speed.normalize().multiplyInPlace(new Vector3(10, 10, 10));
-    this.hitbox.physicsImpostor.setLinearVelocity(speed);
-  }
-
-  /**
-   * make sure the ball never get lost out of the xz plane
-   */
-  keepOnTrack(){
-    this.hitbox.position.y = this.start_pos.y;
-    let speed = this.hitbox.physicsImpostor.getLinearVelocity();
-    speed.y = 0;
-    speed = speed.normalize().multiplyInPlace(new Vector3(10, 10, 10));
-    this.hitbox.physicsImpostor.setLinearVelocity(speed);
-  }
-
-}
-
-class Wall {
-  hitbox: AbstractMesh;
-
-  /**
-   * create a mesh box representing a wall and attach a physiscs impostor to it
-   * @param scene - babylon scene
-   * @param x - position x of the wall
-   * @param z - position z of the wall
-   */
-  constructor(scene: Scene, x: number, z: number) {
-    this.hitbox = MeshBuilder.CreateBox("wall", { width: WALL_WIDTH, height: WALL_HEIGHT, depth: WALL_DEPTH }, scene);
-    this.hitbox.renderingGroupId = 1;
-    this.hitbox.position.set(x, WALL_HEIGHT / 2, z);
-    this.hitbox.physicsImpostor = new PhysicsImpostor(this.hitbox, PhysicsImpostor.BoxImpostor, {mass: 0, restitution: 1});
-  }
-}
 
 class Ground {
   mesh: any;

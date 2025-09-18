@@ -48,7 +48,6 @@ export default fp(async function (fastify) {
 		};
 
 		rooms.set(roomId, room);
-		console.log(`✅ Room ${roomId} created, waiting for players`);
 
 		return roomId;
 	}
@@ -71,7 +70,6 @@ export default fp(async function (fastify) {
 		clearInterval(room.loop);
 		room.loop = null;
 		room.gameState.gameActive = false;
-		console.log(`⏹️ Game loop stopped for ${roomId}`);
 	}
 
 	// update game state (ball, paddles, score, broadcast)
@@ -115,12 +113,10 @@ export default fp(async function (fastify) {
 			gs.score.p2++;
 			scoringPlayer = 2;
 			pointScored = true;
-			console.log(`🎯 Point for P2! ${gs.score.p1}-${gs.score.p2}`);
 		} else if (gs.ball.z >= FIELD_DEPTH / 2 + 0.5) {
 			gs.score.p1++;
 			scoringPlayer = 1;
 			pointScored = true;
-			console.log(`🎯 Point for P1! ${gs.score.p1}-${gs.score.p2}`);
 		}
 
 		if (pointScored) {
@@ -169,9 +165,6 @@ export default fp(async function (fastify) {
 		const loserNumber = winningPlayerNumber === 1 ? 2 : 1;
 		const loserName = gs.players.get(loserNumber) || `Player${loserNumber}`;
 
-		console.log(
-			`🏁 Game over ${room.roomId}: ${winnerName} beat ${loserName} ${gs.score.p1}-${gs.score.p2}`
-		);
 
 		if (fastify.broadcastToGameRoom) {
 			fastify.broadcastToGameRoom(room.roomId, {
@@ -304,7 +297,6 @@ export default fp(async function (fastify) {
 			if (room.loop) clearInterval(room.loop);
 		}
 		rooms.clear();
-		console.log("✅ Game server cleaned");
 	});
 
 	console.log("🎮 Game server initialized (waiting for 2 players)");

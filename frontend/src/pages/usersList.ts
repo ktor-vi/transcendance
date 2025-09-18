@@ -7,6 +7,10 @@ interface User {
 		id: number;
 		name: string;
 }
+
+interface CustomError {
+  status?: number;
+}
 // Render the user list page
 export async function renderUsersList() {
 	try {
@@ -14,7 +18,7 @@ export async function renderUsersList() {
 		const res = await fetch("/api/usersList", { method: "GET" });
 		if (!res.ok) {
 			const errorData = await res.json();
-			const error = new Error(errorData.error || "Unknown error");
+			const error = new Error(errorData.error || "Unknown error")as CustomError;
 			error.status = errorData.status || res.status;
 			throw error;
 		}
@@ -42,6 +46,8 @@ export async function renderUsersList() {
 
 		// Display filtered users
 		function displaySearch(filteredUsers: any[]) {
+			if(!listUsers)
+				return;
 			listUsers.innerHTML = "";
 			for (const user of filteredUsers) {
 				const li = document.createElement("li");

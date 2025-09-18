@@ -1,18 +1,24 @@
 import page from "page";
 import { createBabylonScene } from "../components/BabylonScene";
-import { backButtonArrow, setupBackButton } from '../components/backButton.js';
+import { backButtonArrow, setupBackButton } from "../components/backButton.js";
 import { GameInstance } from "../types/GameTypes";
 
-async function getPicture() {
+interface UserProfile {
+  id: string;
+  name?: string;
+  email?: string;
+  picture?: string;
+}
+
+async function getPicture(): Promise<string> {
   const res = await fetch("/api/profile", { method: "GET" });
   const userData = await res.json();
-
   return userData.picture;
 }
 
 export function renderPong() {
   setTimeout(() => {
-    let currentUserProfile = null;
+    let currentUserProfile: UserProfile | null = null;
     let profileReady = false;
     let wsConnection: WebSocket | null = null;
     let isJoining = false;
@@ -20,16 +26,22 @@ export function renderPong() {
     let currentPlayerNumber = 0;
     let currentRoomId = "";
     let currentPlayerName = "";
-    let opponentPlayerName = "";
+    let opponentPlayerName: any;
 
     fetch("api/session", { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error("Utilisateur non connecté");
         return res.json();
       })
-      .then((user) => {
+      .then((user: UserProfile) => {
         currentUserProfile = user;
         profileReady = true;
+
+        console.log("👤 Profil utilisateur chargé:", {
+          name: user.name,
+          email: user.email,
+          id: user.id,
+        });
 
         const welcomeEl = document.getElementById("welcome");
         if (welcomeEl)
@@ -49,21 +61,19 @@ export function renderPong() {
       });
 
     const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+
     canvas.style.visibility = "hidden";
 
     function createWebSocketConnection(roomId: string | null): WebSocket {
-      const ws = new WebSocket(`wss://${window.location.host}/ws`);
+      const ws = new WebSocket(`wss://${window.location.hostname}:5173/ws`);
 
       ws.onopen = () => {
         console.log("🔗 WebSocket dashboard connecté");
-
 
         const userName =
           currentUserProfile?.name ||
           currentUserProfile?.email ||
           `User${Date.now().toString().slice(-4)}`;
-
-        console.log("🏷️ Nom utilisateur sélectionné:", userName);
 
         const joinMessage = {
           type: "joinRoom",
@@ -72,47 +82,41 @@ export function renderPong() {
           roomId: roomId || undefined,
         };
 
-        console.log("📤 Envoi message de connexion:", joinMessage);
         ws.send(JSON.stringify(joinMessage));
       };
 
-      ws.onmessage = (event) => {
+      ws.onmessage = (event: MessageEvent<string>) => {
         try {
-          const data = JSON.parse(event.data);
+          const data = JSON.parse(event.data) as {
+            type: string;
+            [key: string]: any;
+          };
 
           switch (data.type) {
             case "assign":
               handlePlayerAssignment(data);
               break;
-
             case "waiting":
               handleWaitingForPlayer(data);
               break;
-
             case "gameReady":
               handleGameReady(data);
               break;
-
             case "playerJoined":
               handlePlayerJoined(data);
               break;
-
             case "state":
               handleGameStateUpdate(data);
               break;
-
             case "scoreUpdate":
               handleScoreUpdate(data);
               break;
-
             case "gameEnd":
               handleGameEnd(data);
               break;
-
             case "error":
               handleError(data);
               break;
-
             default:
               console.log("🔍 Type de message non géré:", data.type);
           }
@@ -134,7 +138,10 @@ export function renderPong() {
       return ws;
     }
 
-    function handlePlayerAssignment(data) {
+    // -----------------------
+    // HANDLERS (typés en `any` pour éviter TS errors rapides)
+    // -----------------------
+    function handlePlayerAssignment(data: any) {
       console.log("🎮 Assignation joueur:", data);
 
       currentPlayerNumber = data.player;
@@ -148,6 +155,7 @@ export function renderPong() {
         currentUserProfile?.email ||
         `Joueur${currentPlayerNumber}`;
 
+      console.log("🏷️ Nom joueur assigné:", currentPlayerName);
 
       const info = document.getElementById("roomInfo");
       if (info) {
@@ -159,13 +167,17 @@ export function renderPong() {
 
       try {
         gameInstance = createBabylonScene(canvas);
+        console.log("🎮 Scène Babylon créée:", !!gameInstance);
+
         if (gameInstance) {
           if (gameInstance.setPlayerNumber) {
             gameInstance.setPlayerNumber(currentPlayerNumber);
+            console.log("✅ Numéro de joueur assigné:", currentPlayerNumber);
           }
 
           if (gameInstance.setWebSocket && wsConnection) {
             gameInstance.setWebSocket(wsConnection);
+            console.log("✅ WebSocket assigné à la scène");
           }
         }
       } catch (error) {
@@ -173,12 +185,11 @@ export function renderPong() {
       }
 
       isJoining = false;
-
+      console.log(
+        `✅ ${currentPlayerName} rejoint room ${currentRoomId} (Joueur ${currentPlayerNumber})`
+      );
     }
-
-    function handlePlayerJoined(data) {
-      console.log("👋 Nouveau joueur rejoint:", data);
-
+    function handlePlayerJoined(data: any) {
       if (data.playerName && data.playerName !== currentPlayerName) {
         opponentPlayerName = data.playerName;
 
@@ -188,9 +199,7 @@ export function renderPong() {
         }
       }
     }
-
-    function handleWaitingForPlayer(data) {
-
+    function handleWaitingForPlayer(data: any) {
       const scoreEl = document.getElementById("score");
       if (scoreEl) {
         scoreEl.innerText = `⏳ ${currentPlayerName}, attendez un adversaire... (${data.playersCount}/${data.maxPlayers})`;
@@ -200,10 +209,8 @@ export function renderPong() {
       if (gameInstance && gameInstance.setGameActive) {
         gameInstance.setGameActive(false);
       }
-
     }
-
-    function handleGameReady(data) {
+    function handleGameReady(data: any) {
       if (data.players && typeof data.players === "object") {
         const playerNames = Object.values(data.players);
         console.log("👥 Noms des joueurs trouvés:", playerNames);
@@ -240,10 +247,8 @@ export function renderPong() {
       if (gameInstance && gameInstance.setGameActive) {
         gameInstance.setGameActive(true);
       }
-
     }
-
-    function handleGameStateUpdate(data) {
+    function handleGameStateUpdate(data: any) {
       if (gameInstance && gameInstance.updateGameState && data.gameState) {
         gameInstance.updateGameState(data.gameState);
 
@@ -251,14 +256,10 @@ export function renderPong() {
         updateScoreDisplay(data.gameState.scoreP1, data.gameState.scoreP2);
       }
     }
-
-    function handleScoreUpdate(data) {
+    function handleScoreUpdate(data: any) {
       updateScoreDisplay(data.scoreP1, data.scoreP2);
     }
-
-    function handleGameEnd(data) {
-      console.log("🏁 Fin de partie:", data);
-
+    function handleGameEnd(data: any) {
       const scoreEl = document.getElementById("score");
       if (scoreEl) {
         const winnerName = data.winner || "Joueur";
@@ -271,13 +272,11 @@ export function renderPong() {
         resetDashboard();
       }, 5000);
     }
-
-    function handleError(data) {
+    function handleError(data: any) {
       console.error("❌ Erreur reçue:", data.message);
       alert(`Erreur: ${data.message}`);
       isJoining = false;
     }
-
     function updateScoreDisplay(scoreP1: number, scoreP2: number) {
       const scoreEl = document.getElementById("score");
       if (scoreEl) {
@@ -297,8 +296,6 @@ export function renderPong() {
               currentUserProfile?.email ||
               "Vous";
 
-
-
         if (scoreP1 < 11 && scoreP2 < 11) {
           scoreEl.innerText = `${player1Name}: ${scoreP1} - ${player2Name}: ${scoreP2}`;
         } else {
@@ -307,7 +304,6 @@ export function renderPong() {
         }
       }
     }
-
     function resetDashboard() {
       // Nettoyer la connexion WebSocket
       if (wsConnection) {
@@ -338,9 +334,7 @@ export function renderPong() {
       currentPlayerName = "";
       opponentPlayerName = "";
       isJoining = false;
-
     }
-
     function joinRoom(roomId: string | null) {
       if (isJoining) {
         console.warn("⚠️ Connexion déjà en cours...");
@@ -371,10 +365,6 @@ export function renderPong() {
       const input = (
         document.getElementById("roomIdInput") as HTMLInputElement
       ).value.trim();
-      console.log(
-        "🎯 Tentative de rejoindre room spécifique:",
-        input || "auto"
-      );
       joinRoom(input || null);
     });
 
@@ -421,7 +411,7 @@ export function renderPong() {
     }
   });
 
-	const html = `
+  const html = `
 	<script>0</script>
 
 	<section class="flex flex-col items-center text-center">
@@ -454,7 +444,6 @@ export function renderPong() {
   <canvas id="renderCanvas" class="border w-full h-[70vh] rounded shadow-lg"></canvas>
 </div>	</section>
 	`;
-	document.getElementById("app")!.innerHTML = html;
-	setupBackButton();
-
+  document.getElementById("app")!.innerHTML = html;
+  setupBackButton();
 }
