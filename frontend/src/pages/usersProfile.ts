@@ -2,6 +2,7 @@ import page from "page";
 
 import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 import { renderError } from '../components/renderError.js';
+import { renderDmChat, initDmChat } from './dmChat.ts';
 
 // Render user profile page
 export async function renderUserProfile(ctx: any) {
