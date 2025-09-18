@@ -12,7 +12,6 @@ async function getPicture() {
 
 export function renderPong() {
   setTimeout(() => {
-    // 🔧 TOUTES LES VARIABLES AU MÊME NIVEAU
     let currentUserProfile = null;
     let profileReady = false;
     let wsConnection: WebSocket | null = null;
@@ -23,7 +22,6 @@ export function renderPong() {
     let currentPlayerName = "";
     let opponentPlayerName = "";
 
-    // 🔧 CHARGEMENT DU PROFIL
     fetch("api/session", { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error("Utilisateur non connecté");
@@ -32,12 +30,6 @@ export function renderPong() {
       .then((user) => {
         currentUserProfile = user;
         profileReady = true;
-
-        console.log("👤 Profil utilisateur chargé:", {
-          name: user.name,
-          email: user.email,
-          id: user.id,
-        });
 
         const welcomeEl = document.getElementById("welcome");
         if (welcomeEl)
@@ -59,21 +51,13 @@ export function renderPong() {
     const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
     canvas.style.visibility = "hidden";
 
-    // 🔧 FONCTION : Créer une connexion WebSocket
     function createWebSocketConnection(roomId: string | null): WebSocket {
       const ws = new WebSocket(`wss://${window.location.host}/ws`);
 
       ws.onopen = () => {
         console.log("🔗 WebSocket dashboard connecté");
 
-        // 🔧 DEBUG: Vérifier le profil utilisateur
-        console.log("🔍 Profil utilisateur disponible:", {
-          currentUserProfile: currentUserProfile,
-          name: currentUserProfile?.name,
-          email: currentUserProfile?.email,
-        });
 
-        // 🔧 IMPORTANT: Utiliser le nom d'utilisateur réel
         const userName =
           currentUserProfile?.name ||
           currentUserProfile?.email ||
@@ -150,29 +134,20 @@ export function renderPong() {
       return ws;
     }
 
-    // 🔧 FONCTION : Gérer l'assignation du joueur
     function handlePlayerAssignment(data) {
       console.log("🎮 Assignation joueur:", data);
 
       currentPlayerNumber = data.player;
       currentRoomId = data.roomId || "";
 
-      // 🔧 DEBUG: Vérifier ce qui arrive dans les données
-      console.log("🔍 Données reçues dans assign:", {
-        player: data.player,
-        roomId: data.roomId,
-        playerName: data.playerName,
-        currentUserProfile: currentUserProfile,
-      });
 
-      // 🔧 CORRECTION: Utiliser les données reçues ou le profil utilisateur
+
       currentPlayerName =
         data.playerName ||
         currentUserProfile?.name ||
         currentUserProfile?.email ||
         `Joueur${currentPlayerNumber}`;
 
-      console.log("🏷️ Nom joueur assigné:", currentPlayerName);
 
       const info = document.getElementById("roomInfo");
       if (info) {
@@ -184,17 +159,13 @@ export function renderPong() {
 
       try {
         gameInstance = createBabylonScene(canvas);
-        console.log("🎮 Scène Babylon créée:", !!gameInstance);
-
         if (gameInstance) {
           if (gameInstance.setPlayerNumber) {
             gameInstance.setPlayerNumber(currentPlayerNumber);
-            console.log("✅ Numéro de joueur assigné:", currentPlayerNumber);
           }
 
           if (gameInstance.setWebSocket && wsConnection) {
             gameInstance.setWebSocket(wsConnection);
-            console.log("✅ WebSocket assigné à la scène");
           }
         }
       } catch (error) {
@@ -202,12 +173,9 @@ export function renderPong() {
       }
 
       isJoining = false;
-      console.log(
-        `✅ ${currentPlayerName} rejoint room ${currentRoomId} (Joueur ${currentPlayerNumber})`
-      );
+
     }
 
-    // 🔧 FONCTION : Gérer l'arrivée d'un autre joueur
     function handlePlayerJoined(data) {
       console.log("👋 Nouveau joueur rejoint:", data);
 
@@ -221,9 +189,7 @@ export function renderPong() {
       }
     }
 
-    // 🔧 FONCTION : Gérer l'attente du second joueur
     function handleWaitingForPlayer(data) {
-      console.log("⏳ En attente d'autres joueurs:", data);
 
       const scoreEl = document.getElementById("score");
       if (scoreEl) {
@@ -235,21 +201,9 @@ export function renderPong() {
         gameInstance.setGameActive(false);
       }
 
-      console.log("⏳ Jeu en pause - en attente du second joueur");
     }
 
-    // 🔧 FONCTION : Gérer le début de partie
     function handleGameReady(data) {
-      console.log("🚀 Partie prête à démarrer:", data);
-
-      // 🔧 DEBUG: Voir ce qui arrive dans gameReady
-      console.log("🔍 Données gameReady:", {
-        message: data.message,
-        players: data.players,
-        playersCount: data.playersCount,
-      });
-
-      // 🔧 CORRECTION: Récupérer les noms des joueurs depuis les données
       if (data.players && typeof data.players === "object") {
         const playerNames = Object.values(data.players);
         console.log("👥 Noms des joueurs trouvés:", playerNames);
@@ -258,7 +212,6 @@ export function renderPong() {
         opponentPlayerName =
           playerNames.find((name) => name !== currentPlayerName) ||
           "Adversaire";
-        console.log("🥊 Adversaire identifié:", opponentPlayerName);
       } else {
         console.warn("⚠️ Pas de données players dans gameReady");
         opponentPlayerName = `Joueur${currentPlayerNumber === 1 ? 2 : 1}`;
@@ -288,12 +241,8 @@ export function renderPong() {
         gameInstance.setGameActive(true);
       }
 
-      console.log(
-        `🎮 Jeu activé - ${currentPlayerName} vs ${opponentPlayerName}`
-      );
     }
 
-    // 🔧 FONCTION : Gérer les mises à jour d'état du jeu
     function handleGameStateUpdate(data) {
       if (gameInstance && gameInstance.updateGameState && data.gameState) {
         gameInstance.updateGameState(data.gameState);
@@ -303,18 +252,15 @@ export function renderPong() {
       }
     }
 
-    // 🔧 FONCTION : Gérer les mises à jour de score
     function handleScoreUpdate(data) {
       updateScoreDisplay(data.scoreP1, data.scoreP2);
     }
 
-    // 🔧 FONCTION : Gérer la fin de partie avec les noms
     function handleGameEnd(data) {
       console.log("🏁 Fin de partie:", data);
 
       const scoreEl = document.getElementById("score");
       if (scoreEl) {
-        // 🔧 MODIFIÉ: Utiliser le vrai nom du gagnant
         const winnerName = data.winner || "Joueur";
         scoreEl.innerText = `🏆 ${winnerName} remporte la victoire ${data.scoreP1}-${data.scoreP2}!`;
         scoreEl.className = "text-xl font-bold mt-2 text-green-600";
@@ -326,18 +272,15 @@ export function renderPong() {
       }, 5000);
     }
 
-    // 🔧 FONCTION : Gérer les erreurs
     function handleError(data) {
       console.error("❌ Erreur reçue:", data.message);
       alert(`Erreur: ${data.message}`);
       isJoining = false;
     }
 
-    // 🔧 FONCTION : Mettre à jour l'affichage du score avec les noms
     function updateScoreDisplay(scoreP1: number, scoreP2: number) {
       const scoreEl = document.getElementById("score");
       if (scoreEl) {
-        // 🔧 DEBUG: Forcer des noms pour tester
         let player1Name =
           currentPlayerNumber === 1
             ? currentPlayerName ||
@@ -354,13 +297,7 @@ export function renderPong() {
               currentUserProfile?.email ||
               "Vous";
 
-        console.log("🏷️ DEBUG - Noms utilisés pour le score:", {
-          player1Name,
-          player2Name,
-          currentPlayerName,
-          opponentPlayerName,
-          currentPlayerNumber,
-        });
+
 
         if (scoreP1 < 11 && scoreP2 < 11) {
           scoreEl.innerText = `${player1Name}: ${scoreP1} - ${player2Name}: ${scoreP2}`;
@@ -371,7 +308,6 @@ export function renderPong() {
       }
     }
 
-    // 🔧 FONCTION : Réinitialiser le dashboard
     function resetDashboard() {
       // Nettoyer la connexion WebSocket
       if (wsConnection) {
@@ -397,27 +333,19 @@ export function renderPong() {
         scoreEl.className = "text-xl font-bold mt-2";
       }
 
-      // 🔧 NOUVEAU: Réinitialiser les noms
       currentPlayerNumber = 0;
       currentRoomId = "";
       currentPlayerName = "";
       opponentPlayerName = "";
       isJoining = false;
 
-      console.log("🧹 Dashboard réinitialisé");
     }
 
-    // 🔧 FONCTION PRINCIPALE : Rejoindre une room
     function joinRoom(roomId: string | null) {
       if (isJoining) {
         console.warn("⚠️ Connexion déjà en cours...");
         return;
       }
-
-      console.log("🚀 Tentative de connexion à la room:", roomId || "auto");
-      console.log("👤 Profil disponible:", currentUserProfile);
-      console.log("🏷️ Profile ready:", profileReady);
-
       isJoining = true;
 
       // Nettoyer les anciennes connexions
@@ -434,7 +362,6 @@ export function renderPong() {
       }
     }
 
-    // 🔧 EVENT LISTENERS pour les boutons
     document.getElementById("joinRoomBtn")?.addEventListener("click", () => {
       if (isJoining) {
         console.warn("⚠️ Connexion en cours, veuillez patienter");
@@ -474,13 +401,11 @@ export function renderPong() {
         page("/tournament");
       });
 
-    // 🔧 NETTOYAGE à la fermeture de la page
     window.addEventListener("beforeunload", () => {
       console.log("🧹 Nettoyage avant fermeture de page");
       resetDashboard();
     });
 
-    // 🔧 NETTOYAGE lors du changement de route
     window.addEventListener("popstate", () => {
       console.log("🧹 Nettoyage lors du changement de route");
       resetDashboard();
