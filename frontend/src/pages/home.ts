@@ -7,7 +7,7 @@ export function renderHome()
 		<h3>made with love by vphilipp, rdendonc, iait-ouf and kdegryse</h3>
 			<div>
 				<button class="button bg-purple-400 hover:bg-purple-600 m-8" id="google-sign-in">Se connecter avec Google</button>
-				<a class="button bg-pink-400 hover:bg-pink-500 " href="login" data-nav>Se connecter</a>
+				<a class="button bg-pink-400 hover:bg-pink-500" href="login" data-nav>Se connecter</a>
 				<a class="button bg-pink-400 hover:bg-pink-500" href="register" data-nav>S'inscrire</a>
 			</div>
 		<a href="forgotPassword" class="text-fuchsia-900 underline" data-nav>Mot de passe oublié</a>
