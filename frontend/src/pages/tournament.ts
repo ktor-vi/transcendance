@@ -65,26 +65,29 @@ export function renderTournamentPage(): string {
   if (!container) return "";
 
   container.innerHTML = `
+  <script>0</script>
+
+<section class="flex flex-col items-center text-center min-h-screen pt-4 pb-16 relative">
     <div class="w-full my-4 flex flex-row justify-between items-center px-4">
       <h1 class="text-2xl font-bold">Tournoi Pong 3D</h1>
       <a href="/dashboard" data-nav class="text-blue-500 hover:underline">⬅ Retour</a>
     </div>
     <div class="px-4">
       <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-        <p id="userDebugInfo" class="text-sm text-blue-700">🔍 Diagnostic utilisateur...</p>
+        <p id="userDebugInfo" class="text-sm text-blue-700"></p>
       </div>
       <p id="tournamentState" class="mb-2 text-lg font-semibold text-gray-700">Connexion au tournoi...</p>
-      <div class="mb-4 space-x-2">
-        <button id="joinTournamentBtn" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+    <div class="flex flex-row space-y-3 items-baseline w-80vw mb-8 ">
+        <button id="joinTournamentBtn" class="mx-4 button bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
           Rejoindre le tournoi
         </button>
-        <button id="newTournamentBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+        <button id="newTournamentBtn" class="mx-4 button bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
           Nouveau tournoi
         </button>
-        <button id="debugUserBtn" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+        <button id="debugUserBtn" class="mx-4 button bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
           🔧 Debug Utilisateur
         </button>
-        <button id="forceConnectBtn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+        <button id="forceConnectBtn" class="mx-4 button bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
           🎮 Force Connexion
         </button>
       </div>
@@ -93,6 +96,8 @@ export function renderTournamentPage(): string {
         <div id="gameSceneContainer" class="mt-4"></div>
       </div>
     </div>
+    </section>
+
   `;
 
   const stateText = document.getElementById(
