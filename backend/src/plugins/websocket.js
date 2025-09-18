@@ -244,6 +244,7 @@ async function websocketHandler(fastify) {
 				broadcastToGameRoom(joinedRoom, {
 					type: "gameReady",
 					message: "Players ready, game starting...",
+					// players: 
 					playersCount: 2,
 					maxPlayers: 2,
 				});
