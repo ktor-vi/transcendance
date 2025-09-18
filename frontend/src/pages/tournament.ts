@@ -1,5 +1,4 @@
 import { createBabylonScene } from "../components/BabylonScene";
-import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 
 interface Player {
   id: string;
@@ -46,12 +45,6 @@ export function renderTournamentPage(): string {
       currentUserProfile = user;
       profileReady = true;
 
-      console.log("👤 Profil utilisateur chargé:", {
-        name: user.name,
-        email: user.email,
-        id: user.id,
-      });
-
       const welcomeEl = document.getElementById("welcome");
       if (welcomeEl)
         welcomeEl.innerText = `Bienvenue ${
@@ -66,29 +59,26 @@ export function renderTournamentPage(): string {
   if (!container) return "";
 
   container.innerHTML = `
-  <script>0</script>
-
- <section class="flex flex-col items-center text-center">
- 	<div class="self-start ml-16 mt-12">
-		${backButtonArrow()}
-	</div>
-	<h1 class="text-4xl mb-4">TOURNOI</h1>
+    <div class="w-full my-4 flex flex-row justify-between items-center px-4">
+      <h1 class="text-2xl font-bold">Tournoi Pong 3D</h1>
+      <a href="/dashboard" data-nav class="text-blue-500 hover:underline">⬅ Retour</a>
+    </div>
     <div class="px-4">
       <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-        <p id="userDebugInfo" class="text-sm text-blue-700"></p>
+        <p id="userDebugInfo" class="text-sm text-blue-700">🔍 Diagnostic utilisateur...</p>
       </div>
       <p id="tournamentState" class="mb-2 text-lg font-semibold text-gray-700">Connexion au tournoi...</p>
-    <div class="flex flex-row space-y-3 items-baseline w-80vw mb-8 ">
-        <button id="joinTournamentBtn" class="mx-4 button bg-yellow-500 text-white hover:bg-yellow-600">
+      <div class="mb-4 space-x-2">
+        <button id="joinTournamentBtn" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
           Rejoindre le tournoi
         </button>
-        <button id="newTournamentBtn" class="mx-4 button bg-red-500 text-white hover:bg-red-600">
+        <button id="newTournamentBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
           Nouveau tournoi
         </button>
-        <button id="debugUserBtn" class="mx-4 button bg-purple-500 text-white hover:bg-purple-600">
+        <button id="debugUserBtn" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
           🔧 Debug Utilisateur
         </button>
-        <button id="forceConnectBtn" class="mx-4 button bg-orange-500 text-white hover:bg-orange-600">
+        <button id="forceConnectBtn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
           🎮 Force Connexion
         </button>
       </div>
@@ -97,10 +87,8 @@ export function renderTournamentPage(): string {
         <div id="gameSceneContainer" class="mt-4"></div>
       </div>
     </div>
-    </section>
-
   `;
-	setupBackButton();
+
   const stateText = document.getElementById(
     "tournamentState"
   ) as HTMLParagraphElement;
@@ -144,7 +132,6 @@ export function renderTournamentPage(): string {
 
   async function getCurrentTournamentUser(): Promise<User | null> {
     try {
-      console.log("🔍 Récupération de l'utilisateur du tournoi...");
 
       const profileResponse = await fetch("/api/profile", {
         credentials: "include",
@@ -152,10 +139,6 @@ export function renderTournamentPage(): string {
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
         if (profileData.user) {
-          console.log(
-            "✅ Utilisateur trouvé via API profile:",
-            profileData.user
-          );
           return {
             id: String(profileData.user.id),
             name:
@@ -171,22 +154,14 @@ export function renderTournamentPage(): string {
       });
       if (tournamentResponse.ok) {
         const tournamentData = await tournamentResponse.json();
-        console.log(
-          "📊 Données tournoi pour récupération utilisateur:",
-          tournamentData
-        );
+
 
         if (tournamentData.exists && tournamentData.players?.length > 0) {
-          console.log(
-            "🎯 Joueurs disponibles dans le tournoi:",
-            tournamentData.players
-          );
+
 
           if (tournamentData.matches?.length > 0) {
             const firstMatch = tournamentData.matches[0];
-            console.log(
-              `🎮 Premier match: ${firstMatch.player1} vs ${firstMatch.player2}`
-            );
+
 
             const firstPlayer = tournamentData.players.find(
               (p: Player) =>
@@ -194,7 +169,6 @@ export function renderTournamentPage(): string {
             );
 
             if (firstPlayer) {
-              console.log("🎯 Utilisation du joueur du match:", firstPlayer);
               return {
                 id: String(firstPlayer.id),
                 name: firstPlayer.name,
@@ -203,7 +177,6 @@ export function renderTournamentPage(): string {
           }
 
           const firstPlayer = tournamentData.players[0];
-          console.log("🎯 Utilisation du premier joueur inscrit:", firstPlayer);
           return {
             id: String(firstPlayer.id),
             name: firstPlayer.name,
@@ -211,7 +184,6 @@ export function renderTournamentPage(): string {
         }
       }
 
-      console.warn("⚠️ Aucun utilisateur trouvé");
       return null;
     } catch (error) {
       console.error("❌ Erreur récupération utilisateur tournoi:", error);
@@ -220,12 +192,10 @@ export function renderTournamentPage(): string {
   }
 
   async function fetchCurrentUser(): Promise<void> {
-    console.log("🔍 Récupération utilisateur avec matching...");
 
     const user = await getCurrentTournamentUser();
     if (user) {
       currentUser = user;
-      console.log("✅ UTILISATEUR RÉCUPÉRÉ:", currentUser);
       updateUserDebugInfo();
       processPendingMatchConnections();
     } else {
@@ -273,7 +243,6 @@ export function renderTournamentPage(): string {
               name: selectedName,
             };
 
-            console.log("🎯 UTILISATEUR CHANGÉ:", currentUser);
             updateUserDebugInfo();
             localStorage.setItem("debugUser", JSON.stringify(currentUser));
             processPendingMatchConnections();
@@ -400,7 +369,7 @@ export function renderTournamentPage(): string {
   });
 
   // 🔧 FONCTION CRITIQUE MANQUANTE - Créer un conteneur persistant pour chaque match
-  function createOrGetMatchContainer(match: Match): HTMLDivElement {
+  function createOrGetMatchContainer(match): HTMLDivElement {
     const existingContainer = sceneContainers.get(match.roomId);
     if (existingContainer) {
       console.log(`♻️ Réutilisation conteneur existant pour ${match.roomId}`);
@@ -506,7 +475,7 @@ export function renderTournamentPage(): string {
   }
 
   // 🔧 FONCTION DE RENDU PRINCIPALE
-  function renderTournament(data: TournamentData) {
+  function renderTournament(data) {
     if (isRenderingInProgress) {
       console.log("⚠️ Rerender ignoré - rendu en cours");
       return;
@@ -567,7 +536,7 @@ export function renderTournamentPage(): string {
     });
   }
 
-  function renderWaitingState(data: TournamentData) {
+  function renderWaitingState(data) {
     if (!playerList) {
       console.error("❌ playerList element not found!");
       return;
@@ -589,7 +558,7 @@ export function renderTournamentPage(): string {
       Array.isArray(data.players) &&
       data.players.length > 0
     ) {
-      data.players.forEach((player: Player) => {
+      data.players.forEach((player) => {
         const playerId =
           player.id !== null && player.id !== undefined
             ? String(player.id)
@@ -641,7 +610,7 @@ export function renderTournamentPage(): string {
     }
   }
 
-  function renderRunningState(data: TournamentData) {
+  function renderRunningState(data) {
     if (!data.matches) return;
     if (!playerList) return;
 
@@ -659,13 +628,13 @@ export function renderTournamentPage(): string {
     const isCurrentUserAutoQualified =
       data.qualified &&
       data.qualified.some(
-        (player: Player) =>
+        (player) =>
           player.name === currentUserName || player.id === currentUser?.id
       );
 
     // 🔧 NOUVEAU: Vérifier si le joueur actuel participe à un match de ce round
     const currentUserMatch = data.matches.find(
-      (match: Match) =>
+      (match) =>
         match.player1 === currentUserName ||
         match.player2 === currentUserName ||
         match.player1 === currentUser?.id ||
@@ -730,7 +699,7 @@ export function renderTournamentPage(): string {
 
     // Vérifier si tous les matchs sont terminés
     const allMatchesFinished = data.matches.every(
-      (match: Match) => match.status === "finished" && match.winner
+      (match) => match.status === "finished" && match.winner
     );
 
     // Afficher le statut des matchs en cours
@@ -757,7 +726,7 @@ export function renderTournamentPage(): string {
       playerList.appendChild(statusDiv);
     }
 
-    data.matches.forEach((match: Match) => {
+    data.matches.forEach((match) => {
       // Vérifier si le match est déjà terminé
       if (match.status === "finished" && match.winner) {
         console.log(
@@ -868,7 +837,7 @@ export function renderTournamentPage(): string {
 
     const nextBtn = document.createElement("button");
     nextBtn.id = "nextRoundBtn";
-    nextBtn.textContent = "🚀 Lancer le Round Suivant";
+    nextBtn.textContent = "🚀 Suite";
     nextBtn.className =
       "bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 font-semibold text-lg shadow-lg transform hover:scale-105 transition-all";
 
@@ -880,7 +849,7 @@ export function renderTournamentPage(): string {
   }
 
   // 🔧 FONCTION MANQUANTE: Vue spectateur pour les matchs des autres joueurs
-  function showMatchSpectatorView(match: Match) {
+  function showMatchSpectatorView(match) {
     // Éviter les doublons
     const existingSpectatorView = document.querySelector(
       `[data-spectator-match-id="${match.roomId}"]`
@@ -938,7 +907,7 @@ export function renderTournamentPage(): string {
     }
   }
 
-  function showFinishedMatchSummary(match: Match) {
+  function showFinishedMatchSummary(match) {
     const summaryDiv = document.createElement("div");
     summaryDiv.className =
       "mb-4 p-4 bg-gray-100 rounded-lg border-2 border-gray-300";
@@ -1084,7 +1053,7 @@ export function renderTournamentPage(): string {
     }
   }
 
-  function handleMatchEnd(roomId: string, winner: string, loser: string, scoreP1: number, scoreP2: number) {
+  function handleMatchEnd(roomId, winner, loser, scoreP1, scoreP2) {
     console.log(`🏁 Traitement fin de match ${roomId}`);
 
     finishedMatches.set(roomId, {
@@ -1114,7 +1083,7 @@ export function renderTournamentPage(): string {
     }, 3000);
   }
 
-  function showMatchResult(roomId: string, winner: string, loser: string, scoreP1: number, scoreP2: number) {
+  function showMatchResult(roomId, winner, loser, scoreP1, scoreP2) {
     const container = document.querySelector(`[data-match-id="${roomId}"]`);
     if (!container) return;
 
@@ -1198,7 +1167,7 @@ export function renderTournamentPage(): string {
     }
   }
 
-  function fadeOutMatchContainer(roomId: string) {
+  function fadeOutMatchContainer(roomId) {
     const container = document.querySelector(`[data-match-id="${roomId}"]`);
     if (!container) return;
 
@@ -1215,7 +1184,7 @@ export function renderTournamentPage(): string {
     if (!lastTournamentData || !lastTournamentData.matches) return;
 
     const allMatchesFinished = lastTournamentData.matches.every(
-      (match: Match) =>
+      (match) =>
         finishedMatches.has(match.roomId) || match.status === "finished"
     );
 
@@ -1314,7 +1283,7 @@ export function renderTournamentPage(): string {
       return;
     }
 
-    const gameWs = new WebSocket(`wss://${window.location.hostname}:5173/ws`);
+    const gameWs = new WebSocket(`wss://${window.location.hostname}:3000/ws`);
     gameConnections.set(roomId, gameWs);
 
     gameWs.onopen = () => {
@@ -1437,13 +1406,52 @@ export function renderTournamentPage(): string {
     }
   }
 
+  function broadcastNewTournamentMessage() {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const host = window.location.host;
+    const socketUrl = `${protocol}//${host}/chat`;
+
+    const socket = new WebSocket(socketUrl);
+    const message = "Nouveau tournoi créé, allez "
+
+    if (!message) return;
+
+    socket.onopen = () => {
+      console.log("📡 WebSocket chat tournoi connecté");
+      const payload = {
+        type: "chatMessage",
+        content: message,
+        user: "Annonce", // Optionnel, le serveur peut overrider
+      }
+      try {
+        socket.send(JSON.stringify(payload));
+      } catch (err) {
+        console.error("[CHAT GLOBAL] Erreur envoi message:", err);
+      }
+    }
+    };
+    // Vérifier que la socket est ouverte avant d'envoyer
+//     if (socket.readyState !== WebSocket.OPEN) {
+//       console.warn("[CHAT GLOBAL] Socket fermée, impossible d'envoyer le message");
+//     }
+
+// ;
+
+//     try {
+//       socket.send(JSON.stringify(payload));
+//     } catch (err) {
+//       console.error("[CHAT GLOBAL] Erreur envoi message:", err);
+//     }
+  // }
+
   function connectTournamentWebSocket(): void {
+    broadcastNewTournamentMessage();
     if (tournamentWebSocket) {
       tournamentWebSocket.close();
     }
 
     tournamentWebSocket = new WebSocket(
-      `wss://${window.location.hostname}:5173/ws?type=tournament`
+      `wss://${window.location.hostname}:3000/ws?type=tournament`
     );
 
     let lastUpdateTime = 0;
