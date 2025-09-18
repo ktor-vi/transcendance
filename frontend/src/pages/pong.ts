@@ -1,5 +1,6 @@
 import page from "page";
 import { createBabylonScene } from "../components/BabylonScene";
+import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 import { GameInstance } from "../types/GameTypes";
 
 async function getPicture() {
@@ -498,94 +499,28 @@ export function renderPong() {
     }
   });
 
-  const html = `
-<script>0</script>
+	const html = `
+	<script>0</script>
 
-<section class="flex flex-col items-center text-center min-h-screen pt-4 pb-16 relative">
-    <div class="dashboard-buttons w-full flex items-center justify-between px-8 mb-8">
-        <h1 class="ml-8 text-4xl -mt-4 font-bold text-pink-600">TRANSCENDENCE</h1>
+	<section class="flex flex-col items-center text-center">
+	<div class="self-start ml-16 mt-12">
+		${backButtonArrow()}
+	</div>    
+	<div class="flex flex-wrap justify-center gap-4 mt-6">
+		<input id="roomIdInput" placeholder="ID de la room"</input>
+		<button class="button bg-purple-400 hover:bg-purple-600" id="joinRoomBtn">Rejoindre Room</button>
+		<button class="button bg-purple-400 hover:bg-purple-600" id="matchmakeBtn">Matchmaking</button>
+		<button class="button bg-purple-400 hover:bg-purple-600" id="keyboardPlayBtn">Local</button>
+		<button class="button bg-lime-300 hover:bg-lime-400" id="goToTournamentBtn">Tournoi</button>
+	</div>
+	<div class="game-container w-full max-w-4xl mx-auto">
+		<div id="roomInfo" class="mt-4 text-white">AUCUNE PARTIE EN COURS</div>
+		<h3 id="score" class=""></h2>
+	</div>
+		<canvas id="renderCanvas"</canvas>
+	</section>
+	`;
+	document.getElementById("app")!.innerHTML = html;
+	setupBackButton();
 
-        <img src="/images/hellokittycomputer.png"
-             alt="Hello Kitty Computer"
-             class="hellokitty-computer h-20">
-
-        <div class="flex items-center space-x-6">
-            <div class="flex space-x-6 mr-4">
-                <a href="/users-list"
-                   data-nav
-                   class="button bg-rose-300 hover:bg-rose-400 h-8 px-4 py-1 rounded transition-colors">
-                    Utilisateurs
-                </a>
-                <a href="/friends"
-                   data-nav
-                   class="button bg-orange-300 hover:bg-orange-400 h-8 px-4 py-1 rounded transition-colors">
-                    Amitiés
-                </a>
-            </div>
-
-            <a href="/profile" data-nav class="block">
-                <img src="/images/default-profile.png"
-                     alt="Profil"
-                     class="w-14 h-14 -mt-2 rounded-full object-cover shadow-lg hover:shadow-xl transition-shadow">
-            </a>
-        </div>
-    </div>
-
-    <div class="flex flex-row space-y-3 items-baseline w-80vw mb-8 ">
-        <input id="roomIdInput"
-               placeholder="ID de la room"
-               class="border px-3 h-12 rounded w-[150px] h-10 focus:outline-none focus:ring-2 focus:ring-blue-300">
-
-
-            <button id="joinRoomBtn"
-                    class="mx-4 button bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition-colors flex items-center justify-center">
-                🎮 Rejoindre Room
-            </button>
-
-            <button id="matchmakeBtn"
-                    class="mx-4 button bg-green-500 hover:bg-green-600 text-white py-2 rounded transition-colors flex items-center justify-center">
-                🎲 Matchmaking
-            </button>
-
-            <button id="goToTournamentBtn"
-                    class="mx-4 button bg-orange-500 hover:bg-orange-600 text-white py-2 rounded transition-colors flex items-center justify-center">
-                🏆 Tournoi
-            </button>
-
-            <button id="keyboardPlayBtn"
-                    class="mx-4 button bg-purple-600 hover:bg-purple-700 text-white py-2 rounded transition-colors flex items-center justify-center">
-                ⌨️ Local
-            </button>
-
-
-        <button id="liveChatBtn"
-                class="mx-4 button bg-fuchsia-400 hover:bg-fuchsia-500 text-white px-4 py-2 rounded transition-colors">
-            Chat
-        </button>
-    </div>
-
-    <div class="game-container w-full max-w-4xl mx-auto">
-        <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-            <div id="roomInfo" class="text-sm text-gray-600 italic mb-1">Aucune partie en cours</div>
-            <h2 id="score" class="text-xl font-bold mt-2 min-h-[2rem]"></h2>
-        </div>
-
-        <h1 id="launch" class="text-5xl text-center text-gray-400 my-8 select-none">🚀 Lancez une partie !</h1>
-
-        <canvas id="renderCanvas"
-                class="border border-gray-300 w-full h-[70vh] rounded-lg shadow-lg bg-gray-800">
-        </canvas>
-    </div>
-
-    <button id="logout"
-            class="button bg-red-400 hover:bg-red-500 w-12 h-12 fixed bottom-6 left-6 rounded-full shadow-md transition-colors"
-            aria-label="Déconnexion">
-        <img src="/images/logout.svg"
-             alt="Déconnexion"
-             class="w-8 h-8 mx-auto -scale-x-100">
-    </button>
-</section>
-
-    `;
-  document.getElementById("app")!.innerHTML = html;
 }

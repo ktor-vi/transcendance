@@ -30,9 +30,9 @@ export async function renderFriends() {
 		const html = `
 			<script>0</script>
 			<section class="flex flex-col items-center text-center">
-				 <div class="self-start ml-16 mt-12">
-    				${backButtonArrow()}
- 				 </div>
+				<div class="self-start ml-16 mt-12">
+					${backButtonArrow()}
+ 				</div>
 				<h1 class="text-4xl mt-4 mb-4">DEMANDES D'AMIS</h1>
  				${
           requests > 0

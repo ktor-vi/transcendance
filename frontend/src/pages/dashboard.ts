@@ -19,7 +19,7 @@ export function renderDashboard() {
   });
 
   return `
-  <script>0</script>
+  <script></script>
     <section class="flex flex-col items-center text-center">
     	<div class="dashboard-buttons w-full flex items-center justify-between px-8">
 				<h1 class="ml-8 text-4xl -mt-4">TRANSCENDENCE</h1>
