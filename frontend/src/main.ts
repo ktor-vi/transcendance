@@ -3,6 +3,7 @@ import page from "page";
 import './style.css';
 import { renderHome } from "./pages/home";
 import { renderDashboard } from "./pages/dashboard";
+import { renderPong } from "./pages/pong";
 import { renderNotFound } from "./pages/notFound";
 import { renderKeyboardPlay } from "./pages/keyboardPlay";
 import { renderProfile } from "./pages/profile";
@@ -34,16 +35,37 @@ function render(html: string) {
 
 // Define SPA routes
 page("/", () => render(renderHome()));
-page("/dashboard", () => render(renderDashboard()));
-page("/profile", () => renderProfile());
-page("/users-list", () => renderUsersList());
-page("/friends", () => renderFriends());
-page("/friends/requests", () => renderFriendsRequests());
-page("/user/:name", (ctx) => renderUserProfile(ctx));
-page("/register", () => renderRegister());
-page("/login", () => renderLogin());
-page("/forgotPassword", () => renderForgotPwd());
-page("/keyboard-play", () => render(renderKeyboardPlay()));
+
+// Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
+page("/dashboard", () => 
+	render(renderDashboard()));
+
+page("/pong", () => renderPong());
+
+page("/profile", () => 
+	renderProfile());
+
+page("/users-list", () => 
+	renderUsersList());
+
+page("/friends", () => 
+	renderFriends());
+
+page("/friends/requests", () => 
+	renderFriendsRequests());
+
+page("/user/:name", (ctx) =>
+	renderUserProfile(ctx));
+
+page("/register", () => 
+	renderRegister());
+
+page("/login", () => 
+	renderLogin());
+
+page("/forgotPassword", () => 
+	renderForgotPwd());
+page("/keyboard-play", () => render(renderKeyboardPlay()))
 page("/tournament", () => renderTournamentPage());
 page("/chat", () => render(renderChat()));
 page("*", () => renderNotFound());
