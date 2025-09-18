@@ -24,20 +24,23 @@ dev:
 	@echo "ദി(˵ •̀ ᴗ - ˵ ) SSL certificates are successfully generated for $$(hostname)( ദി ˙ᗜ˙ )$(RESET)"
 	@echo "$(GREEN)Starting frontend and backend in development mode...$(RESET)"
 	@docker-compose -f $(DOCKER_COMPOSE_FILE) up --build frontend-dev backend-dev
-	@echo "$(GREEN)Frontend is running on http://localhost:5173$(RESET)"
-	@echo "$(GREEN)Backend is running on http://localhost:3000$(RESET)"
 
 # Commands for Production
 prod:
+	@echo "$(LILA)✨🪄✨SSL certificates are currently being generated...✨🪄✨"
+	@mkdir -p certs
+	@openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+		-keyout certs/localhost.key \
+		-out certs/localhost.crt \
+		-subj "/CN=$$(hostname)"
+	@echo "ദി(˵ •̀ ᴗ - ˵ ) SSL certificates are successfully generated for $$(hostname)( ദി ˙ᗜ˙ )$(RESET)"
 	@echo "$(YELLOW)Building frontend and backend for production...$(RESET)"
 	@docker-compose -f $(DOCKER_COMPOSE_FILE) up --build  frontend-prod backend-prod 
-	@echo "$(YELLOW)Production environment is up.$(RESET)"
 
 # Docker Build
 build:
 	@echo "$(YELLOW)Building Docker containers for all services...$(RESET)"
 	@docker-compose -f $(DOCKER_COMPOSE_FILE) build
-	@echo "$(GREEN)Build complete.$(RESET)"
 
 # Docker Compose Up (to start containers)
 up:
