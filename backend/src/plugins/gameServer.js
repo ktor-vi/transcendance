@@ -6,7 +6,12 @@ const FIELD_WIDTH = 13.5;
 const FIELD_DEPTH = 7.5;
 const MAX_SCORE = 11;
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
 export default fp(async function (fastify) {
+<<<<<<< HEAD
 	const rooms = new Map();
 
 	function clamp(value, min, max) {
@@ -304,5 +309,4 @@ export default fp(async function (fastify) {
 	});
 
 	console.log("🎮 Game server initialized (waiting for 2 players)");
-});
-
+}
