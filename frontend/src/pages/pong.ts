@@ -505,7 +505,13 @@ export function renderPong() {
 	<section class="flex flex-col items-center text-center">
 	<div class="self-start ml-16 mt-12">
 		${backButtonArrow()}
-	</div>    
+	</div>
+	<h1 class="absolute top-[180px] left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-white drop-shadow-lg w-full">
+		LANCE UNE PARTIE !
+	</h1>
+	<div class="relative w-[350px] -z-10">
+ 		<img src="/images/rocket.png" alt="jolie fusée" class="-mt-36 -mb-36 h-[350px] w-full -z-10">
+	</div>
 	<div class="flex flex-wrap justify-center gap-4 mt-6">
 		<input id="roomIdInput" placeholder="ID de la room"</input>
 		<button class="button bg-purple-400 hover:bg-purple-600" id="joinRoomBtn">Rejoindre Room</button>
