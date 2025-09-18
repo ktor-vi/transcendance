@@ -22,7 +22,7 @@ import {
 // const PADDLE_IMAGE = "https://www.babylonjs-playground.com/textures/amiga.jpg";
 // const BALL_IMAGE = "https://us1.discourse-cdn.com/flex024/uploads/babylonjs/original/3X/7/b/7b835f51e968cd202d62ad1277dac879e19ffd9b.png";
 // const WALL_IMAGE = "https://www.babylonjs-playground.com/textures/crate.png";
-const GRAPHIC_FOLDER = "../../public/images/";
+const GRAPHIC_FOLDER = "/images/";
 const SKYBOX_IMAGE = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzRT6G0cuCqmybwjD-8zWjjUIAQBvi6LMFHkTCZL5hzSEtDgYqIdfWRLWtnyG4SBGBptk&usqp=CAU";
 const FIELD_IMAGE = GRAPHIC_FOLDER + "floweryground.jpg";
 const PADDLE_IMAGE = GRAPHIC_FOLDER + "paddle.jpeg";
