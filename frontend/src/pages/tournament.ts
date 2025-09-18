@@ -330,7 +330,7 @@ export function renderTournamentPage(): string {
     // Vérifier si le joueur est qualifié automatiquement
     if (lastTournamentData?.qualified) {
       const isAutoQualified = lastTournamentData.qualified.some(
-        (player) =>
+        (player: Player) =>
           player.name === currentUser.name || player.id === currentUser.id
       );
 
@@ -400,7 +400,7 @@ export function renderTournamentPage(): string {
   });
 
   // 🔧 FONCTION CRITIQUE MANQUANTE - Créer un conteneur persistant pour chaque match
-  function createOrGetMatchContainer(match): HTMLDivElement {
+  function createOrGetMatchContainer(match: Match): HTMLDivElement {
     const existingContainer = sceneContainers.get(match.roomId);
     if (existingContainer) {
       console.log(`♻️ Réutilisation conteneur existant pour ${match.roomId}`);
@@ -506,7 +506,7 @@ export function renderTournamentPage(): string {
   }
 
   // 🔧 FONCTION DE RENDU PRINCIPALE
-  function renderTournament(data) {
+  function renderTournament(data: TournamentData) {
     if (isRenderingInProgress) {
       console.log("⚠️ Rerender ignoré - rendu en cours");
       return;
@@ -567,7 +567,7 @@ export function renderTournamentPage(): string {
     });
   }
 
-  function renderWaitingState(data) {
+  function renderWaitingState(data: TournamentData) {
     if (!playerList) {
       console.error("❌ playerList element not found!");
       return;
@@ -589,7 +589,7 @@ export function renderTournamentPage(): string {
       Array.isArray(data.players) &&
       data.players.length > 0
     ) {
-      data.players.forEach((player) => {
+      data.players.forEach((player: Player) => {
         const playerId =
           player.id !== null && player.id !== undefined
             ? String(player.id)
@@ -641,7 +641,7 @@ export function renderTournamentPage(): string {
     }
   }
 
-  function renderRunningState(data) {
+  function renderRunningState(data: TournamentData) {
     if (!data.matches) return;
     if (!playerList) return;
 
@@ -659,13 +659,13 @@ export function renderTournamentPage(): string {
     const isCurrentUserAutoQualified =
       data.qualified &&
       data.qualified.some(
-        (player) =>
+        (player: Player) =>
           player.name === currentUserName || player.id === currentUser?.id
       );
 
     // 🔧 NOUVEAU: Vérifier si le joueur actuel participe à un match de ce round
     const currentUserMatch = data.matches.find(
-      (match) =>
+      (match: Match) =>
         match.player1 === currentUserName ||
         match.player2 === currentUserName ||
         match.player1 === currentUser?.id ||
@@ -730,7 +730,7 @@ export function renderTournamentPage(): string {
 
     // Vérifier si tous les matchs sont terminés
     const allMatchesFinished = data.matches.every(
-      (match) => match.status === "finished" && match.winner
+      (match: Match) => match.status === "finished" && match.winner
     );
 
     // Afficher le statut des matchs en cours
@@ -757,7 +757,7 @@ export function renderTournamentPage(): string {
       playerList.appendChild(statusDiv);
     }
 
-    data.matches.forEach((match) => {
+    data.matches.forEach((match: Match) => {
       // Vérifier si le match est déjà terminé
       if (match.status === "finished" && match.winner) {
         console.log(
@@ -880,7 +880,7 @@ export function renderTournamentPage(): string {
   }
 
   // 🔧 FONCTION MANQUANTE: Vue spectateur pour les matchs des autres joueurs
-  function showMatchSpectatorView(match) {
+  function showMatchSpectatorView(match: Match) {
     // Éviter les doublons
     const existingSpectatorView = document.querySelector(
       `[data-spectator-match-id="${match.roomId}"]`
@@ -938,7 +938,7 @@ export function renderTournamentPage(): string {
     }
   }
 
-  function showFinishedMatchSummary(match) {
+  function showFinishedMatchSummary(match: Match) {
     const summaryDiv = document.createElement("div");
     summaryDiv.className =
       "mb-4 p-4 bg-gray-100 rounded-lg border-2 border-gray-300";
@@ -1084,7 +1084,7 @@ export function renderTournamentPage(): string {
     }
   }
 
-  function handleMatchEnd(roomId, winner, loser, scoreP1, scoreP2) {
+  function handleMatchEnd(roomId: string, winner: string, loser: string, scoreP1: number, scoreP2: number) {
     console.log(`🏁 Traitement fin de match ${roomId}`);
 
     finishedMatches.set(roomId, {
@@ -1114,7 +1114,7 @@ export function renderTournamentPage(): string {
     }, 3000);
   }
 
-  function showMatchResult(roomId, winner, loser, scoreP1, scoreP2) {
+  function showMatchResult(roomId: string, winner: string, loser: string, scoreP1: number, scoreP2: number) {
     const container = document.querySelector(`[data-match-id="${roomId}"]`);
     if (!container) return;
 
@@ -1198,7 +1198,7 @@ export function renderTournamentPage(): string {
     }
   }
 
-  function fadeOutMatchContainer(roomId) {
+  function fadeOutMatchContainer(roomId: string) {
     const container = document.querySelector(`[data-match-id="${roomId}"]`);
     if (!container) return;
 
@@ -1215,7 +1215,7 @@ export function renderTournamentPage(): string {
     if (!lastTournamentData || !lastTournamentData.matches) return;
 
     const allMatchesFinished = lastTournamentData.matches.every(
-      (match) =>
+      (match: Match) =>
         finishedMatches.has(match.roomId) || match.status === "finished"
     );
 
