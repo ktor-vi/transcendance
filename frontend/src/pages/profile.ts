@@ -49,6 +49,7 @@ export async function renderProfile() {
 			const ratio = historyData.ratio;
 			
 			const html = `
+				<script>0</script>
 				<section class="flex flex-col items-center text-center">
 				<div class="self-start ml-16 mt-12">
 				${backButtonArrow()}
@@ -63,16 +64,21 @@ export async function renderProfile() {
 				</label>
 					
 				<input class="mb-4" type="text" id="nameInput" value="${userData.name}" />
-				<input class="mb-4 bg-[#DBDBDB]/60" type="text" id="emailInput" value="${userData.email}" disabled tabindex=-1/>
+				<input class="mb-4 bg-[#DBDBDB]/60" type="text" id="emailInput" value="${
+          userData.email
+        }" disabled tabindex=-1/>
 					
 				<button class="mb-12 button bg-purple-300 hover:bg-purple-400" id="save" disabled>
 				Enregistrer les modifications
 				</button>
 					
-				${!history.length ? `
+				${
+          !history.length
+            ? `
 				<p class="text-xl">Les stats et l'historique <br>apparaîtront quand tu auras fait au moins 1 match </p>
 				<img class="w-48" src="/images/hellokittytired.png" alt="Hello Kitty fatiguée"/>
-				` : `
+				`
+            : `
 				<div class="stats-history">
 					<div id="stats">
 					<h1>STATS</h1>
@@ -108,26 +114,31 @@ export async function renderProfile() {
 						</tr>
 					</thead>
 					<tbody>
-						${history.map((entry: any) => `
+						${history
+              .map(
+                (entry: any) => `
 						<tr class="h-12 border-b-2 border-white">
 							<td>${entry.type}</td>
 							<td>
-							<a href='/user/${encodeURIComponent(entry.player_1)}'>${(entry.player_1)}</a>
+							<a href='/user/${encodeURIComponent(entry.player_1)}'>${entry.player_1}</a>
 							</td>
 							<td>
-							<a href='/user/${encodeURIComponent(entry.player_2)}'>${(entry.player_2)}</a>
+							<a href='/user/${encodeURIComponent(entry.player_2)}'>${entry.player_2}</a>
 							</td>
 							<td>${entry.scores}</td>
 							<td>
-							<a href='/user/${encodeURIComponent(entry.winner)}'>${(entry.winner)}</a>
+							<a href='/user/${encodeURIComponent(entry.winner)}'>${entry.winner}</a>
 							</td>
 							<td>${entry.created_at}</td>
 						</tr>
-						`).join("")}
+						`
+              )
+              .join("")}
 					</tbody>
 					</table>
 				</div>
-				`}
+				`
+        }
 			</section>
 
 		`;

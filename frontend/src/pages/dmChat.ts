@@ -4,6 +4,7 @@ import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 
 export function renderDmChat(receiverId: string) {
 	return `
+	<script>0</script>
 <section class="flex flex-col items-center text-center">
 	<div class="self-start ml-16 mt-12">
 	${backButtonArrow()}
@@ -72,7 +73,7 @@ export async function initDmChat(receiverId: string, senderId: string) {
 
 		if (data.type === "dmMessage") {
 			const fromMe = data.from === senderId;  // vrai si c'est toi qui envoies
-			addMessage(`${data.from}: ${data.content}`, fromMe);
+			addMessage(`${data.content}`, fromMe);
 		}
 
 		if (data.type === "matchInvitation") acceptMatch();
@@ -89,7 +90,7 @@ export async function initDmChat(receiverId: string, senderId: string) {
 			return;
 		}
 		socket.send(JSON.stringify({ type: "dmMessage", to: receiverId, content: message }));
-		addMessage(`Moi: ${message}`, true);
+		addMessage(`${message}`, true);
 
 		input.value = "";
 	}

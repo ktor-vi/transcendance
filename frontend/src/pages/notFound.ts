@@ -2,8 +2,9 @@ import page from "page";
 import { backButton, setupBackButton } from '../components/backButton.js';
 
 export function renderNotFound() {
-	const html =
-	`
+	const html = `
+		<script>0</script>
+
 	<section class="flex flex-col items-center text-center">
 	<div class="mt-16">
 		<p class="text-white text-1xl">Erreur lors du chargement de la page</p>
