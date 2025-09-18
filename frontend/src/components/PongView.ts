@@ -33,7 +33,7 @@ const SHINY_IMAGE = "https://playground.babylonjs.com/textures/flare.png";
 export class PongView {
   engine: Engine;
   scene: Scene;
-  startButton: Button;
+  startButton: Button | null = null;
 
   /**
    * construct the graphic view of the pong

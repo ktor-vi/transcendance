@@ -26,12 +26,12 @@ const WALL_DEPTH = FIELD_DEPTH;
 export class PongModel {
   engine: Engine;
   scene: Scene;
-  camera: FreeCamera;
+  camera: FreeCamera | null = null;
   numberOfPlayers: number;
   walls: Wall[];
   paddles: Paddle[];
-  goals: Goal[];
-  ball: Ball;
+  goals: Goal[] | null = null;
+  ball: Ball | null = null;
   ground: Ground;
 
   /**
@@ -68,7 +68,7 @@ export class PongModel {
     this.walls[1] = new Wall(this.scene, (- FIELD_WIDTH - BALL_SIZE) / 2, 0);
     this.paddles[0] = new Paddle(this.scene, FIELD_DEPTH / 2, Math.PI);
     this.paddles[1] = new Paddle(this.scene, FIELD_DEPTH / 2, 0);
-    if (local){
+    if (local && this.goals){
       this.goals[0] = new Goal(this.scene, (FIELD_DEPTH + BALL_SIZE) / 2, Math.PI);
       this.goals[1] = new Goal(this.scene, (FIELD_DEPTH + BALL_SIZE) / 2, 0);
     }
@@ -80,7 +80,7 @@ export class PongModel {
    */
   collision() : boolean {
     for (let i = 0; i < this.numberOfPlayers; i++) {
-      if (this.ball.hitbox.intersectsMesh(this.paddles[i].hitbox))
+      if (this.ball && this.ball.hitbox.intersectsMesh(this.paddles[i].hitbox))
         return true;
     }
     return false;
@@ -92,7 +92,7 @@ export class PongModel {
    * @returns true if goal is scored
    */
   score(player: number) : boolean {
-    if (this.ball.hitbox.intersectsMesh(this.goals[player].hitbox)){
+    if (this.ball && this.goals && this.ball.hitbox.intersectsMesh(this.goals[player].hitbox)){
       this.goals[player].score++;
       return true;
     }
