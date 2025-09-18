@@ -18,10 +18,13 @@ export async function renderUsersList() {
 
 		// Inject HTML template
 		const html = `
-		<input type="text" id="searchInput" placeholder="Search user..." />
-		<h1 style="text-align: center;">User List</h1>
-		<ul id="userList" style="background: none;"></ul>
+		<section class="flex flex-col items-center text-center">
+		
+		<input type="text" id="searchInput" class="mt-16 mb-8" placeholder="Rechercher un utilisateur..." />
+		<h1 class="text-2xl">Liste des utilisateurs</h1>
+		<ul id="userList""></ul>
 		${backButton()}
+		</section>
 		`;
 		document.getElementById("app")!.innerHTML = html;
 

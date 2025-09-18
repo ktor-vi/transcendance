@@ -31,13 +31,7 @@ export default defineConfig({
 				target: `https://${process.env.HOSTNAME}:3000`,
 				changeOrigin: true,
 				secure: false,
-				configure: cookieForwarding
-			},
-			"/login": {
-				target: `https://${process.env.HOSTNAME}:3000`,
-				changeOrigin: true,
-				secure: false,
-				configure: cookieForwarding
+				configure: cookieForwarding,
 			},
 			"/logout": {
 				target: `https://${process.env.HOSTNAME}:3000`,

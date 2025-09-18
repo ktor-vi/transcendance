@@ -11,16 +11,10 @@ export default async function userProfileRoutes(fastify) {
 		const userName = req.params.name;
 		const userInfos = await db.get('SELECT * FROM users WHERE name = ?', userName);
 
-		if (!userInfos) return reply.code(404).send({ error: "User does not exist" });
-
-		// Ensure picture exists
-		try {
-			await fs.access(userInfos.picture);
-		} catch {
-			userInfos.picture = "/uploads/default.jpg";
-		}
-
-		reply.send(userInfos);
+		if (userInfos)
+			reply.send(userInfos);
+		else
+			reply.code(404).send({ success: false, message: "Problème pendant l'affichage du profil" });
 	});
 
 	// Get match history of a specific user
@@ -40,10 +34,27 @@ export default async function userProfileRoutes(fastify) {
 			WHERE player_1 = ? OR player_2 = ? 
 			ORDER BY created_at DESC`,
 			userName, userName
-		);
+  		);
+		const wins = await historyDb.get(`SELECT COUNT(*) as count FROM history WHERE winner = ?`, userName);
+		const plays = await historyDb.get(`SELECT COUNT(*) as count FROM history WHERE player_1 = ? OR player_2 = ?`, userName, userName);
+		
+		const multiplier = 100/ plays.count;
+		const stat = wins.count * multiplier;
+		let ratio;
+		if (plays.count === 0)
+			ratio = 0;
+		else
+			ratio = Math.round(stat)
 
-		if (!history) return reply.code(404).send({ success: false, message: "Unable to retrieve history" });
 
-		reply.send(history);
+		if (history)
+			reply.send({
+				history: history,
+				wins: wins.count,
+				plays: plays.count,
+				ratio: ratio
+		});
+		else
+			reply.code(404).send({ success: false, message: "Problème pendant l'affichage du profil" });
 	});
 }

@@ -1,6 +1,6 @@
 import page from "page";
 import { getUserStatut } from '../components/auth';
-import { backButton, setupBackButton } from '../components/backButton.js';
+import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 
 // Render the user profile page
 export async function renderProfile() {
@@ -25,81 +25,111 @@ export async function renderProfile() {
 		if (!userData.picture || userData.picture.trim() === "") {
 			userData.picture = "/uploads/default.jpg";
 		}
-
-		// Fetch match history
+		
+		
 		const historyRes = await fetch(`api/user/history/${encodeURIComponent(userData.name)}`, { method: "GET" });
 		if (!historyRes.ok) {
-			document.getElementById("app")!.innerHTML = `
-				<p class="text-white text-1xl">Error loading page</p>
-				<h2 class="text-white text-9xl">404</h2>
-				<p class="text-white text-2xl">User not found</p>
-				<img src="/images/hellokittysad2.png" class="mx-auto w-48" />
-			`;
-			return;
-		}
-		const history = await historyRes.json();
-
-		// Build profile HTML
-		const html = `
-			<h1 style="text-align: center;">Profile</h1>
-			<section style="
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				justify-content: center;
-				gap: 16px;
-				min-height: 50vh;
-			">
-				<div style="display: flex; align-items: center; gap: 8px;">
-					<label for="emailInput">Email:</label>
-					<input type="text" id="emailInput" value="${userData.email}" disabled tabindex=-1/>
-				</div>
-
-				<div style="display: flex; align-items: center; gap: 8px;">
-					<label for="nameInput">Username:</label>
-					<input type="text" id="nameInput" value="${userData.name}" />
-				</div>
-
-				<label for="changePicture">Profile Picture:</label>
-				<div style="display: flex; align-items: center; gap: 8px;">
-					<img id="profilePicture" src="${userData.picture}" alt="[default]" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;" />
-				</div>
-				<input id="changePicture" name="changePicture" type="file"/>
-
-				<button id="save" disabled>Save Changes</button>
-
-				<table border="1" style="width: 100%; text-align: center;">
-					${!history.length 
-						? `<p>History will appear after at least one match</p>` 
-						: `
-							<h3>Match History</h3>
-							<thead>
-								<tr>
-									<th>Type</th>
-									<th>Player 1</th>
-									<th>Player 2</th>
-									<th>Score</th>
-									<th>Winner</th>
-									<th>Date</th>
-								</tr>
-							</thead>
-							<tbody>
-								${history.map((entry: any) => `
-									<tr>
-										<td>${entry.type}</td>
-										<td>${entry.player_1}</td>
-										<td>${entry.player_2}</td>
-										<td>${entry.scores}</td>
-										<td>${entry.winner}</td>
-										<td>${entry.created_at}</td>
-									</tr>
-								`).join("")}
-							</tbody>
-						`}
-				</table>
-
-				${backButton()}
+			document.getElementById("app")!.innerHTML = 
+			`
+			<section class="flex flex-col items-center text-center">
+			<div class="mt-16">
+			<p class="text-white text-1xl">Erreur lors du chargement de la page</p>
+			<h2 class="text-white text-9xl">404</h2>
+				<p class="text-white text-2xl">Cet utilisateur n'existe pas</p>
+				<img src="/images/hellokittysad2.png" class="mx-auto w-48"></img>
+			</div>
 			</section>
+			`;
+				return;
+			}
+			const historyData = await historyRes.json();
+			const history = historyData.history;
+			const wins = historyData.wins;
+			const plays = historyData.plays;
+			const ratio = historyData.ratio;
+			
+			const html = `
+				<section class="flex flex-col items-center text-center">
+				<div class="self-start ml-16 mt-12">
+				${backButtonArrow()}
+				</div>
+					
+				<h1 class="text-4xl mb-4">PROFIL</h1>
+					
+				<input class="hidden" id="changePicture" name="changePicture" type="file"/>
+				<label class="mb-4" for="changePicture">
+				<img id="profilePicture" src="${userData.picture}" alt="[default]" 
+					 class="flex items-center w-[150px] h-[150px] object-cover rounded-full shadow-lg"/>
+				</label>
+					
+				<input class="mb-4" type="text" id="nameInput" value="${userData.name}" />
+				<input class="mb-4 bg-[#DBDBDB]/60" type="text" id="emailInput" value="${userData.email}" disabled tabindex=-1/>
+					
+				<button class="mb-12 button bg-purple-300 hover:bg-purple-400" id="save" disabled>
+				Enregistrer les modifications
+				</button>
+					
+				${!history.length ? `
+				<p class="text-xl">Les stats et l'historique <br>apparaîtront quand tu auras fait au moins 1 match </p>
+				<img class="w-48" src="/images/hellokittytired.png" alt="Hello Kitty fatiguée"/>
+				` : `
+				<div class="stats-history">
+					<div id="stats">
+					<h1>STATS</h1>
+					<table class="stats-table w-[270px] mx-auto">
+						<tbody>
+							<tr>
+								<th class="pr-4 text-right font-bold">Victoires</th>
+								<td class="text-left">${wins}</td>
+							</tr>
+							<tr>
+								<th class="pr-4 text-right font-bold">Parties jouées</th>
+								<td class="text-left">${plays}</td>
+							</tr>
+							<tr>
+								<th class="pr-4 text-right font-bold">Ratio de victoires</th>
+								<td class="text-left">${ratio}%</td>
+							</tr>
+						</tbody>
+					</table>
+
+					</div>
+				
+					<h1 class="mt-4 mb-4">HISTORIQUE</h1>
+					<table class="history-table mb-24">
+					<thead>
+						<tr>
+						<th>Type</th>
+						<th>Joueur 1</th>
+						<th>Joueur 2</th>
+						<th>Score</th>
+						<th>Vainqueur</th>
+						<th>Date</th>
+						</tr>
+					</thead>
+					<tbody>
+						${history.map((entry: any) => `
+						<tr class="h-12 border-b-2 border-white">
+							<td>${entry.type}</td>
+							<td>
+							<a href='/user/${encodeURIComponent(entry.player_1)}'>${(entry.player_1)}</a>
+							</td>
+							<td>
+							<a href='/user/${encodeURIComponent(entry.player_2)}'>${(entry.player_2)}</a>
+							</td>
+							<td>${entry.scores}</td>
+							<td>
+							<a href='/user/${encodeURIComponent(entry.winner)}'>${(entry.winner)}</a>
+							</td>
+							<td>${entry.created_at}</td>
+						</tr>
+						`).join("")}
+					</tbody>
+					</table>
+				</div>
+				`}
+			</section>
+
 		`;
 
 		// Inject HTML

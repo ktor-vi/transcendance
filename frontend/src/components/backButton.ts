@@ -2,7 +2,16 @@ import page from "page";
 
 // Returns back button HTML
 export function backButton() {
-	return '<button id="goBack">&lt Go back</button>';
+	return '<button class="back-button" id="goBack">Retour</button>'
+	return '<button class="back-button" id="goBack">Retour</button>'
+}
+
+export function backButtonArrow() {
+	return '<button class="back-button-arrow" id="goBack">Retour</button>'
+}
+
+export function backButtonArrow() {
+	return '<button class="back-button-arrow" id="goBack">Retour</button>'
 }
 
 // Sets up back button click handler

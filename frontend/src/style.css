@@ -3,19 +3,201 @@
 @tailwind utilities;
 
 @font-face {
-	font-family: 'Boldins';
-	src: url('/fonts/Boldins.ttf') format('truetype');
+	font-family: 'RubikOne-Regular';
+	src: url('/fonts/RubikOne-Regular.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+#app {
+	position: relative;
+	z-index: 2;
+}
+
+@layer base {
+	h1, button, a, p, li, th, td, label {
+		@apply text-white;
+		text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	}
+
+	h3 {
+		@apply text-fuchsia-900;
+		text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	}
+
+	input {
+		background-color: #F1F2F2;
+		@apply relative inline-flex items-center justify-center text-sm h-10 px-6 py-2 rounded-xl text-gray-400 bg-[#F1F2F2]/60 transition;
+
+		box-shadow: 8px 8px 15px 0px rgba(0,0,0,.3);
+	}
+
+.form-field {
+	@apply relative inline-flex items-center justify-center text-sm h-10 px-6 py-2 rounded-xl text-gray-400 transition;
+	@apply w-[270px];
+	background-color: rgba(241, 242, 242, 0.8); /* fond semi-transparent */
+	box-shadow: 8px 8px 15px 0px rgba(0,0,0,.3);
+}
+
+
 }
 
 body {
-	@apply bg-background text-center p-10;
+	font-family: 'RubikOne-Regular', sans-serif;
+	background-color: #F1F2F2;
+	background-image: url('/images/background.png');
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center 100px;
+	margin: 0;
+	padding: 0;
+	min-height: 100vh; /* hauteur du contenu réel */
+	position: relative; /* pour que ::before se base dessus */
 }
 
-h1 { @apply text-primary font-boldins text-4xl m-3; }
-span, p, h3, th, td { @apply text-text; }
-a { @apply text-text m-auto bg-secondary rounded px-3 py-2; }
-input { @apply rounded px-2 m-3; }
-button { @apply mt-5 px-4 py-2 bg-accent text-white rounded; }
-button.icons-btn { @apply m-0 p-0 bg-transparent text-inherit border-none rounded-none; }
-.link-user { @apply bg-transparent text-text font-bold; }
+body::before {
+	content: "";
+	position: absolute;  /* se base sur le body */
+	top: 40px;           /* distance du haut */
+	left: 40px;
+	right: 40px;
+	bottom: 40px;        /* distance du bas du contenu, pas de la fenêtre */
+	border: 6px solid white;
+	pointer-events: none;
+	z-index: 1;
+	box-sizing: border-box;
+}
 
+
+
+.hellokitty-computer {
+	@apply w-48 h-auto mb-4;
+}
+
+@layer components {
+	.button {
+		@apply relative inline-flex items-center justify-center text-sm h-12 px-6 py-2 rounded-xl text-white transition;
+
+		text-transform: uppercase;
+		box-shadow: inset 8px 8px 8px 0px rgba(255,255,255,.5),
+					inset -5px -5px 8px rgba(0,0,0,0.2),
+					8px 8px 15px 0px rgba(0,0,0,.3);
+	}
+
+	.button::after {
+		content: "";
+		position: absolute;
+		top: 0; left: 0; right: 0; bottom: 0;
+		background: url('/images/noise.png') repeat; /* petite image PNG de bruit */
+		opacity: 0.4;																/* force du grain */
+		pointer-events: none;												 /* ne bloque pas le clic */
+		border-radius: inherit;												/* suit les arrondis du bouton */
+	}
+
+	.back-button {
+		@apply bg-violet-500 relative inline-flex items-center justify-center text-sm h-12 px-6 py-2 mt-6 rounded-xl text-white transition;
+
+		text-transform: uppercase;
+		box-shadow: inset 8px 8px 8px 0px rgba(255,255,255,.5),
+					inset -5px -5px 8px rgba(0,0,0,0.2),
+					8px 8px 15px 0px rgba(0,0,0,.3);
+	}
+
+	.back-button:hover {
+		@apply bg-violet-600;
+	}
+
+	.back-button::after {
+		content: "";
+		position: absolute;
+		top: 0; left: 0; right: 0; bottom: 0;
+		background: url('/images/noise.png') repeat; /* petite image PNG de bruit */
+		opacity: 0.4;								/* force du grain */
+		pointer-events: none;			                  /* ne bloque pas le clic */
+		border-radius: inherit;                      /* suit les arrondis du bouton */
+	}
+
+	.back-button-arrow {
+		@apply bg-purple-400 relative inline-flex items-center justify-center text-sm h-12 px-6 py-2 mt-6 rounded-xl text-white transition;
+
+		text-transform: uppercase;
+		box-shadow: inset 8px 8px 8px 0px rgba(255,255,255,.5),
+					inset -5px -5px 8px rgba(0,0,0,0.2),
+					8px 8px 15px 0px rgba(0,0,0,.3);
+
+		background-image: url('/images/arrow-back.svg');
+  		background-repeat: no-repeat;
+  		background-position: 12px center; /* place la flèche à gauche */
+  		background-size: 2em; /* taille de la flèche */
+  		padding-left: 4rem; /* pour que le texte ne chevauche pas l’icône */
+	}
+
+	.back-button-arrow:hover {
+		@apply bg-purple-600;
+	}
+
+	.back-button-arrow::after {
+		content: "";
+		position: absolute;
+		top: 0; left: 0; right: 0; bottom: 0;
+		background: url('/images/noise.png') repeat; /* petite image PNG de bruit */
+		opacity: 0.4;                                /* force du grain */
+		pointer-events: none;                        /* ne bloque pas le clic */
+		border-radius: inherit;                      /* suit les arrondis du bouton */
+	}
+
+	#logout {
+ 		position: fixed; /* reste fixé à l'écran */
+    	bottom: 70px;    /* distance depuis le bas */
+    	left: 70px;      /* distance depuis la gauche */
+	}
+
+	#logout::before {
+		content: '';
+		position: absolute;
+		left: 50%;
+		transform: translateX(-50%) scaleX(-1);
+		width: 35px; /* largeur de ton image */
+		height: 35px; /* hauteur de ton image */
+		background-image: url('/images/logout.svg');
+		background-size: contain;
+		background-repeat: no-repeat;
+		pointer-events: none; /* pour ne pas interférer avec le clic */
+	}
+
+
+	.columns-title {
+		@apply text-fuchsia-900 grid grid-cols-[1fr_auto_1fr] items-center p-2;
+	}
+
+	.stats-history h1 {
+		@apply text-2xl;
+	}
+
+	.stats-table {
+		@apply text-white w-[270px] mx-auto border-separate;
+		border-spacing: 0 0.5rem; /* espace vertical entre les lignes */
+	}
+
+	.stats-table th {
+		@apply font-bold text-left pr-6 align-top;
+	}
+
+	.stats-table td {
+		@apply text-right align-top;
+	}
+
+	.history-table tbody tr {
+	  @apply rounded-lg text-white;
+	}
+
+	.history-table th {
+	  @apply font-bold text-center px-4 py-2;
+	}
+
+	.history-table td {
+	  @apply px-4 py-2;
+	}
+
+
+}

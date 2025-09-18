@@ -2,311 +2,528 @@ import page from "page";
 import { createBabylonScene } from "../components/BabylonScene";
 import { GameInstance } from "../types/GameTypes";
 
+async function getPicture() {
+	const res = await fetch("/api/profile", { method: "GET" });
+	const userData = await res.json();
+
+	return (userData.picture);
+}
+
 export function renderDashboard() {
-	setTimeout(() => {
-		// -----------------------------
-		// VARIABLES
-		// -----------------------------
-		let currentUserProfile: any = null;
-		let profileReady = false;
-		let wsConnection: WebSocket | null = null;
-		let isJoining = false;
-		let gameInstance: GameInstance | null = null;
-		let currentPlayerNumber = 0;
-		let currentRoomId = "";
-		let currentPlayerName = "";
-		let opponentPlayerName = "";
+  setTimeout(() => {
+    // 🔧 TOUTES LES VARIABLES AU MÊME NIVEAU
+    let currentUserProfile = null;
+    let profileReady = false;
+    let wsConnection: WebSocket | null = null;
+    let isJoining = false;
+    let gameInstance: GameInstance | null = null;
+    let currentPlayerNumber = 0;
+    let currentRoomId = "";
+    let currentPlayerName = "";
+    let opponentPlayerName = "";
 
-		// -----------------------------
-		// FETCH USER PROFILE
-		// -----------------------------
-		fetch("api/session", { credentials: "include" })
-			.then((res) => {
-				if (!res.ok) throw new Error("User not logged in");
-				return res.json();
-			})
-			.then((user) => {
-				currentUserProfile = user;
-				profileReady = true;
+    // 🔧 CHARGEMENT DU PROFIL
+    fetch("api/session", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Utilisateur non connecté");
+        return res.json();
+      })
+      .then((user) => {
+        currentUserProfile = user;
+        profileReady = true;
 
-				console.log(`👤 User loaded: ${user.name || user.email}`);
+        console.log("👤 Profil utilisateur chargé:", {
+          name: user.name,
+          email: user.email,
+          id: user.id,
+        });
 
-				const welcomeEl = document.getElementById("welcome");
-				if (welcomeEl)
-					welcomeEl.innerText = `Welcome ${user.name || user.email || "User"}!`;
+        const welcomeEl = document.getElementById("welcome");
+        if (welcomeEl)
+          welcomeEl.innerText = `Bienvenue ${
+            user.name || user.email || "utilisateur"
+          } !`;
+      })
+      .catch(() => {
+        profileReady = true;
+        window.location.href = "/";
+      });
 
-				checkChatMatch();
-			})
-			.catch(() => {
-				profileReady = true;
-				window.location.href = "/";
-			});
+    document
+      .getElementById("keyboardPlayBtn")
+      ?.addEventListener("click", () => {
+        page("/keyboard-play");
+      });
 
-		// -----------------------------
-		// CHECK FOR CHAT MATCH INVITATION
-		// -----------------------------
-		function checkChatMatch() {
-			const chatMatchRoomId = sessionStorage.getItem("chatMatchRoomId");
-			if (chatMatchRoomId) {
-				console.log(`🎮 Chat match detected: ${chatMatchRoomId}`);
-				sessionStorage.removeItem("chatMatchRoomId");
+    const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+    const launch = document.getElementById("launch") as HTMLTitleElement;
+    canvas.style.visibility = "hidden";
 
-				const scoreEl = document.getElementById("score");
-				if (scoreEl) {
-					scoreEl.innerText = `🎮 Connecting to match ${chatMatchRoomId}...`;
-					scoreEl.className = "text-xl font-bold mt-2 text-blue-600";
-				}
+    // 🔧 FONCTION : Créer une connexion WebSocket
+    function createWebSocketConnection(roomId: string | null): WebSocket {
+      const ws = new WebSocket(`wss://${window.location.hostname}:3000/ws`);
 
-				setTimeout(() => joinRoom(chatMatchRoomId), 1000);
-			}
-		}
+      ws.onopen = () => {
+        console.log("🔗 WebSocket dashboard connecté");
 
-		// -----------------------------
-		// CREATE WEBSOCKET CONNECTION
-		// -----------------------------
-		function createWebSocketConnection(roomId: string | null): WebSocket {
-			const ws = new WebSocket(`wss://${window.location.hostname}:3000/ws`);
+        // 🔧 DEBUG: Vérifier le profil utilisateur
+        console.log("🔍 Profil utilisateur disponible:", {
+          currentUserProfile: currentUserProfile,
+          name: currentUserProfile?.name,
+          email: currentUserProfile?.email,
+        });
 
-			ws.onopen = () => {
-				console.log("🔗 WebSocket dashboard connected");
+        // 🔧 IMPORTANT: Utiliser le nom d'utilisateur réel
+        const userName =
+          currentUserProfile?.name ||
+          currentUserProfile?.email ||
+          `User${Date.now().toString().slice(-4)}`;
 
-				const userName =
-					currentUserProfile?.name ||
-					currentUserProfile?.email ||
-					`User${Date.now().toString().slice(-4)}`;
+        console.log("🏷️ Nom utilisateur sélectionné:", userName);
 
-				ws.send(
-					JSON.stringify({
-						type: "joinRoom",
-						connectionId: `dashboard-${Date.now()}`,
-						playerName: userName,
-						roomId: roomId || undefined,
-					})
-				);
-			};
+        const joinMessage = {
+          type: "joinRoom",
+          connectionId: `dashboard-${Date.now()}`,
+          playerName: userName,
+          roomId: roomId || undefined,
+        };
 
-			ws.onmessage = (event) => {
-				try {
-					const data = JSON.parse(event.data);
-					switch (data.type) {
-						case "assign": handlePlayerAssignment(data); break;
-						case "waiting": handleWaitingForPlayer(data); break;
-						case "gameReady": handleGameReady(data); break;
-						case "playerJoined": handlePlayerJoined(data); break;
-						case "state": handleGameStateUpdate(data); break;
-						case "scoreUpdate": handleScoreUpdate(data); break;
-						case "gameEnd": handleGameEnd(data); break;
-						case "error": handleError(data); break;
-						case "chatMatch": handleChatMatch(data); break;
-					}
-				} catch {}
-			};
+        console.log("📤 Envoi message de connexion:", joinMessage);
+        ws.send(JSON.stringify(joinMessage));
+      };
 
-			ws.onclose = () => { isJoining = false; };
-			ws.onerror = () => { isJoining = false; };
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
 
-			return ws;
-		}
+          switch (data.type) {
+            case "assign":
+              handlePlayerAssignment(data);
+              break;
 
-		// -----------------------------
-		// EVENT HANDLERS
-		// -----------------------------
-		function handleChatMatch(data: any) {
-			joinRoom(data.roomId);
-		}
+            case "waiting":
+              handleWaitingForPlayer(data);
+              break;
 
-		function handlePlayerAssignment(data: any) {
-			currentPlayerNumber = data.player;
-			currentRoomId = data.roomId || "";
-			currentPlayerName = data.playerName || currentUserProfile?.name || currentUserProfile?.email || `Player${currentPlayerNumber}`;
+            case "gameReady":
+              handleGameReady(data);
+              break;
 
-			const info = document.getElementById("roomInfo");
-			if (info) info.innerText = `Room: ${currentRoomId} | ${currentPlayerName} (Player ${currentPlayerNumber})`;
+            case "playerJoined":
+              handlePlayerJoined(data);
+              break;
 
-			const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
-			const launch = document.getElementById("launch") as HTMLTitleElement;
-			launch.style.visibility = "hidden";
-			canvas.style.visibility = "visible";
+            case "state":
+              handleGameStateUpdate(data);
+              break;
 
-			gameInstance = createBabylonScene(canvas);
-			if (gameInstance && gameInstance.setPlayerNumber) {
-				gameInstance.setPlayerNumber(currentPlayerNumber);
-			}
+            case "scoreUpdate":
+              handleScoreUpdate(data);
+              break;
 
-			isJoining = false;
-		}
+            case "gameEnd":
+              handleGameEnd(data);
+              break;
 
-		function handlePlayerJoined(data: any) {
-			if (data.playerName && data.playerName !== currentPlayerName) {
-				opponentPlayerName = data.playerName;
-				const info = document.getElementById("roomInfo");
-				if (info) info.innerText = `Room: ${currentRoomId} | ${currentPlayerName} vs ${opponentPlayerName}`;
-			}
-		}
+            case "error":
+              handleError(data);
+              break;
 
-		function handleWaitingForPlayer(data: any) {
-			const scoreEl = document.getElementById("score");
-			if (scoreEl) {
-				scoreEl.innerText = `⏳ ${currentPlayerName}, waiting for opponent... (${data.playersCount}/${data.maxPlayers})`;
-				scoreEl.className = "text-xl font-bold mt-2 text-orange-600";
-			}
-			if (gameInstance && gameInstance.setGameActive) gameInstance.setGameActive(false);
-		}
+            default:
+              console.log("🔍 Type de message non géré:", data.type);
+          }
+        } catch (e) {
+          console.error("❌ Erreur parsing message dashboard:", e);
+        }
+      };
 
-		function handleGameReady(data: any) {
-			if (data.players) {
-				const playerNames = Object.values(data.players);
-				opponentPlayerName = playerNames.find((n) => n !== currentPlayerName) || "Opponent";
-			} else opponentPlayerName = `Player${currentPlayerNumber === 1 ? 2 : 1}`;
+      ws.onclose = () => {
+        console.log("🔌 WebSocket dashboard fermé");
+        isJoining = false;
+      };
 
-			const scoreEl = document.getElementById("score");
-			if (scoreEl) {
-				scoreEl.innerText = `🚀 ${currentPlayerName} vs ${opponentPlayerName} - Game starting!`;
-				scoreEl.className = "text-xl font-bold mt-2 text-green-600";
-				setTimeout(() => {
-					scoreEl.innerText = `${currentPlayerName}: 0 - ${opponentPlayerName}: 0`;
-					scoreEl.className = "text-xl font-bold mt-2";
-				}, 2000);
-			}
-			const info = document.getElementById("roomInfo");
-			if (info) info.innerText = `Room: ${currentRoomId} | ${currentPlayerName} vs ${opponentPlayerName}`;
-			if (gameInstance && gameInstance.setGameActive) gameInstance.setGameActive(true);
-		}
+      ws.onerror = (error) => {
+        console.error("❌ Erreur WebSocket dashboard:", error);
+        isJoining = false;
+      };
 
-		function handleGameStateUpdate(data: any) {
-			if (gameInstance && gameInstance.updateGameState && data.gameState) {
-				gameInstance.updateGameState(data.gameState);
-				updateScoreDisplay(data.gameState.scoreP1, data.gameState.scoreP2);
-			}
-		}
+      return ws;
+    }
 
-		function handleScoreUpdate(data: any) {
-			updateScoreDisplay(data.scoreP1, data.scoreP2);
-		}
+    // 🔧 FONCTION : Gérer l'assignation du joueur
+    function handlePlayerAssignment(data) {
+      console.log("🎮 Assignation joueur:", data);
 
-		function handleGameEnd(data: any) {
-			const scoreEl = document.getElementById("score");
-			if (scoreEl) {
-				const winnerName = data.winner || "Player";
-				scoreEl.innerText = `🏆 ${winnerName} wins ${data.scoreP1}-${data.scoreP2}!`;
-				scoreEl.className = "text-xl font-bold mt-2 text-green-600";
-			}
-			setTimeout(() => resetDashboard(), 5000);
-		}
+      currentPlayerNumber = data.player;
+      currentRoomId = data.roomId || "";
 
-		function handleError(data: any) {
-			alert(`Error: ${data.message}`);
-			isJoining = false;
-		}
+      // 🔧 DEBUG: Vérifier ce qui arrive dans les données
+      console.log("🔍 Données reçues dans assign:", {
+        player: data.player,
+        roomId: data.roomId,
+        playerName: data.playerName,
+        currentUserProfile: currentUserProfile,
+      });
 
-		function updateScoreDisplay(scoreP1: number, scoreP2: number) {
-			const scoreEl = document.getElementById("score");
-			if (!scoreEl) return;
-			const player1Name = currentPlayerNumber === 1 ? currentPlayerName : opponentPlayerName;
-			const player2Name = currentPlayerNumber === 1 ? opponentPlayerName : currentPlayerName;
+      // 🔧 CORRECTION: Utiliser les données reçues ou le profil utilisateur
+      currentPlayerName =
+        data.playerName ||
+        currentUserProfile?.name ||
+        currentUserProfile?.email ||
+        `Joueur${currentPlayerNumber}`;
 
-			if (scoreP1 < 11 && scoreP2 < 11) {
-				scoreEl.innerText = `${player1Name}: ${scoreP1} - ${player2Name}: ${scoreP2}`;
-			} else {
-				const winner = scoreP1 >= 11 ? player1Name : player2Name;
-				scoreEl.innerText = `🏆 ${winner} wins!`;
-			}
-		}
+      console.log("🏷️ Nom joueur assigné:", currentPlayerName);
 
-		// -----------------------------
-		// RESET DASHBOARD
-		// -----------------------------
-		function resetDashboard() {
-			if (wsConnection) wsConnection.close();
-			if (gameInstance && gameInstance.cleanup) gameInstance.cleanup();
+      const info = document.getElementById("roomInfo");
+      if (info) {
+        info.innerText = `Room: ${currentRoomId} | ${currentPlayerName} (Joueur ${currentPlayerNumber})`;
+      }
 
-			const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
-			const launch = document.getElementById("launch") as HTMLTitleElement;
-			launch.style.visibility = "visible";
-			canvas.style.visibility = "hidden";
+      // Préparer l'interface pour le jeu
+      launch.style.visibility = "hidden";
+      canvas.style.visibility = "visible";
 
-			const info = document.getElementById("roomInfo");
-			if (info) info.innerText = "No game in progress";
+      try {
+        gameInstance = createBabylonScene(canvas);
+        console.log("🎮 Scène Babylon créée:", !!gameInstance);
 
-			const scoreEl = document.getElementById("score");
-			if (scoreEl) { scoreEl.innerText = ""; scoreEl.className = "text-xl font-bold mt-2"; }
+        if (gameInstance) {
+          if (gameInstance.setPlayerNumber) {
+            gameInstance.setPlayerNumber(currentPlayerNumber);
+            console.log("✅ Numéro de joueur assigné:", currentPlayerNumber);
+          }
 
-			currentPlayerNumber = 0;
-			currentRoomId = "";
-			currentPlayerName = "";
-			opponentPlayerName = "";
-			isJoining = false;
-		}
+          if (gameInstance.setWebSocket && wsConnection) {
+            gameInstance.setWebSocket(wsConnection);
+            console.log("✅ WebSocket assigné à la scène");
+          }
+        }
+      } catch (error) {
+        console.error("❌ Erreur création scène Babylon:", error);
+      }
 
-		// -----------------------------
-		// JOIN ROOM
-		// -----------------------------
-		function joinRoom(roomId: string | null) {
-			if (isJoining) return;
-			isJoining = true;
-			resetDashboard();
-			wsConnection = createWebSocketConnection(roomId);
-		}
+      isJoining = false;
+      console.log(
+        `✅ ${currentPlayerName} rejoint room ${currentRoomId} (Joueur ${currentPlayerNumber})`
+      );
+    }
 
-		// -----------------------------
-		// BUTTON EVENT LISTENERS
-		// -----------------------------
-		document.getElementById("joinRoomBtn")?.addEventListener("click", () => {
-			const input = (document.getElementById("roomIdInput") as HTMLInputElement).value.trim();
-			joinRoom(input || null);
-		});
-		document.getElementById("matchmakeBtn")?.addEventListener("click", () => joinRoom("auto"));
-		document.getElementById("liveChatBtn")?.addEventListener("click", () => page("/chat"));
-		document.getElementById("goToTournamentBtn")?.addEventListener("click", () => page("/tournament"));
-		document.getElementById("keyboardPlayBtn")?.addEventListener("click", () => page("/keyboard-play"));
+    // 🔧 FONCTION : Gérer l'arrivée d'un autre joueur
+    function handlePlayerJoined(data) {
+      console.log("👋 Nouveau joueur rejoint:", data);
 
-		// -----------------------------
-		// CLEANUP ON PAGE EXIT
-		// -----------------------------
-		window.addEventListener("beforeunload", resetDashboard);
-		window.addEventListener("popstate", resetDashboard);
-	}, 300);
-	
-	return `
-	<div class="w-full my-4 flex flex-row justify-between items-center px-4">
-		<h1>Transcendance</h1>
-		<div class="absolute left-1/2 transform -translate-x-1/2 flex flex-row items-center gap-8">
-			<a href="/profile" data-nav class="px-4 py-2">Profil</a>
-			<a href="/users-list" data-nav class="px-4 py-2">Utilisateurs</a>
-			<a href="/friends" data-nav class="px-4 py-2">Amitiés</a>
+      if (data.playerName && data.playerName !== currentPlayerName) {
+        opponentPlayerName = data.playerName;
+
+        const info = document.getElementById("roomInfo");
+        if (info) {
+          info.innerText = `Room: ${currentRoomId} | ${currentPlayerName} vs ${opponentPlayerName}`;
+        }
+      }
+    }
+
+    // 🔧 FONCTION : Gérer l'attente du second joueur
+    function handleWaitingForPlayer(data) {
+      console.log("⏳ En attente d'autres joueurs:", data);
+
+      const scoreEl = document.getElementById("score");
+      if (scoreEl) {
+        scoreEl.innerText = `⏳ ${currentPlayerName}, attendez un adversaire... (${data.playersCount}/${data.maxPlayers})`;
+        scoreEl.className = "text-xl font-bold mt-2 text-orange-600";
+      }
+
+      if (gameInstance && gameInstance.setGameActive) {
+        gameInstance.setGameActive(false);
+      }
+
+      console.log("⏳ Jeu en pause - en attente du second joueur");
+    }
+
+    // 🔧 FONCTION : Gérer le début de partie
+    function handleGameReady(data) {
+      console.log("🚀 Partie prête à démarrer:", data);
+
+      // 🔧 DEBUG: Voir ce qui arrive dans gameReady
+      console.log("🔍 Données gameReady:", {
+        message: data.message,
+        players: data.players,
+        playersCount: data.playersCount,
+      });
+
+      // 🔧 CORRECTION: Récupérer les noms des joueurs depuis les données
+      if (data.players && typeof data.players === "object") {
+        const playerNames = Object.values(data.players);
+        console.log("👥 Noms des joueurs trouvés:", playerNames);
+
+        // Trouver l'adversaire (celui qui n'est pas le joueur actuel)
+        opponentPlayerName =
+          playerNames.find((name) => name !== currentPlayerName) ||
+          "Adversaire";
+        console.log("🥊 Adversaire identifié:", opponentPlayerName);
+      } else {
+        console.warn("⚠️ Pas de données players dans gameReady");
+        opponentPlayerName = `Joueur${currentPlayerNumber === 1 ? 2 : 1}`;
+      }
+
+      const scoreEl = document.getElementById("score");
+      if (scoreEl) {
+        scoreEl.innerText = `🚀 ${currentPlayerName} vs ${opponentPlayerName} - La partie commence!`;
+        scoreEl.className = "text-xl font-bold mt-2 text-green-600";
+
+        // Réinitialiser avec les vrais noms après 2 secondes
+        setTimeout(() => {
+          if (scoreEl) {
+            scoreEl.innerText = `${currentPlayerName}: 0 - ${opponentPlayerName}: 0`;
+            scoreEl.className = "text-xl font-bold mt-2";
+          }
+        }, 2000);
+      }
+
+      // Mettre à jour l'info de la room
+      const info = document.getElementById("roomInfo");
+      if (info) {
+        info.innerText = `Room: ${currentRoomId} | ${currentPlayerName} vs ${opponentPlayerName}`;
+      }
+
+      if (gameInstance && gameInstance.setGameActive) {
+        gameInstance.setGameActive(true);
+      }
+
+      console.log(
+        `🎮 Jeu activé - ${currentPlayerName} vs ${opponentPlayerName}`
+      );
+    }
+
+    // 🔧 FONCTION : Gérer les mises à jour d'état du jeu
+    function handleGameStateUpdate(data) {
+      if (gameInstance && gameInstance.updateGameState && data.gameState) {
+        gameInstance.updateGameState(data.gameState);
+
+        // Mettre à jour le score
+        updateScoreDisplay(data.gameState.scoreP1, data.gameState.scoreP2);
+      }
+    }
+
+    // 🔧 FONCTION : Gérer les mises à jour de score
+    function handleScoreUpdate(data) {
+      updateScoreDisplay(data.scoreP1, data.scoreP2);
+    }
+
+    // 🔧 FONCTION : Gérer la fin de partie avec les noms
+    function handleGameEnd(data) {
+      console.log("🏁 Fin de partie:", data);
+
+      const scoreEl = document.getElementById("score");
+      if (scoreEl) {
+        // 🔧 MODIFIÉ: Utiliser le vrai nom du gagnant
+        const winnerName = data.winner || "Joueur";
+        scoreEl.innerText = `🏆 ${winnerName} remporte la victoire ${data.scoreP1}-${data.scoreP2}!`;
+        scoreEl.className = "text-xl font-bold mt-2 text-green-600";
+      }
+
+      // Nettoyer après un délai
+      setTimeout(() => {
+        resetDashboard();
+      }, 5000);
+    }
+
+    // 🔧 FONCTION : Gérer les erreurs
+    function handleError(data) {
+      console.error("❌ Erreur reçue:", data.message);
+      alert(`Erreur: ${data.message}`);
+      isJoining = false;
+    }
+
+    // 🔧 FONCTION : Mettre à jour l'affichage du score avec les noms
+    function updateScoreDisplay(scoreP1: number, scoreP2: number) {
+      const scoreEl = document.getElementById("score");
+      if (scoreEl) {
+        // 🔧 DEBUG: Forcer des noms pour tester
+        let player1Name =
+          currentPlayerNumber === 1
+            ? currentPlayerName ||
+              currentUserProfile?.name ||
+              currentUserProfile?.email ||
+              "Vous"
+            : opponentPlayerName || "Adversaire";
+
+        let player2Name =
+          currentPlayerNumber === 1
+            ? opponentPlayerName || "Adversaire"
+            : currentPlayerName ||
+              currentUserProfile?.name ||
+              currentUserProfile?.email ||
+              "Vous";
+
+        console.log("🏷️ DEBUG - Noms utilisés pour le score:", {
+          player1Name,
+          player2Name,
+          currentPlayerName,
+          opponentPlayerName,
+          currentPlayerNumber,
+        });
+
+        if (scoreP1 < 11 && scoreP2 < 11) {
+          scoreEl.innerText = `${player1Name}: ${scoreP1} - ${player2Name}: ${scoreP2}`;
+        } else {
+          const winner = scoreP1 >= 11 ? player1Name : player2Name;
+          scoreEl.innerText = `🏆 ${winner} gagne!`;
+        }
+      }
+    }
+
+    // 🔧 FONCTION : Réinitialiser le dashboard
+    function resetDashboard() {
+      // Nettoyer la connexion WebSocket
+      if (wsConnection) {
+        wsConnection.close();
+        wsConnection = null;
+      }
+
+      // Nettoyer l'instance de jeu
+      if (gameInstance && gameInstance.cleanup) {
+        gameInstance.cleanup();
+        gameInstance = null;
+      }
+
+      // Réinitialiser l'interface
+      launch.style.visibility = "visible";
+      canvas.style.visibility = "hidden";
+
+      const info = document.getElementById("roomInfo");
+      if (info) info.innerText = "Aucune partie en cours";
+
+      const scoreEl = document.getElementById("score");
+      if (scoreEl) {
+        scoreEl.innerText = "";
+        scoreEl.className = "text-xl font-bold mt-2";
+      }
+
+      // 🔧 NOUVEAU: Réinitialiser les noms
+      currentPlayerNumber = 0;
+      currentRoomId = "";
+      currentPlayerName = "";
+      opponentPlayerName = "";
+      isJoining = false;
+
+      console.log("🧹 Dashboard réinitialisé");
+    }
+
+    // 🔧 FONCTION PRINCIPALE : Rejoindre une room
+    function joinRoom(roomId: string | null) {
+      if (isJoining) {
+        console.warn("⚠️ Connexion déjà en cours...");
+        return;
+      }
+
+      console.log("🚀 Tentative de connexion à la room:", roomId || "auto");
+      console.log("👤 Profil disponible:", currentUserProfile);
+      console.log("🏷️ Profile ready:", profileReady);
+
+      isJoining = true;
+
+      // Nettoyer les anciennes connexions
+      resetDashboard();
+
+      try {
+        // Créer la nouvelle connexion WebSocket
+        wsConnection = createWebSocketConnection(roomId);
+        console.log("✅ Nouvelle connexion WebSocket créée");
+      } catch (error) {
+        console.error("❌ Erreur création WebSocket:", error);
+        isJoining = false;
+        alert("Erreur de connexion au serveur");
+      }
+    }
+
+    // 🔧 EVENT LISTENERS pour les boutons
+    document.getElementById("joinRoomBtn")?.addEventListener("click", () => {
+      if (isJoining) {
+        console.warn("⚠️ Connexion en cours, veuillez patienter");
+        return;
+      }
+
+      const input = (
+        document.getElementById("roomIdInput") as HTMLInputElement
+      ).value.trim();
+      console.log(
+        "🎯 Tentative de rejoindre room spécifique:",
+        input || "auto"
+      );
+      joinRoom(input || null);
+    });
+
+    document.getElementById("matchmakeBtn")?.addEventListener("click", () => {
+      if (isJoining) {
+        console.warn("⚠️ Connexion en cours, veuillez patienter");
+        return;
+      }
+
+      console.log("🎲 Matchmaking automatique demandé");
+      joinRoom("auto");
+    });
+    
+    // document = obj global = page html chargee dans le browser -> DOM = Document Obj Model
+    // getElmtById = method de DOM qui selectionne un element HTML par son ID
+    // eventListener = surveillance de l'evenement clique rattache au bouton
+    document.getElementById("liveChatBtn")?.addEventListener("click", () => {
+	    page("/chat");
+    });
+
+    document
+      .getElementById("goToTournamentBtn")
+      ?.addEventListener("click", () => {
+        page("/tournament");
+      });
+
+    // 🔧 NETTOYAGE à la fermeture de la page
+    window.addEventListener("beforeunload", () => {
+      console.log("🧹 Nettoyage avant fermeture de page");
+      resetDashboard();
+    });
+
+    // 🔧 NETTOYAGE lors du changement de route
+    window.addEventListener("popstate", () => {
+      console.log("🧹 Nettoyage lors du changement de route");
+      resetDashboard();
+    });
+  }, 300);
+
+  
+  getPicture().then((userPicture) => {
+    const profileImg = document.querySelector<HTMLImageElement>(
+      'a[href="/profile"] img'
+    );
+    if (profileImg) {
+      profileImg.src = userPicture;
+    }
+  });
+
+  return `
+    <section class="flex flex-col items-center text-center">
+    	<div class="dashboard-buttons w-full flex items-center justify-between px-8">
+				<h1 class="ml-8 text-4xl -mt-4">TRANSCENDENCE</h1>
+
+				<img src="/images/hellokittycomputer.png" class="hellokitty-computer">
+				<div class="flex space-x-6 mr-8 -mt-4">
+					<a href="/users-list" data-nav class="button bg-rose-300 hover:bg-rose-400 h-8">Utilisateurs</a>
+					<a href="/friends" data-nav class="button bg-orange-300 hover:bg-orange-400 h-8">Amitiés</a>
+					</div>
+					<a href="/profile" data-nav>
+						<img src="/images/default-profile.png" alt="Profil" class="w-28 h-28 -mt-4 rounded-full object-cover shadow-lg">
+					</a>
 		</div>
-		<button id="logout" class="bg-red-500 text-white px-4 py-2 rounded relative -top-2">Déconnexion</button>
-	</div>
-	<div class="px-4">
-		<h2 id="welcome" class="text-xl mb-4 font-semibold"></h2>
-		<div class="mb-4 flex flex-col md:flex-row gap-2 items-start md:items-center">
-			<input id="roomIdInput" placeholder="ID de la room (laisser vide pour créer)" class="border px-3 py-2 rounded w-full md:w-64" />
-			<button id="joinRoomBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
-				🎮 Rejoindre Room
-			</button>
-			<button id="matchmakeBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors">
-				🎲 Matchmaking
-			</button>
-			<button id="goToTournamentBtn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors">
-				🏆 Tournoi
-			</button>
-			<button id="keyboardPlayBtn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors">
-				⌨️ Clavier
-			</button>
-			<button id="liveChatBtn" class="bg-fuchsia-400 text-white px-4 py-2 rounded">
-				Chat
-			</button>
-		</div>
+		<div class="relative w-[350px]">
+ 			<img src="/images/rocket.png" alt="jolie fusée" class="h-[350px] w-full object-cover">
+ 			<h1 class="absolute top-[180px] left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-white drop-shadow-lg w-full">
+			    LANCE UNE PARTIE !
+ 			</h1>
+			<a href="/pong" data-nav class="button bg-purple-400 hover:bg-purple-600 w-40 text-xl">JOUER</a>
+			</div>
 
-		<div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
-			<div id="roomInfo" class="text-sm text-gray-600 italic">Aucune partie en cours</div>
-			<h2 id="score" class="text-xl font-bold mt-2"></h2>
-		</div>
+		<button id="logout" class="button bg-red-400 hover:bg-red-500 w-10 fixed bottom-16 left-16">
+		</button>
 
-		<div class="game-container">
-			<h1 id="launch" class="text-5xl text-center text-gray-400 my-8">🚀 Lancez une partie !</h1>
-			<canvas id="renderCanvas" class="border w-full h-[70vh] rounded shadow-lg"></canvas>
-		</div>
-	</div>
-`;
+		</section>
+	`;
 }
