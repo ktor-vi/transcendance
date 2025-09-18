@@ -86,7 +86,7 @@ export async function initDmChat(receiverId: string, senderId: string) {
 	function sendMessage() {
 		const message = input.value.trim();
 		if (!message || socket.readyState !== WebSocket.OPEN) {
-			addMessage("⚠️ Connection closed, reconnecting...");
+			addMessage("⚠️ Connection closed, reconnecting...", false);
 			return;
 		}
 		socket.send(JSON.stringify({ type: "dmMessage", to: receiverId, content: message }));
@@ -109,9 +109,11 @@ function addMessage(msg: string, fromMe: boolean) {
 	`;
 
 	msgDiv.appendChild(textNode);
-	dmContainer.appendChild(msgDiv);
+	if (dmContainer !== null)
+		dmContainer.appendChild(msgDiv);
 
 	// Scroll automatique vers le bas
+	if (dmContainer !== null)
 	dmContainer.scrollTop = dmContainer.scrollHeight;
 }
 
@@ -178,7 +180,7 @@ function addMessage(msg: string, fromMe: boolean) {
 
 	function matchLaunch(roomId: string) {
 		sessionStorage.setItem("chatMatchRoomId", roomId);
-		addMessage(`🎮 Redirecting to dashboard for match ${roomId}...`);
+		addMessage(`🎮 Redirecting to dashboard for match ${roomId}...`, false);
 		page("/dashboard");
 	}
 }

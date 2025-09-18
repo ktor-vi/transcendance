@@ -11,7 +11,7 @@ export async function renderFriends() {
 			if (!resRequests.ok) {
 				const errorData = await resRequests.json();
 				const error = new Error(errorData.error || "Erreur inconnue");
-				error.status = errorData.status || resRequests.status;
+				// error.status = errorData.status || resRequests.status;
 				throw error;
 		}
 
@@ -21,7 +21,7 @@ export async function renderFriends() {
 		if (!resFriends.ok)	{
 				const errorData = await resFriends.json();
 				const error = new Error(errorData.error || "Erreur inconnue");
-				error.status = errorData.status || resFriends.status;
+				// error.status = errorData.status || resFriends.status;
 				throw error;
 		}
 		const friendsData = await resFriends.json();
