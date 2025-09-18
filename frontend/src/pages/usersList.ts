@@ -2,6 +2,11 @@ import page from "page";
 import { backButton, setupBackButton } from '../components/backButton.js';
 import { renderError } from "../components/renderError.js";
 
+
+interface User {
+		id: number;
+		name: string;
+}
 // Render the user list page
 export async function renderUsersList() {
 	try {
@@ -54,7 +59,7 @@ export async function renderUsersList() {
 		// Filter list on input
 		searchInput.addEventListener("input", () => {
 			const search = searchInput.value.toLowerCase();
-			const filtered = users.filter(user => user.name.toLowerCase().includes(search));
+			const filtered = users.filter((user: User) => user.name.toLowerCase().includes(search));
 			displaySearch(filtered);
 		});
 
