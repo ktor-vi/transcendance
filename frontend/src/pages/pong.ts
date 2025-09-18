@@ -61,7 +61,7 @@ export function renderPong() {
 
     // 🔧 FONCTION : Créer une connexion WebSocket
     function createWebSocketConnection(roomId: string | null): WebSocket {
-      const ws = new WebSocket(`wss://${window.location.hostname}:5173/ws`);
+      const ws = new WebSocket(`wss://${window.location.host}/ws`);
 
       ws.onopen = () => {
         console.log("🔗 WebSocket dashboard connecté");

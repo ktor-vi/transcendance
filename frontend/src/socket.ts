@@ -10,8 +10,7 @@ export function connectWebSocket(onMessage: (data: any) => void, onOpenMessage?:
 	socket?.close();
 	isConnecting = true;
 	connectionId = crypto.randomUUID();
-	const hostname = import.meta.env.VITE_HOSTNAME;
-	socket = new WebSocket(`wss://${hostname}:5173/ws`);
+	socket = new WebSocket(`wss://${window.location.host}/ws`);
 
 	socket.addEventListener("open", () => {
 		console.log("[WSS] Connected"); // informational
