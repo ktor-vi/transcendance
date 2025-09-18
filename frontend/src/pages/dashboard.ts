@@ -36,10 +36,10 @@ export function renderDashboard() {
 		<div class="relative w-[350px]">
  			<img src="/images/rocket.png" alt="jolie fusée" class="h-[350px] w-full object-cover">
  			<h1 class="absolute top-[180px] left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-white drop-shadow-lg w-full">
-			    LANCE UNE PARTIE !
+				LANCE UNE PARTIE !
  			</h1>
 			<a href="/pong" data-nav class="button bg-purple-400 hover:bg-purple-600 w-40 text-xl">JOUER</a>
-			</div>
+		</div>
 
 		<button id="logout" class="button bg-red-400 hover:bg-red-500 w-10 fixed bottom-16 left-16">
 		</button>
