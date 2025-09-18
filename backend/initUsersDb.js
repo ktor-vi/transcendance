@@ -1,24 +1,22 @@
-import sqlite3pkg from 'sqlite3'
-const sqlite3 = sqlite3pkg.verbose(); //sqlite3 est un nom choisi, on "importe" ensuite sqlite3 avec require, verbose sert a avoir plus d'infos en cas d'erreurs
+import sqlite3pkg from 'sqlite3';
+const sqlite3 = sqlite3pkg.verbose();
 
-console.log ("Opening or creating users database...");
+console.log("Opening or creating users database...");
 
-function errorHandling(err) // ma variable err va "stocker" l'eventuel erreur qu'il y aura dans la fonction Database (sinon elle sera null)
-{
-	if (err)
-		console.error("error when creating database");
-	else
-		console.log("database opened");
-}
+// open/create db file
+const db = new sqlite3.Database('./data/users.sqlite3', (err) => {
+	if (err) {
+		console.error("Error opening users database");
+		return;
+	}
+	console.log("Users database opened");
 
-// new sqlite3.Database(path, callback
-const db = new sqlite3.Database('./data/users.sqlite3', errorHandling) //cree ma db dans un fichier que je place dans data
+	// enable foreign keys
+	db.run("PRAGMA foreign_keys = ON");
 
-const createSQTable = // je cree une table que je nomme "users" avec son formatage choisi
-`
-CREATE TABLE IF NOT EXISTS
-	users
-	(
+	// schema for users-related tables
+	const createSQTable = `
+	CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		email TEXT UNIQUE NOT NULL,
 		name TEXT UNIQUE NOT NULL,
@@ -29,8 +27,7 @@ CREATE TABLE IF NOT EXISTS
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 
-CREATE TABLE IF NOT EXISTS
-	friends (
+	CREATE TABLE IF NOT EXISTS friends (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		user1_id INTEGER NOT NULL,
 		user2_id INTEGER NOT NULL,
@@ -40,8 +37,7 @@ CREATE TABLE IF NOT EXISTS
 		UNIQUE(user1_id, user2_id)
 	);
 
-CREATE TABLE IF NOT EXISTS
-	requests (
+	CREATE TABLE IF NOT EXISTS requests (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		sender_id INTEGER NOT NULL,
 		receiver_id INTEGER NOT NULL,
@@ -50,24 +46,48 @@ CREATE TABLE IF NOT EXISTS
 		FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
 		FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
 	);
-`;
 
-db.exec(createSQTable, (err) => //execute une commande sql
-{
-	if (err)
-		console.error("error when creating users table");
-	else
-		console.log("users table created or already existing");
-})
+	CREATE TABLE IF NOT EXISTS conversations (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user1_id INTEGER NOT NULL,
+		user2_id INTEGER NOT NULL,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
+		FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE,
+		UNIQUE(user1_id, user2_id)
+	);
 
-db.close((err) => // ferme la connexion a la db car elle a ete ouverte automatiquement en la creeant
-{
-	if (err)
-		console.error("error when closing users database");
-	else
-		console.log("users database closed");
-	
-})
-// la fermeture evite des potentielles corruptions de donnees, de la consommation inutiles de ressources etc.
-console.log ("Closing users database...");
+	CREATE TABLE IF NOT EXISTS messages (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		conversation_id INTEGER NOT NULL,
+		sender_id INTEGER NOT NULL,
+		content TEXT NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+		FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+	);
+
+	CREATE TABLE IF NOT EXISTS blockedUsers (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		blocked_id INTEGER NOT NULL,
+		blocker_id INTEGER NOT NULL
+	);`;
+
+	// create tables
+	db.exec(createSQTable, (err) => {
+		if (err)
+			console.error("Error creating tables:", err.message);
+		else
+			console.log("Users tables ready");
+
+		// close db to avoid corruption/resource leaks
+		db.close((err) => {
+			if (err)
+				console.error("Error closing users database");
+			else
+				console.log("Users database closed");
+		});
+	});
+});
 

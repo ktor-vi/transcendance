@@ -1,49 +1,45 @@
-import sqlite3pkg from 'sqlite3'
+import sqlite3pkg from 'sqlite3';
 const sqlite3 = sqlite3pkg.verbose();
 
-console.log ("Opening or creating history database...");
+console.log("Opening or creating history database...");
 
-function errorHandling(err)
-{
+// handle db open/creation result
+function errorHandling(err) {
 	if (err)
-		console.error("error when creating histiry database");
+		console.error("Error opening history database");
 	else
-		console.log("histiry database opened");
+		console.log("History database opened");
 }
 
-const db = new sqlite3.Database('./data/history.sqlite3', errorHandling) //cree ma db dans un fichier que je place dans data
+// create db file if not exists
+const db = new sqlite3.Database('./data/history.sqlite3', errorHandling);
 
-const createSQTable =
-`
-CREATE TABLE IF NOT EXISTS
-	history
-	(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		type TEXT,
-		player_1 TEXT,
-		player_2 TEXT,
-		scores TEXT,
-		winner TEXT,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-	);
-`;
+// SQL schema for history table
+const createSQTable = `
+CREATE TABLE IF NOT EXISTS history (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	type TEXT,
+	player_1 TEXT,
+	player_2 TEXT,
+	scores TEXT,
+	winner TEXT,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);`;
 
-db.run(createSQTable, (err) => //execute une commande sql
-{
+// create table if needed
+db.run(createSQTable, (err) => {
 	if (err)
-		console.error("error when creating history table");
+		console.error("Error creating history table");
 	else
-		console.log("history table created or already existing");
-})
+		console.log("History table ready");
+});
 
-db.close((err) => // ferme la connexion a la db car elle a ete ouverte automatiquement en la creeant
-{
+// close db to avoid corruption or resource leaks
+db.close((err) => {
 	if (err)
-		console.error("error when closing history database");
+		console.error("Error closing history database");
 	else
-		console.log("history database closed");
-	
-})
-// la fermeture evite des potentielles corruptions de donnees, de la consommation inutiles de ressources etc.
-console.log ("Closing history database...");
+		console.log("History database closed");
+});
 
+console.log("Closing history database...");

@@ -1,32 +1,42 @@
-//Plugin permettant de gérer les sessions utilisateur avec les cookies (on obtient les cookies après s'être connecté avec google)
 import secureSession from '@fastify/secure-session';
 
 export default async function registerSession(fastify) {
-	//cle secrete du .env pour chiffrer les cookies
+	// require secret key from .env
+	if (!process.env.SESSION_KEY_BASE64) {
+		throw new Error("SESSION_KEY_BASE64 must be defined in .env");
+	}
 	const key = Buffer.from(process.env.SESSION_KEY_BASE64, 'base64');
 
-	//enregistrement du plugin
+	// register plugin
 	fastify.register(secureSession, {
 		key,
 		cookieName: 'sessionid',
 		cookie: {
 			path: '/',
 			httpOnly: true,
-			sameSite: 'none', // Pour eviter le csrf
-			secure: true,
-			domain: undefined,
-			maxAge: 24 * 60 * 60 * 1000 // 24 heures
-		}
+			sameSite: 'none',
+			secure: true,     // set false in dev if no HTTPS
+			maxAge: 24 * 60 * 60, // 24h
+		},
+	});
+
+	// helpers
+	fastify.decorateRequest('getUser', function() {
+		return this.session.get('user');
+	});
+	fastify.decorateRequest('setUser', function(user) {
+		this.session.set('user', user);
+	});
+	fastify.decorateRequest('deleteUser', function() {
+		this.session.delete('user');
 	});
 }
 
+/*
+Usage:
 
-//TOUT CECI PERMETS DE :
-// stocker une donnée dans la session
-// request.session.set('user', { id: 123 });
+request.session.set('user', { id: 123 });
+const user = request.session.get('user');
+request.session.delete('user');
+*/
 
-// la lire
-// const user = request.session.get('user');
-
-// la supprimer
-// request.session.delete();
