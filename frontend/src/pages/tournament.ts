@@ -1308,7 +1308,7 @@ export function renderTournamentPage(): string {
       return;
     }
 
-    const gameWs = new WebSocket(`wss://${window.location.hostname}:3000/ws`);
+    const gameWs = new WebSocket(`wss://${window.location.hostname}:5173/ws`);
     gameConnections.set(roomId, gameWs);
 
     gameWs.onopen = () => {
@@ -1437,7 +1437,7 @@ export function renderTournamentPage(): string {
     }
 
     tournamentWebSocket = new WebSocket(
-      `wss://${window.location.hostname}:3000/ws?type=tournament`
+      `wss://${window.location.hostname}:5173/ws?type=tournament`
     );
 
     let lastUpdateTime = 0;
