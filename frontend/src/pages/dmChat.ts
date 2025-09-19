@@ -2,35 +2,7 @@
 import page from "page";
 import { backButtonArrow, setupBackButton } from "../components/backButton.js";
 
-interface UserProfile {
-  id: string;
-  name?: string;
-  email?: string;
-  picture?: string;
-}
-
 export function renderDmChat(receiverId: string) {
-  let currentUserProfile: UserProfile | null = null;
-  let profileReady = false;
-  fetch("api/session", { credentials: "include" })
-    .then((res) => {
-      if (!res.ok) throw new Error("Utilisateur non connecté");
-      return res.json();
-    })
-    .then((user: UserProfile) => {
-      currentUserProfile = user;
-      profileReady = true;
-
-      console.log("👤 Profil utilisateur chargé:", {
-        name: user.name,
-        email: user.email,
-        id: user.id,
-      });
-    })
-    .catch(() => {
-      profileReady = true;
-      window.location.href = "/";
-    });
   return `
 	<script>0</script>
 <section class="flex flex-col items-center text-center">
