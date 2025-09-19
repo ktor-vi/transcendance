@@ -11,10 +11,12 @@ export async function renderProfile() {
 		if (!res.ok) {
 			// Display error if user not logged in
 			document.getElementById("app")!.innerHTML = `
-				<p class="text-white text-1xl">Error loading page</p>
+			<section class="flex flex-col items-center text-center">
+				<p class="text-white text-1xl mt-16">Error loading page</p>
 				<h2 class="text-white text-9xl">401</h2>
 				<p class="text-white text-2xl">You must log in</p>
 				<img src="/images/hellokittyangry.png" class="mx-auto w-64 -mt-10" />
+			</section>
 			`;
 			return;
 		}

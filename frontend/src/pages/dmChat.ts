@@ -12,16 +12,16 @@ export function renderDmChat(receiverId: string) {
 
 	</div>
 	</div>
-	<img src="/images/hellokittyfuck.png" class="absolute right-12 h-32 z-10 -mt-4">
+	<img src="/images/hellokittyfuck.png" class="absolute right-16 h-20 z-10">
 	<img src="/images/controller.png" class="absolute h-20 mt-[1%] z-10 left-[38%]">
 
 	<div class="-mt-12" flex flex-row >
 		<button id="inviteMatchBtn" class="button bg-pink-400 hover:bg-pink-500 mb-4 mr-4 h-[2.5em] self-center">
 			LANCER UNE PARTIE
 		</button>
-		<button id="" class="button bg-pink-400 hover:bg-pink-500 mb-4 h-[2.5em] self-center">
-			VOIR LE PROFIL
-		</button>
+		<a href="/user/${encodeURIComponent(receiverId)}" class="button bg-pink-400 hover:bg-pink-500 mb-4 h-[2.5em] self-center">
+      		VOIR LE PROFIL
+    	</a>
 
 	</div>
 	<div id="matchDiv" class="w-[70%] mx-auto"> 

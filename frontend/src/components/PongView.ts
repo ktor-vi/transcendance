@@ -24,10 +24,10 @@ import {
 // const WALL_IMAGE = "https://www.babylonjs-playground.com/textures/crate.png";
 const GRAPHIC_FOLDER = "/images/";
 const SKYBOX_IMAGE = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzRT6G0cuCqmybwjD-8zWjjUIAQBvi6LMFHkTCZL5hzSEtDgYqIdfWRLWtnyG4SBGBptk&usqp=CAU";
-const FIELD_IMAGE = GRAPHIC_FOLDER + "floweryground.jpg";
-const PADDLE_IMAGE = GRAPHIC_FOLDER + "paddle.jpeg";
+const FIELD_IMAGE = "";
+const PADDLE_IMAGE = GRAPHIC_FOLDER + "pink.png";
 const BALL_IMAGE = GRAPHIC_FOLDER + "fluffyball.webp";
-const WALL_IMAGE = GRAPHIC_FOLDER + "shinycat.jpg";
+const WALL_IMAGE = GRAPHIC_FOLDER + "purple.png";
 const SHINY_IMAGE = "https://playground.babylonjs.com/textures/flare.png";
 
 export class PongView {
