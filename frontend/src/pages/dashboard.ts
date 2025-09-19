@@ -1,14 +1,40 @@
 import page from "page";
 
 async function getPicture() {
-	const res = await fetch("/api/profile", { method: "GET" });
-	const userData = await res.json();
+  const res = await fetch("/api/profile", { method: "GET" });
+  const userData = await res.json();
 
-	return (userData.picture);
+  return userData.picture;
+}
+interface UserProfile {
+  id: string;
+  name?: string;
+  email?: string;
+  picture?: string;
 }
 
 export function renderDashboard() {
-  
+  let currentUserProfile: UserProfile | null = null;
+  let profileReady = false;
+  fetch("api/session", { credentials: "include" })
+    .then((res) => {
+      if (!res.ok) throw new Error("Utilisateur non connecté");
+      return res.json();
+    })
+    .then((user: UserProfile) => {
+      currentUserProfile = user;
+      profileReady = true;
+
+      console.log("👤 Profil utilisateur chargé:", {
+        name: user.name,
+        email: user.email,
+        id: user.id,
+      });
+    })
+    .catch(() => {
+      profileReady = true;
+      window.location.href = "/";
+    });
   getPicture().then((userPicture) => {
     const profileImg = document.querySelector<HTMLImageElement>(
       'a[href="/profile"] img'
