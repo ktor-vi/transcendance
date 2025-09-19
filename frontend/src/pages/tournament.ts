@@ -194,7 +194,6 @@ export function renderTournamentPage(): string {
           }
         }
 
-        console.warn("⚠️ Aucun utilisateur trouvé");
         return null;
       } catch (error) {
         console.error("❌ Erreur récupération utilisateur tournoi:", error);
@@ -211,7 +210,6 @@ export function renderTournamentPage(): string {
         updateUserDebugInfo();
         processPendingMatchConnections();
       } else {
-        console.warn("⚠️ Impossible de récupérer un utilisateur valide");
         currentUser = {
           id: String(Date.now()),
           name: `TempUser${Date.now().toString().slice(-4)}`,
