@@ -16,13 +16,7 @@ interface UserProfile {
   picture?: string;
 }
 
-export async function renderKeyboardPlay() {
-  try {
-    await fetch("/api/profile", { method: "GET" });
-  }
-  catch {
-    return "<p>You must log in</p>";
-  }
+export function renderKeyboardPlay() {
   setTimeout(() => {
     // Fetch user profile
     let currentUserProfile: UserProfile | null = null;
