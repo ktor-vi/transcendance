@@ -14,7 +14,7 @@ import * as CANNON from "cannon";
 // Paramètres du terrain
 const FIELD_WIDTH = 13.5;
 const FIELD_DEPTH = 7.5;
-const PADDLE_WIDTH = 3;
+const PADDLE_WIDTH = 2.2;
 const PADDLE_HEIGHT = 0.75;
 const PADDLE_DEPTH = 0.25;
 const PADDLE_SPEED = 0.25;
