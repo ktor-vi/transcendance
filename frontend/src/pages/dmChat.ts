@@ -120,7 +120,6 @@ export async function initDmChat(receiverId: string, senderId: string) {
   function sendMessage() {
     const message = input.value.trim();
     if (!message || socket.readyState !== WebSocket.OPEN) {
-      addMessage("⚠️ Connection closed, reconnecting...", false);
       return;
     }
     socket.send(
