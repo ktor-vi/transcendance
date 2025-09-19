@@ -13,7 +13,13 @@ interface UserProfile {
   picture?: string;
 }
 
-export function renderDashboard() {
+export async function renderDashboard() {
+  try {
+    await fetch("/api/profile", { method: "GET" });
+  }
+  catch {
+    return "<p>You must log in</p>";
+  }
   let currentUserProfile: UserProfile | null = null;
   let profileReady = false;
   fetch("api/session", { credentials: "include" })
