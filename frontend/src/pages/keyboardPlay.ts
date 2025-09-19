@@ -10,7 +10,7 @@ export type KeyboardInstance = {
 export function renderKeyboardPlay() {
 	setTimeout(() => {
 		// Fetch user profile
-		fetch("/me", { credentials: "include" })
+		fetch("api/session", { credentials: "include" })
 			.then((res) => {
 				if (!res.ok) throw new Error("User not authenticated");
 				return res.json();
