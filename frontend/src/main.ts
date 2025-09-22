@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (target?.id === "logout") {
-      fetch("/logout", { method: "POST" }).then(() => page.redirect("/"));
+		fetch("/api/logout", { method: "POST", credentials: "include" }).then(() => page.redirect("/"));
     }
   });
 });

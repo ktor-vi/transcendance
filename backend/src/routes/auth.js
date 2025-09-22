@@ -35,7 +35,7 @@ export default async function authRoutes(fastify) {
 	});
 
 	// POST endpoint to logout user
-	fastify.post('/logout', async (req, reply) => {
+	fastify.post('/api/logout', async (req, reply) => {
 		req.session.delete();
 		reply.send({ success: true });
 	});
