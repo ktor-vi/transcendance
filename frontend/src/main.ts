@@ -35,7 +35,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Define SPA routes
-  page("/", () => render(renderHome()));
+
+  page("/", async () => {
+    try {
+      const userStatus = await getUserStatut();
+      if (userStatus.loggedIn) {
+        page.redirect("/dashboard");
+      } else {
+        render(renderHome());
+      }
+    } catch (error) {
+      console.error("Erreur lors de la vérification de session:", error);
+      render(renderHome());
+    }
+  });
 
   // Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
   page("/dashboard", () => render(renderDashboard()));
