@@ -12,9 +12,9 @@ export async function renderProfile() {
 			// Display error if user not logged in
 			document.getElementById("app")!.innerHTML = `
 			<section class="flex flex-col items-center text-center">
-				<p class="text-white text-1xl mt-16">Error loading page</p>
+				<p class="text-white text-1xl mt-16">Erreur lors du chargement de la page</p>
 				<h2 class="text-white text-9xl">401</h2>
-				<p class="text-white text-2xl">You must log in</p>
+				<p class="text-white text-2xl">Tu dois te connecter</p>
 				<img src="/images/hellokittyangry.png" class="mx-auto w-64 -mt-10" />
 			</section>
 			`;
@@ -116,9 +116,7 @@ export async function renderProfile() {
 						</tr>
 					</thead>
 					<tbody>
-						${history
-              .map(
-                (entry: any) => `
+						${history.map((entry: any) => `
 						<tr class="h-12 border-b-2 border-white">
 							<td>${entry.type}</td>
 							<td>
@@ -176,7 +174,7 @@ export async function renderProfile() {
 
 			if (uploadRes.ok) {
 				const updatedUserData = await uploadRes.json();
-				alert("Profile updated successfully!");
+				alert("Profil mis à jour!");
 				const img = document.getElementById("profilePicture") as HTMLImageElement | null;
 				if (img && updatedUserData.picture) {
 					img.src = `${updatedUserData.picture}?t=${Date.now()}`;
@@ -196,6 +194,6 @@ export async function renderProfile() {
 		});
 	} catch (error) {
 		console.error("Error loading profile:", error);
-		document.getElementById("app")!.innerHTML = "<p>You must log in</p>";
+		document.getElementById("app")!.innerHTML = "<p>Tu dois te connecter</p>";
 	}
 }

@@ -1,4 +1,5 @@
 import { openDb, openDbHistory } from '../utils/db.js';
+import { validateString } from '../utils/fetchUserInfo.js';
 import path from 'path';
 import fs from 'fs/promises';
 import { fileTypeFromBuffer } from 'file-type';
@@ -35,7 +36,8 @@ export default async function profileRoutes(fastify) {
 	// POST /profile : update name and/or profile picture
 	fastify.post('/profile', async (req, reply) => {
 		const userSession = req.session.get('user');
-		if (!userSession) return reply.code(401).send({ error: 'Not logged in' });
+		if (!userSession)
+			return reply.code(401).send({ error: 'Not logged in' });
 
 		const data = await req.parts();
 		let name = '';
@@ -50,11 +52,11 @@ export default async function profileRoutes(fastify) {
 				for await (const chunk of part.file) {
 					totalSize += chunk.length;
 					if (totalSize > 2 * 1024 * 1024)
-						return reply.code(400).send({ error: 'File too large (>2MB)' });
+						return reply.code(400).send({ error: 'Fichier trop volumineux (>2MB)' });
 					chunks.push(chunk);
 				}
 				picture = Buffer.concat(chunks);
-
+				
 				// validate file type
 				type = await fileTypeFromBuffer(picture);
 				if (!type || !['image/jpeg', 'image/png', 'image/webp'].includes(type.mime))
@@ -63,12 +65,13 @@ export default async function profileRoutes(fastify) {
 				name = part.value;
 			}
 		}
-
+		if (validateString(name) === false)
+			return reply.code(403).send({ success: false, message: 'Caractères invalides' });
 		const db = await openDb();
-
 		// check if name already exists
 		const existingName = await db.get('SELECT * FROM users WHERE name = ? AND email != ?', name, userSession.email);
-		if (existingName) return reply.code(409).send({ success: false, message: 'Name already taken' });
+		if (existingName)
+			return reply.code(409).send({ success: false, message: 'Name already taken' });
 
 		const oldName = userSession.name;
 		userSession.name = name;
