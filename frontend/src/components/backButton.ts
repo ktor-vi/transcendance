@@ -19,12 +19,23 @@ export function setupBackButton() {
 	document.getElementById("goBack")?.addEventListener("click", (e) => {
 		e.preventDefault();
 
-		if (window.history.length > 1) {
-			// cas normal → vrai retour arrière du navigateur
-			window.history.back();
-		} else {
-			// fallback si pas d’historique (exemple : refresh sur /profile)
-			page("/dashboard");
+		const currentPath = window.location.pathname;
+
+		if (currentPath == "/friends/requests")
+		{
+			page("/friends");
+			return ;
 		}
+		if (currentPath === "/tournament" || currentPath === "/keyboard-play")
+		{
+			page("/pong");
+			return ;
+		}
+		if (currentPath.startsWith("/user/"))
+		{
+			page("/users-list");
+			return ;
+		}
+		page("/dashboard");
 	});
 }

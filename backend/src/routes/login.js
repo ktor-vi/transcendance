@@ -17,7 +17,7 @@ export default async function loginRoutes(fastify) {
 		// compare hashed password
 		const isValid = await bcrypt.compare(password, user.password_hash);
 		if (!isValid) {
-			return reply.code(401).send({ success: false, message: 'Incorrect password' });
+			return reply.code(401).send({ success: false, message: 'Mot de passe incorrect' });
 		}
 
 		// store user in session
