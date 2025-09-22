@@ -48,144 +48,142 @@ export function renderPong() {
           welcomeEl.innerText = `Bienvenue ${
             user.name || user.email || "utilisateur"
           } !`;
-          checkChatMatch();
+        checkChatMatch();
       })
       .catch(() => {
         profileReady = true;
         window.location.href = "/";
       });
-      function checkChatMatch() {
-        const chatMatchRoomId = sessionStorage.getItem("chatMatchRoomId");
+    function checkChatMatch() {
+      const chatMatchRoomId = sessionStorage.getItem("chatMatchRoomId");
 
-        if (chatMatchRoomId) {
-          console.log(`🎮 Match depuis chat détecté: ${chatMatchRoomId}`);
+      if (chatMatchRoomId) {
+        console.log(`🎮 Match depuis chat détecté: ${chatMatchRoomId}`);
 
-          // Nettoyer le sessionStorage
-          sessionStorage.removeItem("chatMatchRoomId");
+        // Nettoyer le sessionStorage
+        sessionStorage.removeItem("chatMatchRoomId");
 
-          // Afficher un message à l'utilisateur
-          const scoreEl = document.getElementById("score");
-          if (scoreEl) {
-            scoreEl.innerText = `🎮 Connexion à la partie ${chatMatchRoomId}...`;
-            scoreEl.className = "text-xl font-bold mt-2 text-blue-600";
-          }
-
-          // Joindre la room automatiquement
-          setTimeout(() => {
-            joinRoom(chatMatchRoomId);
-          }, 1000);
+        // Afficher un message à l'utilisateur
+        const scoreEl = document.getElementById("score");
+        if (scoreEl) {
+          scoreEl.innerText = `🎮 Connexion à la partie ${chatMatchRoomId}...`;
+          scoreEl.className = "text-xl font-bold mt-2 text-blue-600";
         }
+
+        // Joindre la room automatiquement
+        setTimeout(() => {
+          joinRoom(chatMatchRoomId);
+        }, 1000);
       }
-      document
-        .getElementById("keyboardPlayBtn")
-        ?.addEventListener("click", () => {
-          page("/keyboard-play");
+    }
+    document
+      .getElementById("keyboardPlayBtn")
+      ?.addEventListener("click", () => {
+        page("/keyboard-play");
+      });
+
+    const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+    const launch = document.getElementById("launch") as HTMLTitleElement;
+    canvas.style.visibility = "hidden";
+
+    // 🔧 FONCTION : Créer une connexion WebSocket
+    function createWebSocketConnection(roomId: string | null): WebSocket {
+      const ws = new WebSocket(`wss://${window.location.hostname}:5173/ws`);
+
+      ws.onopen = () => {
+        console.log("🔗 WebSocket dashboard connecté");
+
+        // 🔧 DEBUG: Vérifier le profil utilisateur
+        console.log("🔍 Profil utilisateur disponible:", {
+          currentUserProfile: currentUserProfile,
+          name: currentUserProfile?.name,
+          email: currentUserProfile?.email,
         });
 
-      const canvas = document.getElementById(
-        "renderCanvas"
-      ) as HTMLCanvasElement;
-      const launch = document.getElementById("launch") as HTMLTitleElement;
-      canvas.style.visibility = "hidden";
+        // 🔧 IMPORTANT: Utiliser le nom d'utilisateur réel
+        const userName =
+          currentUserProfile?.name ||
+          currentUserProfile?.email ||
+          `User${Date.now().toString().slice(-4)}`;
 
-      // 🔧 FONCTION : Créer une connexion WebSocket
-      function createWebSocketConnection(roomId: string | null): WebSocket {
-        const ws = new WebSocket(`wss://${window.location.hostname}:5173/ws`);
+        console.log("🏷️ Nom utilisateur sélectionné:", userName);
 
-        ws.onopen = () => {
-          console.log("🔗 WebSocket dashboard connecté");
-
-          // 🔧 DEBUG: Vérifier le profil utilisateur
-          console.log("🔍 Profil utilisateur disponible:", {
-            currentUserProfile: currentUserProfile,
-            name: currentUserProfile?.name,
-            email: currentUserProfile?.email,
-          });
-
-          // 🔧 IMPORTANT: Utiliser le nom d'utilisateur réel
-          const userName =
-            currentUserProfile?.name ||
-            currentUserProfile?.email ||
-            `User${Date.now().toString().slice(-4)}`;
-
-          console.log("🏷️ Nom utilisateur sélectionné:", userName);
-
-          const joinMessage = {
-            type: "joinRoom",
-            connectionId: `dashboard-${Date.now()}`,
-            playerName: userName,
-            roomId: roomId || undefined,
-          };
-
-          console.log("📤 Envoi message de connexion:", joinMessage);
-          ws.send(JSON.stringify(joinMessage));
+        const joinMessage = {
+          type: "joinRoom",
+          connectionId: `dashboard-${Date.now()}`,
+          playerName: userName,
+          roomId: roomId || undefined,
         };
 
-        ws.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
+        console.log("📤 Envoi message de connexion:", joinMessage);
+        ws.send(JSON.stringify(joinMessage));
+      };
 
-            switch (data.type) {
-              case "assign":
-                handlePlayerAssignment(data);
-                break;
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
 
-              case "waiting":
-                handleWaitingForPlayer(data);
-                break;
+          switch (data.type) {
+            case "assign":
+              handlePlayerAssignment(data);
+              break;
 
-              case "gameReady":
-                handleGameReady(data);
-                break;
+            case "waiting":
+              handleWaitingForPlayer(data);
+              break;
 
-              case "playerJoined":
-                handlePlayerJoined(data);
-                break;
+            case "gameReady":
+              handleGameReady(data);
+              break;
 
-              case "state":
-                handleGameStateUpdate(data);
-                break;
+            case "playerJoined":
+              handlePlayerJoined(data);
+              break;
 
-              case "scoreUpdate":
-                handleScoreUpdate(data);
-                break;
+            case "state":
+              handleGameStateUpdate(data);
+              break;
 
-              case "gameEnd":
-                handleGameEnd(data);
-                break;
+            case "scoreUpdate":
+              handleScoreUpdate(data);
+              break;
 
-              case "error":
-                handleError(data);
-                break;
+            case "gameEnd":
+              handleGameEnd(data);
+              break;
 
-              case "chatMatch":
-                handleChatMatch(data);
-                break;
-              default:
-                console.log("🔍 Type de message non géré:", data.type);
-            }
-          } catch (e) {
-            console.error("❌ Erreur parsing message dashboard:", e);
+            case "error":
+              handleError(data);
+              break;
+
+            case "chatMatch":
+              handleChatMatch(data);
+              break;
+            default:
+              console.log("🔍 Type de message non géré:", data.type);
           }
-        };
+        } catch (e) {
+          console.error("❌ Erreur parsing message dashboard:", e);
+        }
+      };
 
-        ws.onclose = () => {
-          console.log("🔌 WebSocket dashboard fermé");
-          isJoining = false;
-        };
+      ws.onclose = () => {
+        console.log("🔌 WebSocket dashboard fermé");
+        isJoining = false;
+      };
 
-        ws.onerror = (error) => {
-          console.error("❌ Erreur WebSocket dashboard:", error);
-          isJoining = false;
-        };
+      ws.onerror = (error) => {
+        console.error("❌ Erreur WebSocket dashboard:", error);
+        isJoining = false;
+      };
 
-        return ws;
-      }
+      return ws;
+    }
 
-      function handleChatMatch(data: any) {
-        console.log("🎮 Chat match reçu:", data.roomId);
-        joinRoom(data.roomId);
-      }
+    function handleChatMatch(data: any) {
+      console.log("🎮 Chat match reçu:", data.roomId);
+      joinRoom(data.roomId);
+    }
     // -----------------------
     // HANDLERS (typés en `any` pour éviter TS errors rapides)
     // -----------------------
@@ -194,8 +192,6 @@ export function renderPong() {
 
       currentPlayerNumber = data.player;
       currentRoomId = data.roomId || "";
-
-
 
       currentPlayerName =
         data.playerName ||
@@ -478,6 +474,7 @@ export function renderPong() {
 		<button class="button bg-purple-400 hover:bg-purple-600" id="matchmakeBtn">Matchmaking</button>
 		<button class="button bg-purple-400 hover:bg-purple-600" id="keyboardPlayBtn">Local</button>
 		<button class="button bg-lime-300 hover:bg-lime-400" id="goToTournamentBtn">Tournoi</button>
+    <button id="liveChatBtn" class="mx-4 button bg-fuchsia-400 hover:bg-fuchsia-500">Chat</button>
 	</div>
 	<div class="game-container w-full max-w-4xl mx-auto">
       <h3 id="score" class=""></h2>

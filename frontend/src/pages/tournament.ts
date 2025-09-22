@@ -1,5 +1,5 @@
 import { createBabylonScene } from "../components/BabylonScene";
-import { backButtonArrow, setupBackButton } from '../components/backButton.js';
+import { backButtonArrow, setupBackButton } from "../components/backButton.js";
 
 interface Player {
   id: string;
@@ -61,10 +61,10 @@ export function renderTournamentPage(): string {
         profileReady = true;
         window.location.href = "/";
       });
-	  const container = document.getElementById("app");
-	  if (!container) return "";
-	  
-	  container.innerHTML = `
+    const container = document.getElementById("app");
+    if (!container) return "";
+
+    container.innerHTML = `
 	  <script>0</script>
 
 	  <section class="flex flex-col items-center text-center">
@@ -98,13 +98,13 @@ export function renderTournamentPage(): string {
 	  </div>
 	  </section>
 	  `;
-	  
-	  setupBackButton();
-	  const stateText = document.getElementById(
-		  "tournamentState"
-		) as HTMLParagraphElement;
-		const playerList = document.getElementById(
-			"playerList"
+
+    setupBackButton();
+    const stateText = document.getElementById(
+      "tournamentState"
+    ) as HTMLParagraphElement;
+    const playerList = document.getElementById(
+      "playerList"
     ) as HTMLUListElement;
     const userDebugInfo = document.getElementById(
       "userDebugInfo"
@@ -169,10 +169,7 @@ export function renderTournamentPage(): string {
         if (tournamentResponse.ok) {
           const tournamentData = await tournamentResponse.json();
 
-
           if (tournamentData.exists && tournamentData.players?.length > 0) {
-
-
             if (tournamentData.matches?.length > 0) {
               const firstMatch = tournamentData.matches[0];
               console.log(
@@ -193,9 +190,7 @@ export function renderTournamentPage(): string {
             }
 
             const firstPlayer = tournamentData.players[0];
-            console.log(
-              firstPlayer
-            );
+            console.log(firstPlayer);
             return {
               id: String(firstPlayer.id),
               name: firstPlayer.name,
@@ -229,7 +224,6 @@ export function renderTournamentPage(): string {
     }
 
     async function debugUser(): Promise<void> {
-
       try {
         console.log("📊 État actuel:", {
           currentUser,
@@ -364,8 +358,6 @@ export function renderTournamentPage(): string {
         });
 
         if (isInMatch) {
-
-
           if (!gameConnections.has(match.roomId)) {
             setTimeout(() => {
               connectToMatch(match.roomId, currentUser!.name);
@@ -1074,7 +1066,6 @@ export function renderTournamentPage(): string {
       scoreP1: number,
       scoreP2: number
     ) {
-
       finishedMatches.set(roomId, {
         winner,
         loser,
@@ -1427,7 +1418,46 @@ export function renderTournamentPage(): string {
       }
     }
 
+    function broadcastNewTournamentMessage() {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const host = window.location.host;
+      const socketUrl = `${protocol}//${host}/chat`;
+
+      const socket = new WebSocket(socketUrl);
+      const message = "Nouveau tournoi créé, allez ";
+
+      if (!message) return;
+
+      socket.onopen = () => {
+        console.log("📡 WebSocket chat tournoi connecté");
+        const payload = {
+          type: "broadcastMessage",
+          content: message,
+          user: "Annonce", // Optionnel, le serveur peut overrider
+        };
+        try {
+          socket.send(JSON.stringify(payload));
+        } catch (err) {
+          console.error("[ANNONCE] Erreur envoi message:", err);
+        }
+      };
+    }
+    // Vérifier que la socket est ouverte avant d'envoyer
+    //     if (socket.readyState !== WebSocket.OPEN) {
+    //       console.warn("[CHAT GLOBAL] Socket fermée, impossible d'envoyer le message");
+    //     }
+
+    // ;
+
+    //     try {
+    //       socket.send(JSON.stringify(payload));
+    //     } catch (err) {
+    //       console.error("[CHAT GLOBAL] Erreur envoi message:", err);
+    //     }
+    // }
+
     function connectTournamentWebSocket(): void {
+      broadcastNewTournamentMessage();
       if (tournamentWebSocket) {
         tournamentWebSocket.close();
       }
@@ -1439,8 +1469,7 @@ export function renderTournamentPage(): string {
       let lastUpdateTime = 0;
       const UPDATE_THROTTLE = 1000;
 
-      tournamentWebSocket.onopen = () => {
-      };
+      tournamentWebSocket.onopen = () => {};
 
       tournamentWebSocket.onmessage = (event) => {
         try {
@@ -1487,8 +1516,6 @@ export function renderTournamentPage(): string {
           method: "POST",
           credentials: "include",
         });
-
-
 
         if (response.ok) {
           const result = await response.json();
