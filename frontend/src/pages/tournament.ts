@@ -1431,14 +1431,14 @@ export function renderTournamentPage(): string {
       socket.onopen = () => {
         console.log("📡 WebSocket chat tournoi connecté");
         const payload = {
-          type: "chatMessage",
+          type: "broadcastMessage",
           content: message,
           user: "Annonce", // Optionnel, le serveur peut overrider
         };
         try {
           socket.send(JSON.stringify(payload));
         } catch (err) {
-          console.error("[CHAT GLOBAL] Erreur envoi message:", err);
+          console.error("[ANNONCE] Erreur envoi message:", err);
         }
       };
     }

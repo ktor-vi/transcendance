@@ -185,6 +185,36 @@ export default async function tournamentRoutes(fastify) {
 			const freshTournament = createFreshTournament();
 			fastify.tournaments.set("default", freshTournament);
 
+			console.log("[TOURNAMENT] dmClients disponible ?", !!fastify.dmClients);
+      		console.log("[TOURNAMENT] Nombre de clients DM connectés :", fastify.dmClients?.size || 0);
+        
+			if (fastify.dmClients) {
+        const tournamentNotification = JSON.stringify({
+          type: "tournamentNotification",
+          content: "🏆 Nouveau tournoi créé ! Inscrivez-vous maintenant !",
+          from: "system",
+          fromName: "🎯 Tournoi",
+          timestamp: new Date().toISOString(),
+        });
+
+		let sentCount = 0;
+		fastify.dmClients.forEach((clientSocket, userId) => {
+			console.log(`[TOURNAMENT] Envoi notification à userId: ${userId}`);
+			if (clientSocket.readyState === clientSocket.OPEN) {
+				try {
+					clientSocket.send(tournamentNotification);
+					sentCount++;
+				} catch (err) {
+					console.log(`[TOURNAMENT] Erreur envoi à ${userId}:`, err);
+					fastify.dmClients.delete(userId);
+				}
+			} else {
+				console.log(`[TOURNAMENT] Socket fermée pour userId: ${userId}`);
+			}
+		});
+		console.log(`[TOURNAMENT] Notifications envoyées à ${sentCount} clients`);
+	}
+
 			if (fastify.broadcastTournamentUpdate) fastify.broadcastTournamentUpdate();
 
 			return reply.send({

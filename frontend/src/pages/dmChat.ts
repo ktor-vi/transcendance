@@ -19,7 +19,9 @@ export function renderDmChat(receiverId: string) {
 		<button id="inviteMatchBtn" class="button bg-pink-400 hover:bg-pink-500 mb-4 mr-4 h-[2.5em] self-center">
 			LANCER UNE PARTIE
 		</button>
-		<a href="/user/${encodeURIComponent(receiverId)}" class="button bg-pink-400 hover:bg-pink-500 mb-4 h-[2.5em] self-center">
+		<a href="/user/${encodeURIComponent(
+      receiverId
+    )}" class="button bg-pink-400 hover:bg-pink-500 mb-4 h-[2.5em] self-center">
       		VOIR LE PROFIL
     	</a>
 
@@ -79,6 +81,10 @@ export async function initDmChat(receiverId: string, senderId: string) {
       if (data.type === "dmMessage") {
         const fromMe = data.from === senderId; // vrai si c'est toi qui envoies
         addMessage(`${data.content}`, fromMe);
+      }
+
+      if (data.type === "tournamentNotification") {
+        addMessage(`🏆 ${data.content}`);
       }
 
       if (data.type === "matchInvitation") acceptMatch();
@@ -274,7 +280,6 @@ export async function initDmChat(receiverId: string, senderId: string) {
   }
 
   async function unblock() {
-	  
     console.log(`[DEBLOCK DEBUG FRONT] ${senderId}, ${receiverId}, ${blocked}`);
     blocked = false;
     unblockbtn.style.display = "none";
