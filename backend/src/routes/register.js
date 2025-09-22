@@ -1,4 +1,5 @@
 import { openDb } from '../utils/db.js';
+import { validateString } from '../utils/fetchUserInfo.js';
 import bcrypt from 'bcrypt';
 
 export default async function registerRoutes(fastify) {
@@ -16,8 +17,15 @@ export default async function registerRoutes(fastify) {
 		const existingEmail = await db.get('SELECT * FROM users WHERE email = ?', [email]);
 		const existingName = await db.get('SELECT * FROM users WHERE name = ?', [name]);
 
-		if (existingEmail) return reply.code(409).send({ success: false, message: 'Email already registered' });
-		if (existingName) return reply.code(409).send({ success: false, message: 'Name already taken' });
+		if (existingEmail)
+			return reply.code(409).send({ success: false, message: 'Cet email est déjà enregistré' });
+		if (existingName)
+			return reply.code(409).send({ success: false, message: 'Ce pseudo est déjà pris' });
+
+		if (validateString(name) === false)
+			return reply.code(403).send({ success: false, message: 'Caractères invalides dans pseudo' });
+		if (validateString(response) === false)
+			return reply.code(403).send({ success: false, message: 'Caractères invalides dans la réponse' });
 
 		// insert new user with default picture
 		const result = await db.run(

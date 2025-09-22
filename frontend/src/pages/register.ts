@@ -45,7 +45,7 @@ export function renderRegister() {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ name, email, password, question, response }),
 		});
-		if (res.status === 409) {
+		if (res.status === 409 || res.status === 403 ) {
 				const data = await res.json();
 				alert(data.message);
 				return ;
@@ -56,7 +56,7 @@ export function renderRegister() {
 			
 		} else {
 			const err = await res.json();
-			alert(err.error || "Erreur pendant l'inscription");
+			alert(err.error || "Erreur innatendue pendant l'inscription");
 		}
 	});
 }
