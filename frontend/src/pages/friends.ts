@@ -107,13 +107,13 @@ export async function renderFriends() {
 
 						if (data.online)
 						{
-							status.src = `public/images/available.svg`;
+							status.src = `/images/available.svg`;
 							status.alt = "Connecté.e";
 							statusText.textContent = "Connecté.e";
 						}
 						else
 						{
-							status.src = `public/images/disconnected.svg`;
+							status.src = `/images/disconnected.svg`;
 							status.alt = "Déconnecté.e";
 							statusText.textContent = "Déconnecté.e";
 						}
