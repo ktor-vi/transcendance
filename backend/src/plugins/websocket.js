@@ -288,7 +288,7 @@ async function websocketHandler(fastify) {
     let joinedRoom = null;
     let playerName = null;
     let playerNumber = 0;
-
+  
     conn.on("message", (message) => {
       let msg;
       try {
@@ -297,31 +297,92 @@ async function websocketHandler(fastify) {
         console.warn("Message WS non JSON", message.toString());
         return;
       }
-
+  
       switch (msg.type) {
         case "joinRoom":
           handleJoinRoom(msg);
           break;
-
+  
         case "scoreUpdate":
           handleScoreUpdate(msg);
           break;
-
+  
         case "gameEnd":
           handleGameEnd(msg);
           break;
-
+  
         case "input":
           handleInput(msg);
           break;
-
+  
         case "chatMatch":
           fastify.createRoom(msg.roomId);
           break;
+  
+        case "leaveRoom":
+          handleLeaveRoom(msg);
+          break;
+  
         default:
           console.log("Type de message non géré:", msg.type);
       }
     });
+  
+    function handleLeaveRoom(msg) {
+      console.log("👋 handleLeaveRoom reçu", msg);
+      const room = gameRoomConnections.get(msg.roomId);
+      if (!room) {
+        console.warn(`⚠️ Room ${msg.roomId} non trouvée`);
+        return;
+      }
+      let removed = false;
+      for (const c of room) {
+        console.log(
+          "🔍 Vérification connexion dans room",
+          c.playerNumber,
+          msg.playerNumber
+        );
+        if (c.playerNumber === msg.playerNumber) {
+          removed = true;
+          room.delete(c);
+          try {
+            c.close();
+            console.log(`❌ Fermeture connexion du joueur ${msg.playerNumber}`);
+          } catch (err) {}
+        }
+      }
+      if (!removed) console.warn("⚠️ Joueur non trouvé dans la room");
+
+      // Si l’autre joueur reste, il gagne
+      if (room.size === 1) {
+        const winnerConn = Array.from(room)[0];
+        console.log(
+          `🏆 L'autre joueur (${winnerConn.playerName}) gagne automatiquement`
+        );
+        fastify.updateMatchScore(
+          msg.roomId,
+          winnerConn.playerName,
+          null,
+          11,
+          0,
+          winnerConn.playerName
+        );
+
+        winnerConn.send(
+          JSON.stringify({
+            type: "gameEnd",
+            winner: winnerConn.playerName,
+            scoreP1: 11,
+            scoreP2: 0,
+          })
+        );
+
+        gameRoomConnections.delete(msg.roomId);
+      } else if (room.size === 0) {
+        console.log(`🗑️ Room ${msg.roomId} vide, suppression`);
+        gameRoomConnections.delete(msg.roomId);
+      }
+    }
 
     function handleJoinRoom(msg) {
       const { connectionId, playerName: msgPlayerName, roomId } = msg;
@@ -612,33 +673,75 @@ async function websocketHandler(fastify) {
       }
     }
 
-    conn.on("close", () => {
-      handleDisconnection();
+  function handleDisconnection() {
+    const roomId = conn.roomId;
+    console.log("🔌 handleDisconnection appelé", {
+      roomId,
+      playerName: conn.playerName,
+      playerNumber: conn.playerNumber,
     });
 
-    conn.on("error", (error) => {
-      handleDisconnection();
+    if (!roomId) return;
+
+    const connections = gameRoomConnections.get(roomId);
+    if (!connections) {
+      console.log("⚠️ Pas de room trouvée pour cette connexion", roomId);
+      return;
+    }
+
+    connections.delete(conn);
+    console.log(`📤 Connexion supprimée de la room ${roomId}`, {
+      remainingPlayers: connections.size,
     });
 
-    function handleDisconnection() {
-      if (
-        conn.roomId &&
-        conn.playerNumber &&
-        fastify.handlePlayerDisconnection
-      ) {
-        fastify.handlePlayerDisconnection(conn.roomId, conn.playerNumber);
+    if (connections.size === 0) {
+      console.log(`🗑️ Room ${roomId} vide → suppression`);
+      gameRoomConnections.delete(roomId);
+      return;
+    }
+
+    if (connections.size === 1) {
+      const winnerConn = Array.from(connections)[0];
+      console.log(
+        `🏆 Un joueur reste → victoire automatique: ${winnerConn.playerName}`
+      );
+
+      try {
+        fastify.updateMatchScore(
+          roomId,
+          winnerConn.playerName,
+          conn.playerName || "opponent",
+          11,
+          0,
+          winnerConn.playerName
+        );
+        winnerConn.send(
+          JSON.stringify({
+            type: "gameEnd",
+            winner: winnerConn.playerName,
+            scoreP1: 11,
+            scoreP2: 0,
+          })
+        );
+      } catch (e) {
+        console.error("❌ Erreur envoi gameEnd:", e.message);
       }
 
-      for (const [roomId, connections] of gameRoomConnections.entries()) {
-        if (connections.has(conn)) {
-          connections.delete(conn);
-          if (connections.size === 0) {
-            gameRoomConnections.delete(roomId);
-          }
-        }
-      }
+      console.log(`🗑️ Room ${roomId} supprimée après victoire automatique`);
+      gameRoomConnections.delete(roomId);
+    }
+
+    if (fastify.handlePlayerDisconnection && conn.playerNumber) {
+      console.log(
+        `🔔 Appel hook handlePlayerDisconnection pour player ${conn.playerNumber}`
+      );
+      fastify.handlePlayerDisconnection(roomId, conn.playerNumber);
     }
   }
+  conn.on("close", () => handleDisconnection());
+  conn.on("error", () => handleDisconnection()); 
+}
+
 
   // ===== EXPOSER LES FONCTIONS AVEC LOGS DE CONFIRMATION =====
 

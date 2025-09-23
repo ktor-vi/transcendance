@@ -18,6 +18,7 @@ import { renderChat } from "./pages/chat";
 import { renderTournamentPage } from "./pages/tournament";
 import { startPingLoop } from "./components/pingLoop";
 import { getUserStatut } from "./components/auth";
+import { resetDashboard } from "./pages/pong"
 
 // Start ping loop if user is logged in
 document.addEventListener("DOMContentLoaded", async () => {
@@ -43,12 +44,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 		}
 	});
 
-//	 page("/", () => render(renderHome()));
-
 	// Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
 	page("/dashboard", () => render(renderDashboard()));
-
-	page("/pong", () => renderPong());
+	
+	page("/pong", () => {
+    renderPong();
+  });
+  page.exit("/pong", () => {
+  console.log("🚪 Sortie de /pong → resetDashboard()");
+  try {
+    resetDashboard();
+  } catch (e) {
+    console.warn("⚠️ resetDashboard a échoué:", e);
+  }
+});
+	
 
 	page("/profile", () => renderProfile());
 

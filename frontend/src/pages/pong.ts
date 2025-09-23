@@ -16,17 +16,69 @@ async function getPicture(): Promise<string> {
   return userData.picture;
 }
 
+let wsConnection: WebSocket | null = null;
+let gameInstance: any = null;
+let currentRoomId = "";
+let currentPlayerNumber = 0;
+let currentPlayerName = "";
+let opponentPlayerName: any = "";
+let isJoining = false;
+let currentUserProfile: any = null;
+
+
+export function resetDashboard() {
+  console.log("🧹 resetDashboard appelé", {
+    wsConnection,
+    currentRoomId,
+    currentPlayerNumber,
+    currentPlayerName,
+  });
+
+  // 1️⃣ Notifier le serveur
+  if (wsConnection && currentRoomId && currentPlayerNumber) {
+    wsConnection.send(
+      JSON.stringify({
+        type: "leaveRoom",
+        roomId: currentRoomId,
+        playerNumber: currentPlayerNumber,
+      })
+    );
+
+    setTimeout(() => {
+      wsConnection?.close();
+      wsConnection = null;
+    }, 250);
+  } else if (wsConnection) {
+    wsConnection.close();
+    wsConnection = null;
+  }
+
+  // 2️⃣ Nettoyer Babylon
+  if (gameInstance && gameInstance.cleanup) {
+    gameInstance.cleanup();
+    gameInstance = null;
+  }
+
+  // 3️⃣ Reset UI
+  const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+  if (canvas) canvas.style.visibility = "hidden";
+
+  const info = document.getElementById("roomInfo");
+  if (info) info.innerText = "Aucune partie en cours";
+
+  const scoreEl = document.getElementById("score");
+  if (scoreEl) scoreEl.innerText = "";
+
+  // 4️⃣ Reset state
+  currentPlayerNumber = 0;
+  currentRoomId = "";
+  currentPlayerName = "";
+  opponentPlayerName = "";
+  isJoining = false;
+}
+
 export function renderPong() {
   setTimeout(() => {
-    let currentUserProfile: UserProfile | null = null;
-    let profileReady = false;
-    let wsConnection: WebSocket | null = null;
-    let isJoining = false;
-    let gameInstance: GameInstance | null = null;
-    let currentPlayerNumber = 0;
-    let currentRoomId = "";
-    let currentPlayerName = "";
-    let opponentPlayerName: any;
 
     fetch("api/session", { credentials: "include" })
       .then((res) => {
@@ -348,37 +400,7 @@ export function renderPong() {
         }
       }
     }
-    function resetDashboard() {
-      // Nettoyer la connexion WebSocket
-      if (wsConnection) {
-        wsConnection.close();
-        wsConnection = null;
-      }
-
-      // Nettoyer l'instance de jeu
-      if (gameInstance && gameInstance.cleanup) {
-        gameInstance.cleanup();
-        gameInstance = null;
-      }
-
-      // Réinitialiser l'interface
-      canvas.style.visibility = "hidden";
-
-      const info = document.getElementById("roomInfo");
-      if (info) info.innerText = "Aucune partie en cours";
-
-      const scoreEl = document.getElementById("score");
-      if (scoreEl) {
-        scoreEl.innerText = "";
-        scoreEl.className = "text-xl font-bold mt-2";
-      }
-
-      currentPlayerNumber = 0;
-      currentRoomId = "";
-      currentPlayerName = "";
-      opponentPlayerName = "";
-      isJoining = false;
-    }
+    
     function joinRoom(roomId: string | null) {
       if (isJoining) {
         console.warn("⚠️ Connexion déjà en cours...");
@@ -392,7 +414,7 @@ export function renderPong() {
       try {
         // Créer la nouvelle connexion WebSocket
         wsConnection = createWebSocketConnection(roomId);
-        console.log("✅ Nouvelle connexion WebSocket créée");
+        console.log("✅ Nouvelle connexion WebSocket créée", wsConnection);
       } catch (error) {
         console.error("❌ Erreur création WebSocket:", error);
         isJoining = false;
@@ -492,3 +514,4 @@ export function renderPong() {
   document.getElementById("app")!.innerHTML = html;
   setupBackButton();
 }
+
