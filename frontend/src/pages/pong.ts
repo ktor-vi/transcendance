@@ -496,7 +496,6 @@ export function renderPong() {
 		<button class="button bg-purple-400 hover:bg-purple-600" id="matchmakeBtn">Matchmaking</button>
 		<button class="button bg-purple-400 hover:bg-purple-600" id="keyboardPlayBtn">Local</button>
 		<button class="button bg-lime-300 hover:bg-lime-400" id="goToTournamentBtn">Tournoi</button>
-    <button id="liveChatBtn" class="mx-4 button bg-fuchsia-400 hover:bg-fuchsia-500">Chat</button>
 	</div>
 	<div class="game-container w-full max-w-4xl mx-auto">
       <h3 id="score" class=""></h2>

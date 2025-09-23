@@ -22,7 +22,7 @@ export default async function friendshipRequestsRoutes(fastify) {
 			[senderId, receiverId, 'waiting']
 		);
 		if (existingRequest)
-			return reply.code(409).send({ success: false, message: "Request already sent" });
+			return reply.code(409).send({ success: false, message: "Une requête a déjà été envoyée" });
 
 		await db.run(
 			`INSERT OR IGNORE INTO requests (sender_id, receiver_id) VALUES (?, ?)`,

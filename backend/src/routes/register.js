@@ -1,5 +1,5 @@
 import { openDb } from '../utils/db.js';
-import { validateString, validateEmail } from '../utils/fetchUserInfo.js';
+import { validateString } from '../utils/fetchUserInfo.js';
 import bcrypt from 'bcrypt';
 
 export default async function registerRoutes(fastify) {
@@ -26,8 +26,6 @@ export default async function registerRoutes(fastify) {
 			return reply.code(403).send({ success: false, message: 'Caractères invalides dans pseudo' });
 		if (validateString(response) === false)
 			return reply.code(403).send({ success: false, message: 'Caractères invalides dans la réponse' });
-		// if (validateEmail(email) === false)
-		// 	return reply.code(403).send({ success: false, message: "Caractères invalides dans l'adresse mail" });
 
 		// insert new user with default picture
 		const result = await db.run(

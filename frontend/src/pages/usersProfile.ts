@@ -154,7 +154,7 @@ export async function renderUserProfile(ctx: any) {
 					const data = await resRequest.json();
 					alert(data.message);
 				} else {
-					alert(`Friend request sent to ${receiver}!`);
+					alert(`Demande d'ami envoyée à ${receiver}!`);
 				}
 			} catch {
 				console.error("Error sending request");
