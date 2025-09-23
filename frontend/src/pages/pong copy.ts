@@ -74,7 +74,7 @@ export function renderPong() {
           welcomeEl.innerText = `Bienvenue ${
             user.name || user.email || "utilisateur"
           } !`;
-        checkChatMatch();
+        checkChatMatch(isJoining, wsConnection);
       })
       .catch(() => {
         profileReady = true;
@@ -100,7 +100,7 @@ export function renderPong() {
       const input = (
         document.getElementById("roomIdInput") as HTMLInputElement
       ).value.trim();
-      joinRoom(input || null);
+      joinRoom(room, isJoining, currentUserProfile, wsConnection, gameInstance, canvas);
     });
 
     document.getElementById("matchmakeBtn")?.addEventListener("click", () => {
@@ -128,12 +128,12 @@ export function renderPong() {
 
     window.addEventListener("beforeunload", () => {
       console.log("🧹 Nettoyage avant fermeture de page");
-      resetDashboard();
+      resetDashboard(isJoining, wsConnection, gameInstance, room, canvas);
     });
 
     window.addEventListener("popstate", () => {
       console.log("🧹 Nettoyage lors du changement de route");
-      resetDashboard();
+      resetDashboard(isJoining, wsConnection, gameInstance, room, canvas);
     });
   }, 300);
 
@@ -184,7 +184,7 @@ export function renderPong() {
   setupBackButton();
 }
 
-function checkChatMatch(isjoining: boolean, wsConnection: WebSocket) {
+function checkChatMatch(isjoining: boolean, wsConnection: WebSocket | null = null) {
   const chatMatchRoomId = sessionStorage.getItem("chatMatchRoomId");
   if (chatMatchRoomId) {
     console.log(`🎮 Match depuis chat détecté: ${chatMatchRoomId}`);
@@ -203,7 +203,7 @@ function checkChatMatch(isjoining: boolean, wsConnection: WebSocket) {
   }
 }
 
-function joinRoom(room: Room, isJoining: boolean, currentUserProfile: UserProfile, wsConnection: WebSocket, gameInstance: GameInstance, canvas: HTMLCanvasElement) {
+function joinRoom(room: Room, isJoining: boolean, currentUserProfile: UserProfile | null = null, wsConnection: WebSocket | null = null, gameInstance: GameInstance | null = null, canvas: HTMLCanvasElement) {
   if (isJoining) {
     console.warn("⚠️ Connexion déjà en cours...");
     return;
@@ -213,7 +213,7 @@ function joinRoom(room: Room, isJoining: boolean, currentUserProfile: UserProfil
   resetDashboard(isJoining, wsConnection, gameInstance, room, canvas);
   try {
     // Créer la nouvelle connexion WebSocket
-    wsConnection = createWebSocketConnection(room.id, isJoining, currentUserProfile, wsConnection);
+    wsConnection = createWebSocketConnection(room, gameInstance, currentUserProfile, isJoining, canvas);
     console.log("✅ Nouvelle connexion WebSocket créée");
   } catch (error) {
     console.error("❌ Erreur création WebSocket:", error);
@@ -222,7 +222,7 @@ function joinRoom(room: Room, isJoining: boolean, currentUserProfile: UserProfil
   }
 }
 
-function resetDashboard(isJoining: boolean, wsConnection: WebSocket, gameInstance: GameInstance, room: Room, canvas: HTMLCanvasElement) {
+function resetDashboard(isJoining: boolean, wsConnection: WebSocket | null = null, gameInstance: GameInstance | null = null, room: Room, canvas: HTMLCanvasElement) {
   // Nettoyer la connexion WebSocket
   if (wsConnection) {
     wsConnection.close();
@@ -252,13 +252,13 @@ function resetDashboard(isJoining: boolean, wsConnection: WebSocket, gameInstanc
 }
 
 // 🔧 FONCTION : Créer une connexion WebSocket
-function createWebSocketConnection(room: Room, isJoining: boolean, currentUserProfile: UserProfile): WebSocket {
+function createWebSocketConnection(room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, isJoining: boolean, canvas: HTMLCanvasElement): WebSocket {
   const ws = new WebSocket(`wss://${window.location.hostname}:5173/ws`);
-  ws.onopen = () => handleWebSocketOpen(ws, currentUserProfile, room);
+  ws.onopen = () => handleWebSocketOpen(ws, room, gameInstance, currentUserProfile, canvas);
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      handleWebSocketMessage(data);
+      handleWebSocketMessage(data, ws, room, gameInstance, currentUserProfile, isJoining, canvas);
     } catch (e) {
       console.error("❌ Erreur parsing message dashboard:", e);
     }
@@ -274,7 +274,7 @@ function createWebSocketConnection(room: Room, isJoining: boolean, currentUserPr
   return ws;
 }
 
-function handleWebSocketOpen(ws: WebSocket, currentUserProfile: UserProfile, room: Room) {
+function handleWebSocketOpen(wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
   console.log("🔗 WebSocket dashboard connecté");
   // 🔧 DEBUG: Vérifier le profil utilisateur
   console.log("🔍 Profil utilisateur disponible:", {
@@ -295,44 +295,55 @@ function handleWebSocketOpen(ws: WebSocket, currentUserProfile: UserProfile, roo
     roomId: room.id || undefined,
   };
   console.log("📤 Envoi message de connexion:", joinMessage);
-  ws.send(JSON.stringify(joinMessage));
+  if (wsConnection) wsConnection.send(JSON.stringify(joinMessage));
 }
 
-function handleWebSocketMessage(data: any) {
+function handleWebSocketMessage(
+  data: any,
+  wsConnection: WebSocket | null = null,
+  room: Room,
+  gameInstance: GameInstance | null = null,
+  currentUserProfile: UserProfile | null = null,
+  isJoining: boolean,
+  canvas: HTMLCanvasElement) {
+  if (!wsConnection || !gameInstance)
+    handleError(data, wsConnection, room, gameInstance, currentUserProfile, canvas);
   switch (data.type) {
     case "assign":
-      handlePlayerAssignment(data);
+      handlePlayerAssignment(data, wsConnection, room, gameInstance, currentUserProfile, canvas);
+      isJoining = false;
       break;
     case "waiting":
-      handleWaitingForPlayer(data);
+      handleWaitingForPlayer(data, wsConnection, room, gameInstance, currentUserProfile, canvas);
       break;
     case "gameReady":
-      handleGameReady(data);
+      handleGameReady(data, wsConnection, room, gameInstance, currentUserProfile, canvas);
       break;
     case "playerJoined":
-      handlePlayerJoined(data);
+      handlePlayerJoined(data, wsConnection, room, gameInstance, currentUserProfile, canvas);
       break;
     case "state":
-      handleGameStateUpdate(data);
+      handleGameStateUpdate(data, wsConnection, room, gameInstance, currentUserProfile, canvas);
       break;
     case "scoreUpdate":
-      handleScoreUpdate(data);
+      handleScoreUpdate(data, wsConnection, room, gameInstance, currentUserProfile, canvas);
       break;
     case "gameEnd":
-      handleGameEnd(data);
+      handleGameEnd(data, wsConnection, room, gameInstance, currentUserProfile, isJoining, canvas);
       break;
     case "error":
-      handleError(data);
+      handleError(data, wsConnection, room, gameInstance, currentUserProfile, canvas);
+      isJoining = false;
       break;
     case "chatMatch":
-      handleChatMatch(data);
+      handleChatMatch(data, wsConnection, room, gameInstance, currentUserProfile, isJoining, canvas);
       break;
     default:
       console.log("🔍 Type de message non géré:", data.type);
   }
 }
 
-function handlePlayerAssignment(data: any, room: Room, currentUserProfile: UserProfile) {
+function handlePlayerAssignment(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
   console.log("🎮 Assignation joueur:", data);
   room.numberPlayersInRoom = data.player;
   room.id = data.roomId || "";
@@ -344,7 +355,7 @@ function handlePlayerAssignment(data: any, room: Room, currentUserProfile: UserP
   console.log("🏷️ Nom joueur assigné:", room.hostPlayer);
   const info = document.getElementById("roomInfo");
   if (info) {
-    info.innerText = `Room: ${room.id} | ${currentPlayerName} (Joueur ${room.numberPlayersInRoom})`;
+    info.innerText = `Room: ${room.id} | ${room.hostPlayer} (Joueur ${room.numberPlayersInRoom})`;
   }
   // Préparer l'interface pour le jeu
   canvas.style.visibility = "visible";
@@ -352,7 +363,7 @@ function handlePlayerAssignment(data: any, room: Room, currentUserProfile: UserP
     gameInstance = createBabylonScene(canvas);
     console.log("🎮 Scène Babylon créée:", !!gameInstance);
     if (gameInstance) {
-      if (gameInstance.setPlayerNumber) {
+      if (gameInstance.setPlayerNumber && room.numberPlayersInRoom) {
         gameInstance.setPlayerNumber(room.numberPlayersInRoom);
         console.log("✅ Numéro de joueur assigné:", room.numberPlayersInRoom);
       }
@@ -364,26 +375,25 @@ function handlePlayerAssignment(data: any, room: Room, currentUserProfile: UserP
   } catch (error) {
     console.error("❌ Erreur création scène Babylon:", error);
   }
-  isJoining = false;
   console.log(
-    `✅ ${currentPlayerName} rejoint room ${currentRoomId} (Joueur ${room.numberPlayersInRoom})`
+    `✅ ${room.hostPlayer} rejoint room ${room.id} (Joueur ${room.numberPlayersInRoom})`
   );
 }
 
-function handlePlayerJoined(data: any) {
-  if (data.playerName && data.playerName !== currentPlayerName) {
-    opponentPlayerName = data.playerName;
+function handlePlayerJoined(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
+  if (data.playerName && data.playerName !== room.hostPlayer) {
+    room.guestPlayer = data.playerName;
     const info = document.getElementById("roomInfo");
     if (info) {
-      info.innerText = `Room: ${currentRoomId} | ${currentPlayerName} vs ${opponentPlayerName}`;
+      info.innerText = `Room: ${room.id} | ${room.hostPlayer} vs ${room.guestPlayer}`;
     }
   }
 }
 
-function handleWaitingForPlayer(data: any) {
+function handleWaitingForPlayer(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
   const scoreEl = document.getElementById("score");
   if (scoreEl) {
-    scoreEl.innerText = `⏳ ${currentPlayerName}, attendez un adversaire... (${data.playersCount}/${data.maxPlayers})`;
+    scoreEl.innerText = `⏳ ${room.hostPlayer}, attendez un adversaire... (${data.playersCount}/${data.maxPlayers})`;
     scoreEl.className = "text-xl font-bold mt-2 text-orange-600";
   }
   if (gameInstance && gameInstance.setGameActive) {
@@ -391,26 +401,26 @@ function handleWaitingForPlayer(data: any) {
   }
 }
 
-function handleGameReady(data: any) {
+function handleGameReady(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
   if (data.players && typeof data.players === "object") {
     const playerNames = Object.values(data.players);
     console.log("👥 Noms des joueurs trouvés:", playerNames);
     // Trouver l'adversaire (celui qui n'est pas le joueur actuel)
-    opponentPlayerName =
-      playerNames.find((name) => name !== currentPlayerName) ||
+    room.guestPlayer =
+      playerNames.find((name) => name !== room.hostPlayer) ||
       "Adversaire";
   } else {
     console.warn("⚠️ Pas de données players dans gameReady");
-    opponentPlayerName = `Joueur${room.numberPlayersInRoom === 1 ? 2 : 1}`;
+    room.guestPlayer = `Joueur${room.numberPlayersInRoom === 1 ? 2 : 1}`;
   }
   const scoreEl = document.getElementById("score");
   if (scoreEl) {
-    scoreEl.innerText = `🚀 ${currentPlayerName} vs ${opponentPlayerName} - La partie commence!`;
+    scoreEl.innerText = `🚀 ${room.hostPlayer} vs ${room.guestPlayer} - La partie commence!`;
     scoreEl.className = "text-xl font-bold mt-2 text-green-600";
     // Réinitialiser avec les vrais noms après 2 secondes
     setTimeout(() => {
       if (scoreEl) {
-        scoreEl.innerText = `${currentPlayerName}: 0 - ${opponentPlayerName}: 0`;
+        scoreEl.innerText = `${room.hostPlayer}: 0 - ${room.guestPlayer}: 0`;
         scoreEl.className = "text-xl font-bold mt-2";
       }
     }, 2000);
@@ -418,26 +428,48 @@ function handleGameReady(data: any) {
   // Mettre à jour l'info de la room
   const info = document.getElementById("roomInfo");
   if (info) {
-    info.innerText = `Room: ${currentRoomId} | ${currentPlayerName} vs ${opponentPlayerName}`;
+    info.innerText = `Room: ${room.id} | ${room.hostPlayer} vs ${room.guestPlayer}`;
   }
   if (gameInstance && gameInstance.setGameActive) {
     gameInstance.setGameActive(true);
   }
 }
 
-function handleGameStateUpdate(data: any) {
+function handleGameStateUpdate(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
   if (gameInstance && gameInstance.updateGameState && data.gameState) {
     gameInstance.updateGameState(data.gameState);
     // Mettre à jour le score
-    updateScoreDisplay(data.gameState.scoreP1, data.gameState.scoreP2);
+    handleScoreUpdate(data, wsConnection, room, gameInstance, currentUserProfile, canvas);
   }
 }
 
-function handleScoreUpdate(data: any) {
-  updateScoreDisplay(data.scoreP1, data.scoreP2);
+function handleScoreUpdate(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
+  const scoreEl = document.getElementById("score");
+  if (scoreEl) {
+    let player1Name =
+      room.numberPlayersInRoom === 1
+        ? room.hostPlayer ||
+          currentUserProfile?.name ||
+          currentUserProfile?.email ||
+          "Vous"
+        : room.guestPlayer || "Adversaire";
+    let player2Name =
+      room.numberPlayersInRoom === 1
+        ? room.guestPlayer || "Adversaire"
+        : room.hostPlayer ||
+          currentUserProfile?.name ||
+          currentUserProfile?.email ||
+          "Vous";
+    if (data.gameState.scoreP1 < 11 && data.gameState.scoreP2 < 11) {
+      scoreEl.innerText = `${player1Name}: ${data.gameState.scoreP1} - ${player2Name}: ${data.gameState.scoreP2}`;
+    } else {
+      const winner = data.gameState.scoreP1 >= 11 ? player1Name : player2Name;
+      scoreEl.innerText = `🏆 ${winner} gagne!`;
+    }
+  }
 }
 
-function handleGameEnd(data: any) {
+function handleGameEnd(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, isJoining: boolean, canvas: HTMLCanvasElement) {
   const scoreEl = document.getElementById("score");
   if (scoreEl) {
     const winnerName = data.winner || "Joueur";
@@ -446,43 +478,16 @@ function handleGameEnd(data: any) {
   }
   // Nettoyer après un délai
   setTimeout(() => {
-    resetDashboard();
+  resetDashboard(isJoining, wsConnection, gameInstance, room, canvas);
   }, 5000);
 }
 
-function handleError(data: any) {
+function handleError(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
   console.error("❌ Erreur reçue:", data.message);
   alert(`Erreur: ${data.message}`);
-  isJoining = false;
 }
 
-function handleChatMatch(data: any) {
+function handleChatMatch(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, currentUserProfile: UserProfile | null = null, isJoining: boolean, canvas: HTMLCanvasElement) {
   console.log("🎮 Chat match reçu:", data.roomId);
-  joinRoom(data.roomId);
-}
-
-function updateScoreDisplay(scoreP1: number, scoreP2: number) {
-  const scoreEl = document.getElementById("score");
-  if (scoreEl) {
-    let player1Name =
-      room.numberPlayersInRoom === 1
-        ? currentPlayerName ||
-          currentUserProfile?.name ||
-          currentUserProfile?.email ||
-          "Vous"
-        : opponentPlayerName || "Adversaire";
-    let player2Name =
-      room.numberPlayersInRoom === 1
-        ? opponentPlayerName || "Adversaire"
-        : currentPlayerName ||
-          currentUserProfile?.name ||
-          currentUserProfile?.email ||
-          "Vous";
-    if (scoreP1 < 11 && scoreP2 < 11) {
-      scoreEl.innerText = `${player1Name}: ${scoreP1} - ${player2Name}: ${scoreP2}`;
-    } else {
-      const winner = scoreP1 >= 11 ? player1Name : player2Name;
-      scoreEl.innerText = `🏆 ${winner} gagne!`;
-    }
-  }
+  joinRoom(room, isJoining, currentUserProfile, wsConnection, gameInstance, canvas);
 }
