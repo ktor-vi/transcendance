@@ -1,5 +1,6 @@
 import page from "page";
 import { createBabylonKeyboardPlay } from "../components/PongController";
+import { backButtonArrow, setupBackButton } from '../components/backButton.js';
 
 export type KeyboardInstance = {
   start: () => void;
@@ -43,17 +44,12 @@ export function renderKeyboardPlay() {
     fetch("api/session", { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error("User not authenticated");
-        return res.json();
-      })
-      .then((user) => {
-        const welcomeEl = document.getElementById("welcome");
-        if (welcomeEl)
-          welcomeEl.innerText = `Welcome ${user.name || user.email || "User"}!`;
+	        return res.json();
       });
 
     // Navigation button to dashboard
-    document.getElementById("dashboardBtn")?.addEventListener("click", () => {
-      page("/dashboard");
+    document.getElementById("returnBtn")?.addEventListener("click", () => {
+      page("/pong");
     });
 
     const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
@@ -68,28 +64,28 @@ export function renderKeyboardPlay() {
     if (gameInstance && scoreEl) {
       gameInstance.onScoreUpdate((score) => {
         if (score.p1 < 11 && score.p2 < 11) {
-          scoreEl.innerText = `Player 1: ${score.p1} - Player 2: ${score.p2}`;
+          scoreEl.innerText = `Joueur 1: ${score.p1} - Joueur 2: ${score.p2}`;
         } else if (score.p1 >= 11) {
-          scoreEl.innerText = `Player 1 wins!`;
+          scoreEl.innerText = `Le jouer 1 a gagné!`;
         } else if (score.p2 >= 11) {
-          scoreEl.innerText = `Player 2 wins!`;
+          scoreEl.innerText = `Le jouer 2 a gagné!`;
         }
       });
     }
   }, 300);
+setupBackButton();
+
 
   return `
 		<script>0</script>
-		<div class="w-full my-4 flex flex-row justify-between items-center px-4">
-			<h1 class="text-2xl font-bold">Transcendance</h1>
-		</div>
+		<section class="flex flex-col items-center text-center">
+		<button id="returnBtn" class="button bg-pink-400 hover:bg-pink-500 fixed top-16 left-16">Retour</button>
 		<div class="px-4">
-			<h2 id="welcome" class="text-xl mb-4 font-semibold"></h2>
-			<div class="mb-4 flex flex-col md:flex-row gap-2 items-start md:items-center">
-				<button id="dashboardBtn" class="bg-purple-600 text-white px-4 py-2 rounded">Dashboard</button>
+		<p class="text-xl mt-12">Joueur 1 (haut): J/L</p>
+		<p class="text-xl mb-4">Joueur 2 (bas): A/D</p>
+			<p id="score" class="text-2xl"></p>
+			<canvas id="renderCanvas" class="border w-[130vh] h-[70vh]"></canvas>
 			</div>
-			<h2 id="score" class="text-2xl font-bold"></h2>
-			<canvas id="renderCanvas" class="border w-full h-[80vh]"></canvas>
-		</div>
+		</section>
 	`;
 }

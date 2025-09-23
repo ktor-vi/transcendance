@@ -73,22 +73,16 @@ export function renderTournamentPage(): string {
 	  </div>
 	  <h1 class="text-4xl mb-4">TOURNOI</h1>
 	  <div class="px-4">
-      <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-	  <p id="userDebugInfo" class="text-sm text-blue-700"></p>
-      </div>
       <p id="tournamentState" class="mb-2 text-lg font-semibold text-gray-700">Connexion au tournoi...</p>
 	  <div class="flex flex-row space-y-3 items-baseline w-80vw mb-8 ">
-	  <button id="joinTournamentBtn" class="mx-4 button bg-yellow-500 text-white hover:bg-yellow-600">
+	  <button id="joinTournamentBtn" class="mx-4 button bg-orange-300 text-white hover:bg-orange-400">
 	  Rejoindre le tournoi
 	  </button>
-	  <button id="newTournamentBtn" class="mx-4 button bg-red-500 text-white hover:bg-red-600">
+	  <button id="newTournamentBtn" class="mx-4 button text-white bg-pink-400 hover:bg-pink-500">
 	  Nouveau tournoi
 	  </button>
 	  <button id="debugUserBtn" class="mx-4 button bg-purple-500 text-white hover:bg-purple-600">
 	  🔧 Debug Utilisateur
-	  </button>
-	  <button id="forceConnectBtn" class="mx-4 button bg-orange-500 text-white hover:bg-orange-600">
-	  🎮 Force Connexion
 	  </button>
       </div>
       <div id="tournamentContent">
@@ -399,15 +393,15 @@ export function renderTournamentPage(): string {
 
       const container = document.createElement("div");
       container.className =
-        "mb-8 border-2 border-gray-200 rounded-lg overflow-hidden";
+        "mb-8 rounded-lg overflow-hidden";
       container.setAttribute("data-match-id", match.roomId);
 
       const header = document.createElement("div");
-      header.className = "bg-gray-100 px-4 py-3 border-b";
+      header.className = "bg-gray-100/70 px-4 py-3";
 
       const matchTitle = document.createElement("h4");
-      matchTitle.className = "font-semibold text-lg";
-      matchTitle.textContent = `${match.player1} vs ${match.player2}`;
+      matchTitle.className = "font-semibold text-lg text-grey";
+      matchTitle.textContent = `${match.player1} VS ${match.player2}`;
 
       const scoreDisplay = document.createElement("div");
       scoreDisplay.className =
@@ -421,12 +415,12 @@ export function renderTournamentPage(): string {
       header.appendChild(scoreDisplay);
 
       const gameArea = document.createElement("div");
-      gameArea.className = "p-4 bg-white";
+      gameArea.className = "p-4";
 
       const canvas = document.createElement("canvas");
       canvas.width = 800;
       canvas.height = 500;
-      canvas.className = "w-full border border-gray-300 rounded";
+      canvas.className = "w-full rounded";
       canvas.style.maxWidth = "100%";
       canvas.style.height = "auto";
       canvas.setAttribute("data-room-id", match.roomId);
@@ -579,21 +573,18 @@ export function renderTournamentPage(): string {
 
           const li = document.createElement("li");
           li.className =
-            "flex items-center space-x-2 p-2 bg-gray-100 rounded mb-1";
+            "flex items-center space-x-2 p-2 bg-gray-100/80 rounded mb-1";
           li.innerHTML = `
           <span class="w-3 h-3 bg-green-500 rounded-full"></span>
           <span class="font-medium">${
             player.name || playerId || "Joueur anonyme"
           }</span>
-          <span class="text-sm text-gray-500">(${
-            playerIdDisplay || "ID inconnu"
-          })</span>
         `;
           playerList.appendChild(li);
         });
       } else {
         const emptyMsg = document.createElement("p");
-        emptyMsg.className = "text-gray-500 italic mb-4";
+        emptyMsg.className = "text-white italic mb-4";
         emptyMsg.textContent = "Aucun joueur inscrit pour le moment";
         playerList.appendChild(emptyMsg);
       }
@@ -613,7 +604,7 @@ export function renderTournamentPage(): string {
       } else {
         const warning = document.createElement("p");
         warning.className =
-          "text-amber-600 font-medium mt-4 p-3 bg-amber-50 rounded border-l-4 border-amber-400";
+          "text-amber-600 mt-4 p-3 bg-amber-50 rounded border-l-4 border-amber-400";
         warning.textContent = `⚠️ Minimum 2 joueurs requis pour démarrer (actuellement: ${
           data.players?.length || 0
         })`;
@@ -714,7 +705,7 @@ export function renderTournamentPage(): string {
       if (data.matches.length > 0) {
         const statusDiv = document.createElement("div");
         statusDiv.className =
-          "mb-4 p-3 bg-blue-50 border border-blue-200 rounded";
+          "mb-4 p-3 bg-blue-50/70 border border-blue-200 rounded";
 
         const finishedCount = data.matches.filter(
           (m) => m.status === "finished"
@@ -873,7 +864,7 @@ export function renderTournamentPage(): string {
 
       const spectatorDiv = document.createElement("div");
       spectatorDiv.className =
-        "mb-4 p-4 bg-gray-50 border-2 border-gray-200 rounded-lg";
+        "mb-4 p-4 bg-gray-50/70 rounded-lg";
       spectatorDiv.setAttribute("data-spectator-match-id", match.roomId);
 
       const statusColor =
@@ -915,7 +906,7 @@ export function renderTournamentPage(): string {
     function showFinishedMatchSummary(match: Match) {
       const summaryDiv = document.createElement("div");
       summaryDiv.className =
-        "mb-4 p-4 bg-gray-100 rounded-lg border-2 border-gray-300";
+        "mb-4 p-4 bg-gray-100/70 rounded-lg";
       summaryDiv.innerHTML = `
       <div class="flex justify-between items-center">
         <div>
@@ -1050,7 +1041,7 @@ export function renderTournamentPage(): string {
         data.matches.forEach((match) => {
           const matchResult = document.createElement("div");
           matchResult.className =
-            "p-3 mb-2 bg-gray-50 border border-gray-200 rounded";
+            "p-3 mb-2 bg-gray-50/70 rounded";
           matchResult.textContent = formatMatchScore(match);
           historySection.appendChild(matchResult);
         });

@@ -1,10 +1,3 @@
-export function validateEmail(toTest)
-{
-	if (/^[^<>/]{3,20}$/.test(toTest))
-		return (true);
-	return (false);
-}
-
 export function validateString(toTest)
 {
 	if (/^[a-zA-Z0-9_]{3,20}$/.test(toTest))

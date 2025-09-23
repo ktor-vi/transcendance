@@ -54,14 +54,15 @@ export class PongView {
    * create a button to start/restart the game (enabled only for local play)
    */
   createUI() {
-    this.startButton = Button.CreateSimpleButton("startButton", "Start / Restart");
+    this.startButton = Button.CreateSimpleButton("startButton", "COMMENCER");
     this.startButton.width = "150px";
     this.startButton.height = "40px";
     this.startButton.color = "white";
-    this.startButton.background = "green";
+    this.startButton.background = "purple";
     this.startButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.startButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
     this.startButton.top = "20px";
+	this.startButton.left = "45%";
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
     advancedTexture.addControl(this.startButton);
   }
