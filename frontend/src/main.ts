@@ -21,71 +21,66 @@ import { getUserStatut } from "./components/auth";
 
 // Start ping loop if user is logged in
 document.addEventListener("DOMContentLoaded", async () => {
-  (async () => {
-    const res = await getUserStatut();
-    if (res.loggedIn) startPingLoop();
-    else console.log("No user logged in"); // informational
-  })();
+	const userStatut = await getUserStatut();
 
-  const app = document.getElementById("app");
+	if (userStatut.loggedIn)
+		startPingLoop();
 
-  // Utility to render HTML in #app
-  function render(html: string) {
-    if (app) app.innerHTML = html;
-  }
+	const app = document.getElementById("app");
 
-  // Define SPA routes
+	// Utility to render HTML in #app
+	function render(html: string) {
+		if (app) app.innerHTML = html;
+	}
 
-  page("/", async () => {
-    try {
-      const userStatus = await getUserStatut();
-      if (userStatus.loggedIn) {
-        page.redirect("/dashboard");
-      } else {
-        render(renderHome());
-      }
-    } catch (error) {
-      console.error("Erreur lors de la vérification de session:", error);
-      render(renderHome());
-    }
-  });
+	// Define SPA routes
+	page("/", () => {
+		// Si on est loggé, redirection vers dashboard
+		if (userStatut.loggedIn) {
+			page.redirect("/dashboard");
+		} else {
+			render(renderHome());
+		}
+	});
 
-  // Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
-  page("/dashboard", () => render(renderDashboard()));
+//	 page("/", () => render(renderHome()));
 
-  page("/pong", () => renderPong());
+	// Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
+	page("/dashboard", () => render(renderDashboard()));
 
-  page("/profile", () => renderProfile());
+	page("/pong", () => renderPong());
 
-  page("/users-list", () => renderUsersList());
+	page("/profile", () => renderProfile());
 
-  page("/friends", () => renderFriends());
+	page("/users-list", () => renderUsersList());
 
-  page("/friends/requests", () => renderFriendsRequests());
+	page("/friends", () => renderFriends());
 
-  page("/user/:name", (ctx) => renderUserProfile(ctx));
+	page("/friends/requests", () => renderFriendsRequests());
 
-  page("/register", () => renderRegister());
+	page("/user/:name", (ctx) => renderUserProfile(ctx));
 
-  page("/login", () => renderLogin());
+	page("/register", () => renderRegister());
 
-  page("/forgotPassword", () => renderForgotPwd());
-  page("/keyboard-play", () => render(renderKeyboardPlay()));
-  page("/tournament", () => renderTournamentPage());
-  page("/chat", () => render(renderChat()));
-  page("*", () => renderNotFound());
-  page(); // start page.js router
+	page("/login", () => renderLogin());
 
-  // Global click handlers for Google sign-in and logout
-  document.addEventListener("click", (event) => {
-    const target = event.target as HTMLElement;
+	page("/forgotPassword", () => renderForgotPwd());
+	page("/keyboard-play", () => render(renderKeyboardPlay()));
+	page("/tournament", () => renderTournamentPage());
+	page("/chat", () => render(renderChat()));
+	page("*", () => renderNotFound());
+	page(); // start page.js router
 
-    if (target?.id === "google-sign-in") {
-      window.location.href = "/api/login/google";
-    }
+	// Global click handlers for Google sign-in and logout
+	document.addEventListener("click", (event) => {
+		const target = event.target as HTMLElement;
 
-    if (target?.id === "logout") {
+		if (target?.id === "google-sign-in") {
+			window.location.href = "/api/login/google";
+		}
+
+		if (target?.id === "logout") {
 		fetch("/api/logout", { method: "POST", credentials: "include" }).then(() => page.redirect("/"));
-    }
-  });
+		}
+	});
 });
