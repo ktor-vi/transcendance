@@ -40,42 +40,16 @@ async function getPicture(): Promise<string> {
   return userData.picture;
 }
 
-function eventListeners(){
-  document
-    .getElementById("keyboardPlayBtn")
-    ?.addEventListener("click", () => {
-      page("/keyboard-play");
-    });
-
-  document.getElementById("joinRoomBtn")?.addEventListener("click", () => {
-    if (userState === UserState.joining) {
-      console.warn("⚠️ Connexion en cours, veuillez patienter");
-      return;
-    }
-
-    const input = (
-      document.getElementById("roomIdInput") as HTMLInputElement
-    ).value.trim();
-    joinRoom(room, userState, userProfile, wsConnection, gameInstance, canvas);
-  });
-}
-
 export function renderPong() {
   setTimeout(() => {
-    // let profileReady = false; // non utilise
     let userProfile: UserProfile | null = null;
     let userState: UserState = UserState.disconnected;
     let wsConnection: WebSocket | null = null;
     let gameInstance: GameInstance | null = null;
     let room: Room | null = null;
-    // creer la room uniquement si necessaire in progress
-    // let room: Room = {
-    //   id: "",
-    //   numberPlayersInRoom: 0,
-    //   hostPlayer: "",
-    //   guestPlayer: ""
-    // };
 
+    // .then permet de passer d'une fonction en mode asynchrone (force par fetch)
+    // à une fonction synchrone (ici renderPong)
     getUser()
       .then(userProfile)
       .catch((error) => {
@@ -84,43 +58,12 @@ export function renderPong() {
         return;
       });
 
-    eventListeners()
-      .catch((error) => {
-
-      });
-
+    // je ne comprends pas ce que ca fait la
     checkChatMatch(userState, wsConnection);
 
     const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
     canvas.style.visibility = "hidden";
-    // const launch = document.getElementById("launch") as HTMLTitleElement; // non utilise
-    
-    
-
-    
-
-    document.getElementById("matchmakeBtn")?.addEventListener("click", () => {
-      if (userState) {
-        console.warn("⚠️ Connexion en cours, veuillez patienter");
-        return;
-      }
-
-      console.log("🎲 Matchmaking automatique demandé");
-      joinRoom("auto");
-    });
-
-    // document = obj global = page html chargee dans le browser -> DOM = Document Obj Model
-    // getElmtById = method de DOM qui selectionne un element HTML par son ID
-    // eventListener = surveillance de l'evenement clique rattache au bouton
-    document.getElementById("liveChatBtn")?.addEventListener("click", () => {
-      page("/chat");
-    });
-
-    document
-      .getElementById("goToTournamentBtn")
-      ?.addEventListener("click", () => {
-        page("/tournament");
-      });
+    documentListeners(userProfile, userState, wsConnection, gameInstance, room, canvas);
 
     window.addEventListener("beforeunload", () => {
       console.log("🧹 Nettoyage avant fermeture de page");
@@ -207,6 +150,61 @@ async function getUser() : Promise<UserProfile> {
   return userProfile;
 }
 
+// ici, pourquoi on ne redirigerait pas vers un nouvelle page qu'on appelle /roomPong?idRoom, un truc comme ça
+// document = obj global = page html chargee dans le browser -> DOM = Document Obj Model
+// getElmtById = method de DOM qui selectionne un element HTML par son ID
+// eventListener = surveillance de l'evenement clique rattache au bouton
+function documentListeners(
+  userProfile: UserProfile | null = null,
+  userState: UserState,
+  wsConnection: WebSocket | null = null,
+  gameInstance: GameInstance | null = null,
+  room: Room | null = null,
+  canvas: HTMLCanvasElement) {
+
+  document
+    .getElementById("joinRoomBtn")
+    ?.addEventListener("click", () => {
+      if (userState === UserState.joining) {
+        console.warn("⚠️ Connexion en cours, veuillez patienter");
+        return;
+      }
+      const input = (
+        document.getElementById("roomIdInput") as HTMLInputElement
+      ).value.trim();
+      joinRoom(userProfile, userState, wsConnection, gameInstance, room, canvas);
+    });
+
+  document
+    .getElementById("matchmakeBtn")
+    ?.addEventListener("click", () => {
+      if (userState) {
+        console.warn("⚠️ Connexion en cours, veuillez patienter");
+        return;
+      }
+      console.log("🎲 Matchmaking automatique demandé");
+      joinRoom("auto");
+    });
+
+  document
+    .getElementById("keyboardPlayBtn")
+    ?.addEventListener("click", () => {
+      page("/keyboard-play");
+    });
+
+  document
+    .getElementById("goToTournamentBtn")
+    ?.addEventListener("click", () => {
+      page("/tournament");
+    });
+
+  document
+    .getElementById("liveChatBtn")
+    ?.addEventListener("click", () => {
+      page("/chat");
+    });
+}
+
 function checkChatMatch(userState: UserState, wsConnection: WebSocket | null = null) {
   const chatMatchRoomId = sessionStorage.getItem("chatMatchRoomId");
   if (chatMatchRoomId) {
@@ -221,12 +219,18 @@ function checkChatMatch(userState: UserState, wsConnection: WebSocket | null = n
     }
     // Joindre la room automatiquement
     setTimeout(() => {
-      joinRoom(chatMatchRoomId, userState, wsConnection);
+      joinRoom(chatMatchRoomId);
     }, 1000);
   }
 }
 
-function joinRoom(room: Room, userState: UserState, userProfile: UserProfile | null = null, wsConnection: WebSocket | null = null, gameInstance: GameInstance | null = null, canvas: HTMLCanvasElement) {
+function joinRoom(
+  userProfile: UserProfile | null = null,
+  userState: UserState,
+  wsConnection: WebSocket | null = null,
+  gameInstance: GameInstance | null = null,
+  room: Room | null = null,
+  canvas: HTMLCanvasElement) {
   if (userState === UserState.joining) {
     console.warn("⚠️ Connexion déjà en cours...");
     return;
@@ -236,7 +240,7 @@ function joinRoom(room: Room, userState: UserState, userProfile: UserProfile | n
   resetDashboard(userState, wsConnection, gameInstance, room, canvas);
   try {
     // Créer la nouvelle connexion WebSocket
-    wsConnection = createWebSocketConnection(room, gameInstance, userProfile, userState, canvas);
+    wsConnection = createWebSocketConnection(userProfile, userState, gameInstance, room, canvas);
     console.log("✅ Nouvelle connexion WebSocket créée");
   } catch (error) {
     console.error("❌ Erreur création WebSocket:", error);
@@ -245,7 +249,12 @@ function joinRoom(room: Room, userState: UserState, userProfile: UserProfile | n
   }
 }
 
-function resetDashboard(userState: UserState, wsConnection: WebSocket | null = null, gameInstance: GameInstance | null = null, room: Room, canvas: HTMLCanvasElement) {
+function resetDashboard(
+  userState: UserState,
+  wsConnection: WebSocket | null = null,
+  gameInstance: GameInstance | null = null,
+  room: Room | null = null,
+  canvas: HTMLCanvasElement) {
   // Nettoyer la connexion WebSocket
   if (wsConnection) {
     wsConnection.close();
@@ -267,21 +276,27 @@ function resetDashboard(userState: UserState, wsConnection: WebSocket | null = n
   }
 
   //pour l'instant, je mimic l'ancien code. a venir, supprimer la room quand elle ne sert plus
+  userState = UserState.disconnected;
+  if (!room) return;
   room.numberPlayersInRoom = 0;
   room.id = "";
   room.hostPlayer = "";
   room.guestPlayer = "";
-  userState = UserState.disconnected;
 }
 
 // 🔧 FONCTION : Créer une connexion WebSocket
-function createWebSocketConnection(room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, userState: UserState, canvas: HTMLCanvasElement): WebSocket {
+function createWebSocketConnection(
+  userProfile: UserProfile | null = null,
+  userState: UserState,
+  gameInstance: GameInstance | null = null,
+  room: Room | null = null,
+  canvas: HTMLCanvasElement): WebSocket {
   const ws = new WebSocket(`wss://${window.location.hostname}:5173/ws`);
-  ws.onopen = () => handleWebSocketOpen(ws, room, gameInstance, userProfile, canvas);
+  ws.onopen = () => handleWebSocketOpen(userProfile, ws, room);
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      handleWebSocketMessage(data, ws, room, gameInstance, userProfile, userState, canvas);
+      handleWebSocketMessage(data, userProfile, userState, ws, gameInstance, room, canvas);
     } catch (e) {
       console.error("❌ Erreur parsing message dashboard:", e);
     }
@@ -297,7 +312,11 @@ function createWebSocketConnection(room: Room, gameInstance: GameInstance | null
   return ws;
 }
 
-function handleWebSocketOpen(wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
+function handleWebSocketOpen(
+  userProfile: UserProfile | null = null,
+  wsConnection: WebSocket,
+  room: Room | null = null) {
+  if (!room) return;
   console.log("🔗 WebSocket dashboard connecté");
   // 🔧 DEBUG: Vérifier le profil utilisateur
   console.log("🔍 Profil utilisateur disponible:", {
@@ -318,55 +337,62 @@ function handleWebSocketOpen(wsConnection: WebSocket | null = null, room: Room, 
     roomId: room.id || undefined,
   };
   console.log("📤 Envoi message de connexion:", joinMessage);
-  if (wsConnection) wsConnection.send(JSON.stringify(joinMessage));
+  wsConnection.send(JSON.stringify(joinMessage));
 }
 
 function handleWebSocketMessage(
   data: any,
-  wsConnection: WebSocket | null = null,
-  room: Room,
-  gameInstance: GameInstance | null = null,
   userProfile: UserProfile | null = null,
   userState: UserState,
+  wsConnection: WebSocket | null = null,
+  gameInstance: GameInstance | null = null,
+  room: Room | null = null,
   canvas: HTMLCanvasElement) {
   if (!wsConnection || !gameInstance)
-    handleError(data, wsConnection, room, gameInstance, userProfile, canvas);
+    handleError(data);
   switch (data.type) {
     case "assign":
-      handlePlayerAssignment(data, wsConnection, room, gameInstance, userProfile, canvas);
+      handlePlayerAssignment(data, userProfile, wsConnection, gameInstance, room, canvas);
       userState = UserState.connected;
       break;
     case "waiting":
-      handleWaitingForPlayer(data, wsConnection, room, gameInstance, userProfile, canvas);
+      handleWaitingForPlayer(data, gameInstance, room);
       break;
     case "gameReady":
-      handleGameReady(data, wsConnection, room, gameInstance, userProfile, canvas);
+      handleGameReady(data, gameInstance, room);
       break;
     case "playerJoined":
-      handlePlayerJoined(data, wsConnection, room, gameInstance, userProfile, canvas);
+      handlePlayerJoined(data, room);
       break;
     case "state":
-      handleGameStateUpdate(data, wsConnection, room, gameInstance, userProfile, canvas);
+      handleGameStateUpdate(data, userProfile, wsConnection, gameInstance, room, canvas);
       break;
     case "scoreUpdate":
-      handleScoreUpdate(data, wsConnection, room, gameInstance, userProfile, canvas);
+      handleScoreUpdate(data, userProfile, room);
       break;
     case "gameEnd":
-      handleGameEnd(data, wsConnection, room, gameInstance, userProfile, userState, canvas);
+      handleGameEnd(data, userState, wsConnection, gameInstance, room, canvas);
       break;
     case "error":
-      handleError(data, wsConnection, room, gameInstance, userProfile, canvas);
+      handleError(data);
       userState = UserState.disconnected;
       break;
     case "chatMatch":
-      handleChatMatch(data, wsConnection, room, gameInstance, userProfile, userState, canvas);
+      handleChatMatch(data, userProfile, userState, wsConnection, gameInstance, room, canvas);
       break;
     default:
       console.log("🔍 Type de message non géré:", data.type);
   }
 }
 
-function handlePlayerAssignment(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
+function handlePlayerAssignment(
+      data: any, 
+      userProfile: UserProfile | null = null,
+      wsConnection: WebSocket | null = null,
+      gameInstance: GameInstance | null = null,
+      room: Room | null = null,
+      canvas: HTMLCanvasElement) : void {
+  if (!room || !gameInstance) return;
   console.log("🎮 Assignation joueur:", data);
   room.numberPlayersInRoom = data.player;
   room.id = data.roomId || "";
@@ -403,7 +429,8 @@ function handlePlayerAssignment(data: any, wsConnection: WebSocket | null = null
   );
 }
 
-function handlePlayerJoined(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
+function handlePlayerJoined(data: any, room: Room | null = null) : void {
+  if (!room) return;
   if (data.playerName && data.playerName !== room.hostPlayer) {
     room.guestPlayer = data.playerName;
     const info = document.getElementById("roomInfo");
@@ -413,18 +440,20 @@ function handlePlayerJoined(data: any, wsConnection: WebSocket | null = null, ro
   }
 }
 
-function handleWaitingForPlayer(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
+function handleWaitingForPlayer(data: any, gameInstance: GameInstance | null = null, room: Room | null = null) : void {
+  if (!room || !gameInstance) return;
   const scoreEl = document.getElementById("score");
   if (scoreEl) {
     scoreEl.innerText = `⏳ ${room.hostPlayer}, attendez un adversaire... (${data.playersCount}/${data.maxPlayers})`;
     scoreEl.className = "text-xl font-bold mt-2 text-orange-600";
   }
-  if (gameInstance && gameInstance.setGameActive) {
+  if (gameInstance.setGameActive) {
     gameInstance.setGameActive(false);
   }
 }
 
-function handleGameReady(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
+function handleGameReady(data: any, gameInstance: GameInstance | null = null, room: Room | null = null) : void {
+  if (!room || !gameInstance) return;
   if (data.players && typeof data.players === "object") {
     const playerNames = Object.values(data.players);
     console.log("👥 Noms des joueurs trouvés:", playerNames);
@@ -458,15 +487,22 @@ function handleGameReady(data: any, wsConnection: WebSocket | null = null, room:
   }
 }
 
-function handleGameStateUpdate(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
+function handleGameStateUpdate(
+  data: any,
+  userProfile: UserProfile | null = null,
+  wsConnection: WebSocket | null = null,
+  gameInstance: GameInstance | null = null,
+  room: Room | null = null,
+  canvas: HTMLCanvasElement) : void{
   if (gameInstance && gameInstance.updateGameState && data.gameState) {
     gameInstance.updateGameState(data.gameState);
     // Mettre à jour le score
-    handleScoreUpdate(data, wsConnection, room, gameInstance, userProfile, canvas);
+    handleScoreUpdate(data, userProfile, room);
   }
 }
 
-function handleScoreUpdate(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
+function handleScoreUpdate(data: any, userProfile: UserProfile | null = null, room: Room | null = null) : void{
+  if (!room) return;
   const scoreEl = document.getElementById("score");
   if (scoreEl) {
     let player1Name =
@@ -492,7 +528,13 @@ function handleScoreUpdate(data: any, wsConnection: WebSocket | null = null, roo
   }
 }
 
-function handleGameEnd(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, userState: UserState, canvas: HTMLCanvasElement) {
+function handleGameEnd(
+  data: any,
+  userState: UserState,
+  wsConnection: WebSocket | null = null,
+  gameInstance: GameInstance | null = null,
+  room: Room | null = null,
+  canvas: HTMLCanvasElement) : void{
   const scoreEl = document.getElementById("score");
   if (scoreEl) {
     const winnerName = data.winner || "Joueur";
@@ -505,12 +547,19 @@ function handleGameEnd(data: any, wsConnection: WebSocket | null = null, room: R
   }, 5000);
 }
 
-function handleError(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, canvas: HTMLCanvasElement) {
+function handleError(data: any) : void{
   console.error("❌ Erreur reçue:", data.message);
   alert(`Erreur: ${data.message}`);
 }
 
-function handleChatMatch(data: any, wsConnection: WebSocket | null = null, room: Room, gameInstance: GameInstance | null = null, userProfile: UserProfile | null = null, userState: UserState, canvas: HTMLCanvasElement) {
+function handleChatMatch(
+  data: any,
+  userProfile: UserProfile | null = null,
+  userState: UserState,
+  wsConnection: WebSocket | null = null,
+  gameInstance: GameInstance | null = null,
+  room: Room | null = null,
+  canvas: HTMLCanvasElement) : void{
   console.log("🎮 Chat match reçu:", data.roomId);
-  joinRoom(room, userState, userProfile, wsConnection, gameInstance, canvas);
+  joinRoom(userProfile, userState, wsConnection, gameInstance, room, canvas);
 }
