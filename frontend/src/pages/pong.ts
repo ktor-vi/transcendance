@@ -160,12 +160,25 @@ export function renderPong() {
 
         console.log("🏷️ Nom utilisateur sélectionné:", userName);
 
-        const joinMessage = {
+       /* const joinMessage = {
           type: "joinRoom",
           connectionId: `dashboard-${Date.now()}`,
           playerName: userName,
           roomId: roomId || undefined,
+        };*/
+        const joinMessage: any = {
+          type: "joinRoom",
+          connectionId: `dashboard-${Date.now()}`,
+          playerName: userName,
         };
+
+        // Si on veut rejoindre une room précise → on ajoute roomId
+        if (roomId && roomId !== "auto") {
+          joinMessage.roomId = roomId;
+        } else {
+          // Sinon c'est du matchmaking
+          joinMessage.matchmaking = true;
+        }
 
         console.log("📤 Envoi message de connexion:", joinMessage);
         ws.send(JSON.stringify(joinMessage));
@@ -243,7 +256,7 @@ export function renderPong() {
       console.log("🎮 Assignation joueur:", data);
 
       currentPlayerNumber = data.player;
-      currentRoomId = data.roomId || "";
+      currentRoomId = data.roomId ||  currentRoomId || "";
 
       currentPlayerName =
         data.playerName ||

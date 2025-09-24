@@ -49,17 +49,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 	
 	page("/pong", () => {
     renderPong();
-  });
-  page.exit("/pong", () => {
-  console.log("🚪 Sortie de /pong → resetDashboard()");
-  try {
-    resetDashboard();
-  } catch (e) {
-    console.warn("⚠️ resetDashboard a échoué:", e);
-  }
-});
+  	});
 	
-
 	page("/profile", () => renderProfile());
 
 	page("/users-list", () => renderUsersList());

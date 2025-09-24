@@ -179,7 +179,7 @@ async function websocketHandler(fastify) {
   function broadcastToGameRoom(roomId, message) {
     const connections = gameRoomConnections.get(roomId);
     if (!connections) {
-      console.warn(`⚠️ Aucune connexion trouvée pour room ${roomId}`);
+      //console.warn(`⚠️ Aucune connexion trouvée pour room ${roomId}`);
       return;
     }
 
