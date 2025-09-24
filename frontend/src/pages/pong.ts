@@ -41,6 +41,7 @@ export function resetDashboard() {
         type: "leaveRoom",
         roomId: currentRoomId,
         playerNumber: currentPlayerNumber,
+        playerName: currentPlayerName,
       })
     );
 

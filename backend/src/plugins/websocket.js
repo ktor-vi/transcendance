@@ -336,6 +336,8 @@ async function websocketHandler(fastify) {
         return;
       }
       let removed = false;
+      let leavingPlayerName = null;
+
       for (const c of room) {
         console.log(
           "🔍 Vérification connexion dans room",
@@ -344,6 +346,8 @@ async function websocketHandler(fastify) {
         );
         if (c.playerNumber === msg.playerNumber) {
           removed = true;
+          leavingPlayerName =
+          c.playerName || msg.playerName || `Joueur${c.playerNumber}`;
           room.delete(c);
           try {
             c.close();
@@ -362,7 +366,7 @@ async function websocketHandler(fastify) {
         fastify.updateMatchScore(
           msg.roomId,
           winnerConn.playerName,
-          null,
+          leavingPlayerName,
           11,
           0,
           winnerConn.playerName
