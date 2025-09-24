@@ -52,7 +52,7 @@ export async function renderProfile() {
 			
 			const html = `
 				<script>0</script>
-				<section class="flex flex-col items-center text-center">
+				<div class="flex flex-col items-center text-center">
 				<div class="self-start ml-16 mt-12">
 				${backButtonArrow()}
 				</div>
@@ -139,7 +139,12 @@ export async function renderProfile() {
 				</div>
 				`
         }
+<<<<<<< HEAD
 			</section>
+=======
+			</div>
+
+>>>>>>> f9c39397383e9cd2e5c4d7ed734e3210b73ccfb6
 		`;
 
 		// Inject HTML

@@ -24,10 +24,11 @@ let currentPlayerName = "";
 let opponentPlayerName: any = "";
 let isJoining = false;
 let currentUserProfile: any = null;
+let gameFinished: boolean = false;
+let giveUpMatch: boolean = false;
 
 
 export function resetDashboard() {
-
 
   // 1️⃣ Notifier le serveur
   if (wsConnection && currentRoomId && currentPlayerNumber) {
@@ -138,13 +139,6 @@ export function renderPong() {
           currentUserProfile?.email ||
           `User${Date.now().toString().slice(-4)}`;
 
-
-       /* const joinMessage = {
-          type: "joinRoom",
-          connectionId: `dashboard-${Date.now()}`,
-          playerName: userName,
-          roomId: roomId || undefined,
-        };*/
         const joinMessage: any = {
           type: "joinRoom",
           connectionId: `dashboard-${Date.now()}`,
@@ -190,6 +184,10 @@ export function renderPong() {
             case "scoreUpdate":
               handleScoreUpdate(data);
               break;
+            
+            case "giveup": 
+              handleGiveUp(data);
+              break;
 
             case "gameEnd":
               handleGameEnd(data);
@@ -219,13 +217,28 @@ export function renderPong() {
 
       return ws;
     }
+    
+    function handleGiveUp(data: any) {
+      gameFinished = true; 
+      giveUpMatch = true;
+      const scoreEl = document.getElementById("score");
+      if (scoreEl) {
+        scoreEl.innerText =
+          data.message || "Un joueur a abandonné, partie terminée.";
+        scoreEl.className = "text-xl font-bold mt-2 text-red-600";
+      }
+
+      setTimeout(() => {
+        resetDashboard();
+        gameFinished = false;
+        giveUpMatch = false;
+      }, 3000);
+    }
 
     function handleChatMatch(data: any) {
       joinRoom(data.roomId);
     }
-    // -----------------------
-    // HANDLERS (typés en `any` pour éviter TS errors rapides)
-    // -----------------------
+
     function handlePlayerAssignment(data: any) {
 
       currentPlayerNumber = data.player;
@@ -243,7 +256,6 @@ export function renderPong() {
         info.innerText = `Room: ${currentRoomId} | ${currentPlayerName} (Joueur ${currentPlayerNumber})`;
       }
 
-      // Préparer l'interface pour le jeu
       canvas.style.visibility = "visible";
 
       try {
@@ -342,10 +354,9 @@ export function renderPong() {
         scoreEl.className = "text-xl font-bold mt-2 text-green-600";
       }
 
-      // Nettoyer après un délai
       setTimeout(() => {
         resetDashboard();
-      }, 5000);
+      }, 3000);
     }
     function handleError(data: any) {
       console.error("❌ Erreur reçue:", data.message);
@@ -353,6 +364,7 @@ export function renderPong() {
       isJoining = false;
     }
     function updateScoreDisplay(scoreP1: number, scoreP2: number) {
+      if (gameFinished || giveUpMatch) return;
       const scoreEl = document.getElementById("score");
       if (scoreEl) {
         let player1Name =
