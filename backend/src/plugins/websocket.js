@@ -1,5 +1,3 @@
-// ===== SOLUTION : websocketHandler.js avec distinction Dashboard/Tournament =====
-
 import websocketPlugin from "@fastify/websocket";
 import fastifyPlugin from "fastify-plugin";
 import crypto from "crypto";
@@ -8,10 +6,9 @@ import { openDb, openDbHistory } from "../utils/db.js";
 async function websocketHandler(fastify) {
   await fastify.register(websocketPlugin);
 
-  const gameRoomConnections = new Map(); // roomId -> Set<WebSocket>
+  const gameRoomConnections = new Map();
   const tournamentClients = new Set();
 
-  // ===== INITIALISER LE MAP TOURNAMENTS SI INEXISTANT =====
   if (!fastify.tournaments) {
     fastify.decorate("tournaments", new Map());
   }
@@ -57,7 +54,6 @@ async function websocketHandler(fastify) {
           socket.send(payload);
           successCount++;
         } catch (err) {
-          console.warn(`⚠️ Échec envoi à un client: ${err.message}`);
           tournamentClients.delete(socket);
           failCount++;
         }
@@ -87,7 +83,6 @@ async function websocketHandler(fastify) {
     const score1 = parseInt(scoreP1) || 0;
     const score2 = parseInt(scoreP2) || 0;
 
-    // Si aucun winner n'est passé en paramètre, on le détermine
     if (!winner) {
       if (score1 >= 11 && score1 - score2 >= 2) {
         winner = P1Name;
@@ -116,7 +111,6 @@ async function websocketHandler(fastify) {
         : null;
 
       if (!match) {
-        console.log(`⚠️ Match non trouvé pour roomId: ${roomId}`);
         return false;
       }
       
@@ -133,17 +127,13 @@ async function websocketHandler(fastify) {
 
         let matchType = "tournament match";
 
-        // Pour un tournoi à 3 joueurs :
-        // Round 1 = match éliminatoire → "tournament match"
-        // Round 2 = finale → "tournament final"
         const totalPlayers = tournament.players.length;
-        const finalRound = Math.ceil(Math.log2(totalPlayers)); // Round final théorique
+        const finalRound = Math.ceil(Math.log2(totalPlayers)); 
 
         if (tournament.round >= finalRound) {
           matchType = "tournament final";
         }
 
-        // Sauvegarder ce match immédiatement
         try {
           await db.run(
             `INSERT OR IGNORE INTO history
@@ -159,7 +149,6 @@ async function websocketHandler(fastify) {
           );
         } catch (error) {}
 
-        // Vérifier si tous les matches du round actuel sont terminés
         const allRoundFinished = tournament.matches.every(
           (m) => m.status === "finished" && m.winner
         );
@@ -168,7 +157,6 @@ async function websocketHandler(fastify) {
           tournament.state = "completed_round";
         }
       } else {
-        // Match en cours, pas de gagnant encore
         match.status = "playing";
       }
 
@@ -182,7 +170,6 @@ async function websocketHandler(fastify) {
   function broadcastToGameRoom(roomId, message) {
     const connections = gameRoomConnections.get(roomId);
     if (!connections) {
-      //console.warn(`⚠️ Aucune connexion trouvée pour room ${roomId}`);
       return;
     }
 
@@ -202,7 +189,6 @@ async function websocketHandler(fastify) {
     }
   }
 
-  // ===== WEBSOCKET UNIFIÉ =====
   fastify.get("/ws", { websocket: true }, (conn, req) => {
     const clientId = crypto.randomUUID();
     const url = new URL(req.url, `http://${req.headers.host}`);
@@ -215,7 +201,6 @@ async function websocketHandler(fastify) {
     }
   });
 
-  // ===== GESTION CONNEXIONS TOURNOI =====
   function handleTournamentConnection(conn, clientId) {
     tournamentClients.add(conn);
     try {
@@ -237,12 +222,6 @@ async function websocketHandler(fastify) {
       }
 
       const tournament = fastify.tournaments.get("default");
-      console.log("🔍 Tournoi pour nouveau client:", {
-        found: !!tournament,
-        playersCount: tournament?.players?.length || 0,
-        players: tournament?.players?.map((p) => p.name) || [],
-      });
-
       const initialData = tournament
         ? {
             exists: true,
@@ -286,7 +265,6 @@ async function websocketHandler(fastify) {
     });
   }
 
-  // ===== GESTION CONNEXIONS JEU =====
   function handleGameConnection(conn, clientId) {
     let joinedRoom = null;
     let playerName = null;
@@ -297,7 +275,6 @@ async function websocketHandler(fastify) {
       try {
         msg = JSON.parse(message.toString());
       } catch (e) {
-        console.warn("Message WS non JSON", message.toString());
         return;
       }
   
@@ -332,21 +309,14 @@ async function websocketHandler(fastify) {
     });
   
     function handleLeaveRoom(msg) {
-      console.log("👋 handleLeaveRoom reçu", msg);
       const room = gameRoomConnections.get(msg.roomId);
       if (!room) {
-        console.warn(`⚠️ Room ${msg.roomId} non trouvée`);
         return;
       }
       let removed = false;
       let leavingPlayerName = null;
 
       for (const c of room) {
-        console.log(
-          "🔍 Vérification connexion dans room",
-          c.playerNumber,
-          msg.playerNumber
-        );
         if (c.playerNumber === msg.playerNumber) {
           removed = true;
           leavingPlayerName =
@@ -354,18 +324,13 @@ async function websocketHandler(fastify) {
           room.delete(c);
           try {
             c.close();
-            console.log(`❌ Fermeture connexion du joueur ${msg.playerNumber}`);
           } catch (err) {}
         }
       }
       if (!removed) console.warn("⚠️ Joueur non trouvé dans la room");
 
-      // Si l’autre joueur reste, il gagne
       if (room.size === 1) {
         const winnerConn = Array.from(room)[0];
-        console.log(
-          `🏆 L'autre joueur (${winnerConn.playerName}) gagne automatiquement`
-        );
         fastify.updateMatchScore(
           msg.roomId,
           winnerConn.playerName,
@@ -386,7 +351,6 @@ async function websocketHandler(fastify) {
 
         gameRoomConnections.delete(msg.roomId);
       } else if (room.size === 0) {
-        console.log(`🗑️ Room ${msg.roomId} vide, suppression`);
         gameRoomConnections.delete(msg.roomId);
       }
     }
@@ -406,12 +370,9 @@ async function websocketHandler(fastify) {
 
     function handleDashboardJoinRoom(msg) {
       const { playerName: msgPlayerName, roomId } = msg;
-
-      // Créer ou rejoindre une room via le système de jeu
       let targetRoomId = roomId;
 
       if (!targetRoomId || targetRoomId === "auto") {
-        // Chercher d'abord une room existante avec seulement 1 joueur
         let availableRoom = null;
         for (const [
           existingRoomId,
@@ -426,7 +387,6 @@ async function websocketHandler(fastify) {
         if (availableRoom) {
           targetRoomId = availableRoom;
         } else {
-          // Créer une nouvelle room seulement si aucune n'est disponible
           if (fastify.createRoom) {
             targetRoomId = fastify.createRoom();
           } else {
@@ -440,7 +400,6 @@ async function websocketHandler(fastify) {
           }
         }
       } else {
-        // S'assurer que la room existe
         if (fastify.ensureRoom) {
           fastify.ensureRoom(targetRoomId, msgPlayerName, null);
         }
@@ -449,13 +408,12 @@ async function websocketHandler(fastify) {
       playerName = msgPlayerName;
       joinedRoom = targetRoomId;
 
-      // Déterminer le numéro de joueur (1 ou 2)
       if (!gameRoomConnections.has(joinedRoom)) {
         gameRoomConnections.set(joinedRoom, new Set());
       }
 
       const roomConnections = gameRoomConnections.get(joinedRoom);
-      playerNumber = roomConnections.size + 1; // 1 ou 2
+      playerNumber = roomConnections.size + 1; 
 
       if (playerNumber > 2) {
         conn.send(
@@ -475,8 +433,6 @@ async function websocketHandler(fastify) {
       if (fastify.handlePlayerConnection) {
         fastify.handlePlayerConnection(joinedRoom, playerNumber, playerName);
       }
-
-      // Envoyer l'assignation avec le nom du joueur
       conn.send(
         JSON.stringify({
           type: "assign",
@@ -529,7 +485,7 @@ async function websocketHandler(fastify) {
               });
             }
           }, 500);
-        }, 1000); // Délai pour que le client soit prêt
+        }, 1000);
       }
     }
 
@@ -587,12 +543,10 @@ async function websocketHandler(fastify) {
       conn.playerName = playerName;
       conn.playerNumber = playerNumber;
 
-      // S'assurer que la room existe avec les bons joueurs
       if (fastify.ensureRoom) {
         fastify.ensureRoom(joinedRoom, match.player1, match.player2);
       }
 
-      // Envoyer l'assignation
       conn.send(
         JSON.stringify({
           type: "assign",
@@ -601,7 +555,6 @@ async function websocketHandler(fastify) {
         })
       );
 
-      // Envoyer l'état initial
       const roomStatus = fastify.getRoomStatus
         ? fastify.getRoomStatus(joinedRoom)
         : null;
@@ -682,24 +635,15 @@ async function websocketHandler(fastify) {
 
   function handleDisconnection() {
     const roomId = conn.roomId;
-    console.log("🔌 handleDisconnection appelé", {
-      roomId,
-      playerName: conn.playerName,
-      playerNumber: conn.playerNumber,
-    });
 
     if (!roomId) return;
 
     const connections = gameRoomConnections.get(roomId);
     if (!connections) {
-      console.log("⚠️ Pas de room trouvée pour cette connexion", roomId);
       return;
     }
 
     connections.delete(conn);
-    console.log(`📤 Connexion supprimée de la room ${roomId}`, {
-      remainingPlayers: connections.size,
-    });
 
     if (connections.size === 0) {
       console.log(`🗑️ Room ${roomId} vide → suppression`);
@@ -733,24 +677,16 @@ async function websocketHandler(fastify) {
       } catch (e) {
         console.error("❌ Erreur envoi gameEnd:", e.message);
       }
-
-      console.log(`🗑️ Room ${roomId} supprimée après victoire automatique`);
       gameRoomConnections.delete(roomId);
     }
 
     if (fastify.handlePlayerDisconnection && conn.playerNumber) {
-      console.log(
-        `🔔 Appel hook handlePlayerDisconnection pour player ${conn.playerNumber}`
-      );
       fastify.handlePlayerDisconnection(roomId, conn.playerNumber);
     }
   }
   conn.on("close", () => handleDisconnection());
   conn.on("error", () => handleDisconnection()); 
 }
-
-
-  // ===== EXPOSER LES FONCTIONS AVEC LOGS DE CONFIRMATION =====
 
   fastify.decorate("updateMatchScore", updateMatchScore);
   fastify.decorate("broadcastToGameRoom", broadcastToGameRoom);

@@ -1,16 +1,12 @@
 import sqlite3pkg from 'sqlite3';
 const sqlite3 = sqlite3pkg.verbose();
 
-console.log("Opening or creating users database...");
-
 // open/create db file
 const db = new sqlite3.Database('./data/users.sqlite3', (err) => {
 	if (err) {
 		console.error("Error opening users database");
 		return;
 	}
-	console.log("Users database opened");
-
 	// enable foreign keys
 	db.run("PRAGMA foreign_keys = ON");
 
@@ -78,15 +74,11 @@ const db = new sqlite3.Database('./data/users.sqlite3', (err) => {
 	db.exec(createSQTable, (err) => {
 		if (err)
 			console.error("Error creating tables:", err.message);
-		else
-			console.log("Users tables ready");
 
 		// close db to avoid corruption/resource leaks
 		db.close((err) => {
 			if (err)
 				console.error("Error closing users database");
-			else
-				console.log("Users database closed");
 		});
 	});
 });

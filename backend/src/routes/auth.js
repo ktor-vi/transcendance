@@ -24,12 +24,6 @@ export default async function authRoutes(fastify) {
 			userInfo.picture
 		);
 
-		if (result.changes > 0) {
-			console.log(`INFO: New user created: ${userInfo.name}`);
-		} else {
-			console.log(`INFO: User already exists: ${userInfo.email}`);
-		}
-
 		// redirect to frontend dashboard
 		reply.redirect(`https://${process.env.HOSTNAME}:5173/dashboard?logged=1`);
 	});

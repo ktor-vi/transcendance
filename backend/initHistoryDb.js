@@ -1,14 +1,10 @@
 import sqlite3pkg from 'sqlite3';
 const sqlite3 = sqlite3pkg.verbose();
 
-console.log("Opening or creating history database...");
-
 // handle db open/creation result
 function errorHandling(err) {
 	if (err)
 		console.error("Error opening history database");
-	else
-		console.log("History database opened");
 }
 
 // create db file if not exists
@@ -30,16 +26,10 @@ CREATE TABLE IF NOT EXISTS history (
 db.run(createSQTable, (err) => {
 	if (err)
 		console.error("Error creating history table");
-	else
-		console.log("History table ready");
 });
 
 // close db to avoid corruption or resource leaks
 db.close((err) => {
 	if (err)
 		console.error("Error closing history database");
-	else
-		console.log("History database closed");
 });
-
-console.log("Closing history database...");

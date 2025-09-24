@@ -1,5 +1,4 @@
 export default async function tournamentRoutes(fastify) {
-	// Create a fresh tournament object
 	function createFreshTournament() {
 		return {
 			players: [],
@@ -11,12 +10,10 @@ export default async function tournamentRoutes(fastify) {
 		};
 	}
 
-	// Initialize tournaments map if not present
 	if (!fastify.tournaments) {
 		fastify.decorate("tournaments", new Map());
 	}
 
-	// Join tournament
 	fastify.post("/api/tournament/join", async (req, reply) => {
 		try {
 			const user = req.session?.get("user");
@@ -52,7 +49,6 @@ export default async function tournamentRoutes(fastify) {
 		}
 	});
 
-	// Start tournament
 	fastify.post("/api/tournament/start", async (req, reply) => {
 		try {
 			const tournament = fastify.tournaments.get("default");
@@ -102,7 +98,6 @@ export default async function tournamentRoutes(fastify) {
 		}
 	});
 
-	// Next round
 	fastify.post("/api/tournament/next", async (req, reply) => {
 		try {
 			const tournament = fastify.tournaments.get("default");
@@ -171,7 +166,6 @@ export default async function tournamentRoutes(fastify) {
 		}
 	});
 
-	// Reset tournament
 	fastify.post("/api/tournament/new", async (req, reply) => {
 		try {
 			if (fastify.connectedClients) {
@@ -184,9 +178,6 @@ export default async function tournamentRoutes(fastify) {
 
 			const freshTournament = createFreshTournament();
 			fastify.tournaments.set("default", freshTournament);
-
-			console.log("[TOURNAMENT] dmClients disponible ?", !!fastify.dmClients);
-      		console.log("[TOURNAMENT] Nombre de clients DM connectés :", fastify.dmClients?.size || 0);
         
 			if (fastify.dmClients) {
         const tournamentNotification = JSON.stringify({
@@ -206,14 +197,10 @@ export default async function tournamentRoutes(fastify) {
 					clientSocket.send(tournamentNotification);
 					sentCount++;
 				} catch (err) {
-					console.log(`[TOURNAMENT] Erreur envoi à ${userId}:`, err);
 					fastify.dmClients.delete(userId);
 				}
-			} else {
-				console.log(`[TOURNAMENT] Socket fermée pour userId: ${userId}`);
 			}
 		});
-		console.log(`[TOURNAMENT] Notifications envoyées à ${sentCount} clients`);
 	}
 
 			if (fastify.broadcastTournamentUpdate) fastify.broadcastTournamentUpdate();
@@ -232,7 +219,6 @@ export default async function tournamentRoutes(fastify) {
 		}
 	});
 
-	// Get tournament status
 	fastify.get("/api/tournament/status", async (req, reply) => {
 		try {
 			const tournament = fastify.tournaments.get("default");
@@ -262,7 +248,6 @@ export default async function tournamentRoutes(fastify) {
 		}
 	});
 
-	// Force broadcast update
 	fastify.post("/api/tournament/refresh", async (req, reply) => {
 		try {
 			if (fastify.broadcastTournamentUpdate) {

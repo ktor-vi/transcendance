@@ -2,7 +2,6 @@ import fs from 'fs/promises';
 import { openDb, openDbHistory } from '../utils/db.js';
 
 export default async function userProfileRoutes(fastify) {
-	// Get profile info of a specific user
 	fastify.get('/user/:name', async (req, reply) => {
 		const userSession = req.session.get('user');
 		if (!userSession) return reply.code(401).send({ error: 'Not connected' });
@@ -17,7 +16,6 @@ export default async function userProfileRoutes(fastify) {
 			reply.code(404).send({ success: false, message: "Problème pendant l'affichage du profil" });
 	});
 
-	// Get match history of a specific user
 	fastify.get('/user/history/:name', async (req, reply) => {
 		const historyDb = await openDbHistory();
 		const userName = req.params.name;

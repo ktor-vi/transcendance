@@ -11,10 +11,7 @@ export default fp(async function (fastify) {
   const clients = new Set();
 
   fastify.get("/chat", { websocket: true }, (socket, req) => {
-    console.log("[CHAT] Connected:", req.socket.remoteAddress);
-
     clients.add(socket);
-    console.log(`[CHAT] Clients: ${clients.size}`);
 
     socket.on("message", (raw) => {
       let msg;
@@ -44,13 +41,11 @@ export default fp(async function (fastify) {
             }
           }
         }
-        console.log(`[CHAT] Broadcasted to ${broadcastCount}`);
       }
     });
 
     socket.on("close", () => {
       clients.delete(socket);
-      console.log(`[CHAT] Client disconnected. Left: ${clients.size}`);
     });
 
     socket.on("error", (err) => {
@@ -149,20 +144,6 @@ export default fp(async function (fastify) {
           socket.send(JSON.stringify({ type: "error", message: "DM failed" }));
         }
       }
-
-      /*if (msg.type === "broadcastMessage") {
-        console.log("DEBUG : tournoi je rentre AUSSI ici");
-        dmClients.forEach((clientSocket, userId) => {
-          console.log("DEBUG : tournoi je rentre ici");
-          if (clientSocket.readyState === clientSocket.OPEN) {
-            try {
-              clientSocket.send(JSON.stringify(msg));
-            } catch {
-              dmClients.delete(userId); // cleanup si socket fermé
-            }
-          }
-        });
-      }*/
       // --- Match invite ---
       else if (msg.type === "matchInvite") {
         const conversationId = await getOrCreateConversation(
@@ -257,6 +238,4 @@ export default fp(async function (fastify) {
     socket.on("close", cleanup);
     socket.on("error", cleanup);
   });
-
-  console.log("[DM PLUGIN] Ready");
 });

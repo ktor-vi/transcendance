@@ -25,7 +25,6 @@ export default fp(async function (fastify) {
 			const oldRoom = rooms.get(roomId);
 			if (oldRoom.loop) clearInterval(oldRoom.loop);
 			rooms.delete(roomId);
-			console.log(`🧹 Old room ${roomId} cleared`);
 		}
 
 		const gameState = {
@@ -59,7 +58,6 @@ export default fp(async function (fastify) {
 
 		room.gameState.gameActive = true;
 		room.loop = setInterval(() => updateRoom(roomId), 1000 / 60);
-		console.log(`🚀 Game loop started for ${roomId}`);
 	}
 
 	// stop main game loop
@@ -180,7 +178,6 @@ export default fp(async function (fastify) {
 		stopGameLoop(room.roomId);
 		setTimeout(() => {
 			rooms.delete(room.roomId);
-			console.log(`🗑️ Room ${room.roomId} deleted`);
 		}, 5000);
 	}
 
@@ -192,11 +189,6 @@ export default fp(async function (fastify) {
 		if (player1Name) room.gameState.players.set(1, player1Name);
 		if (player2Name) room.gameState.players.set(2, player2Name);
 		room.gameState.playersReady = room.gameState.players.size;
-
-		console.log(
-			`🎮 Room ${roomId}: ${player1Name || "Player1"} vs ${player2Name || "Player2"} (${room.gameState.playersReady}/2)`
-		);
-
 		if (room.gameState.playersReady >= 2 && !room.loop) startGameLoop(roomId);
 		return room;
 	}
@@ -208,8 +200,6 @@ export default fp(async function (fastify) {
 
 		room.gameState.players.set(playerNumber, playerName);
 		room.gameState.playersReady = room.gameState.players.size;
-		console.log(`👋 Player ${playerNumber} (${playerName}) joined ${roomId}`);
-
 		if (room.gameState.playersReady >= 2 && !room.loop) {
 			setTimeout(() => startGameLoop(roomId), 1000);
 		}
@@ -223,8 +213,6 @@ export default fp(async function (fastify) {
 
 		room.gameState.players.delete(playerNumber);
 		room.gameState.playersReady = room.gameState.players.size;
-		console.log(`👋 Player ${playerNumber} left ${roomId}`);
-
 		if (room.gameState.playersReady < 2) stopGameLoop(roomId);
 	}
 
@@ -292,12 +280,9 @@ export default fp(async function (fastify) {
 
 	// cleanup on server shutdown
 	fastify.addHook("onClose", async () => {
-		console.log("🧹 Cleaning game rooms...");
 		for (const [roomId, room] of rooms.entries()) {
 			if (room.loop) clearInterval(room.loop);
 		}
 		rooms.clear();
 	});
-
-	console.log("🎮 Game server initialized (waiting for 2 players)");
 });
