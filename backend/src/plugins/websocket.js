@@ -119,7 +119,10 @@ async function websocketHandler(fastify) {
         console.log(`⚠️ Match non trouvé pour roomId: ${roomId}`);
         return false;
       }
-
+      
+      if (match.status === "finished") {
+        return false;
+      }
       // Mise à jour du match
       match.scoreP1 = score1;
       match.scoreP2 = score2;

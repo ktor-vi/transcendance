@@ -1368,7 +1368,6 @@ export function renderTournamentPage(): string {
         if (response.ok) {
           const result = await response.json();
           console.log("🚀 Tournoi démarré:", result);
-          alert("Tournoi démarré !");
         } else {
           const error = await response.json();
           alert(`Erreur: ${error.error || "Échec du démarrage"}`);
