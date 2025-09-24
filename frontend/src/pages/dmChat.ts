@@ -84,7 +84,7 @@ export async function initDmChat(receiverId: string, senderId: string) {
       }
 
       if (data.type === "tournamentNotification") {
-        addMessage(`🏆 ${data.content}`);
+        addMessage(`${data.content}`);
       }
 
       if (data.type === "matchInvitation") acceptMatch();

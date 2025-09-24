@@ -191,7 +191,8 @@ export default async function tournamentRoutes(fastify) {
 			if (fastify.dmClients) {
         const tournamentNotification = JSON.stringify({
           type: "tournamentNotification",
-          content: "🏆 Nouveau tournoi créé ! Inscrivez-vous maintenant !",
+          content:
+            "🔥🏟️Nouveau tournoi créé🏟️🔥 ! Inscrivez-vous maintenant !🫵✨",
           from: "system",
           fromName: "🎯 Tournoi",
           timestamp: new Date().toISOString(),
