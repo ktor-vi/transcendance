@@ -76,9 +76,6 @@ export function renderTournamentPage(): string {
 	  <button id="newTournamentBtn" class="mx-4 button text-white bg-pink-400 hover:bg-pink-500">
 	  Nouveau tournoi
 	  </button>
-	  <button id="debugUserBtn" class="mx-4 button bg-purple-500 text-white hover:bg-purple-600">
-	  🔧 Debug Utilisateur
-	  </button>
       </div>
       <div id="tournamentContent">
 	  <ul id="playerList" class="space-y-2"></ul>

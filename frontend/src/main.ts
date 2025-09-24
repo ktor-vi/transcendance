@@ -23,8 +23,7 @@ import { getUserStatut } from "./components/auth";
 document.addEventListener("DOMContentLoaded", async () => {
 	const userStatut = await getUserStatut();
 
-	if (userStatut.loggedIn)
-		startPingLoop();
+	startPingLoop();
 
 	const app = document.getElementById("app");
 
