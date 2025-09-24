@@ -2,6 +2,7 @@ import { openDb } from '../utils/db.js';
 import bcrypt from 'bcrypt';
 
 export default async function loginRoutes(fastify) {
+
 	// POST /login : authenticate user
 	fastify.post('/login', async (req, reply) => {
 		const { email, password } = req.body;
@@ -26,4 +27,5 @@ export default async function loginRoutes(fastify) {
 		// inform client of successful login
 		return reply.code(201).send({ success: true });
 	});
+
 }

@@ -140,7 +140,6 @@ export async function renderProfile() {
 				`
         }
 			</section>
-
 		`;
 
 		// Inject HTML

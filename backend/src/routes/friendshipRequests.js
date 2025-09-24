@@ -53,7 +53,7 @@ export default async function friendshipRequestsRoutes(fastify) {
 		// Prevent adding if already friends
 		if (await db.get('SELECT * FROM friends WHERE user1_id = ? AND user2_id = ?', user1, user2)) {
 			await db.run('UPDATE requests SET status = ? WHERE sender_id = ? AND receiver_id = ?', 'canceled', askerId, userId);
-			return reply.code(409).send({ message: 'Already friends' });
+			return reply.code(409).send({ message: 'Déjà ami' });
 		}
 
 		// Insert friendship and update request status
@@ -84,7 +84,7 @@ export default async function friendshipRequestsRoutes(fastify) {
 		// Prevent action if already friends
 		if (await db.get('SELECT * FROM friends WHERE user1_id = ? AND user2_id = ?', user1, user2)) {
 			await db.run('UPDATE requests SET status = ? WHERE sender_id = ? AND receiver_id = ?', 'canceled', askerId, userId);
-			return reply.code(409).send({ message: 'Already friends' });
+			return reply.code(409).send({ message: 'Déjà ami' });
 		}
 
 		// Update request status to refused

@@ -29,7 +29,7 @@ export function renderLogin() {
 		const email = (document.getElementById("email") as HTMLInputElement).value;
 		const password = (document.getElementById("password") as HTMLInputElement).value;
 
-		const res = await fetch("api/login", {
+		const res = await fetch("/api/login", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email, password }),
