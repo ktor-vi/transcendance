@@ -18,7 +18,6 @@ import { renderChat } from "./pages/chat";
 import { renderTournamentPage } from "./pages/tournament";
 import { startPingLoop } from "./components/pingLoop";
 import { getUserStatut } from "./components/auth";
-import { resetDashboard } from "./pages/pong"
 
 // Start ping loop if user is logged in
 document.addEventListener("DOMContentLoaded", async () => {
@@ -47,9 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 	// Route pour le tableau de bord ("/dashboard") → appelle renderDashboard() et injecte son HTML
 	page("/dashboard", () => render(renderDashboard()));
 	
-	page("/pong", () => {
-    renderPong();
-  	});
+	page("/pong", () => { renderPong(); });
 	
 	page("/profile", () => renderProfile());
 

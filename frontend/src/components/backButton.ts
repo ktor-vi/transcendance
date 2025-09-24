@@ -1,4 +1,6 @@
 import page from "page";
+import { resetDashboard } from "../pages/pong";
+
 
 // &lt = le caractère "<"
 // backButton renvoie simplement le html du bouton
@@ -36,6 +38,8 @@ export function setupBackButton() {
 			page("/users-list");
 			return ;
 		}
+		if (currentPath === ("/pong"))
+			resetDashboard();
 		page("/dashboard");
 	});
 }
