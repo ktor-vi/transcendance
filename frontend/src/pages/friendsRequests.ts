@@ -32,8 +32,6 @@ export async function renderFriendsRequests() {
 			const listRequests = document.getElementById("requestsList");
 			const requestsData = await resRequests.json();
 		
-			console.log("data = ");
-			console.log(requestsData);
 		
 			if (listRequests) {
 				listRequests.innerHTML = "";

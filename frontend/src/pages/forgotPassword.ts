@@ -3,7 +3,6 @@ import page from "page";
 import { backButton, setupBackButton } from '../components/backButton.js';
 
 export async function renderForgotPwd() {
-	console.log("ForgotPassword called");
 	try {
 		
 		const html = `

@@ -6,12 +6,10 @@ export function renderChat() {
     const host = window.location.host;
     const socketUrl = `${protocol}//${host}/chat`;
 
-    console.log(`[CHAT] Connecting to: ${socketUrl}`);
     const socket = new WebSocket(socketUrl);
 
     // Socket connection opened
     socket.addEventListener("open", () => {
-      console.log("[CHAT] Connected to WebSocket server");
     });
 
     // Receive messages from server
@@ -28,7 +26,6 @@ export function renderChat() {
 
     // Reconnect on close
     socket.addEventListener("close", () => {
-      console.log("[CHAT] Disconnected, reconnecting in 3s...");
       setTimeout(() => renderChat(), 3000);
     });
 

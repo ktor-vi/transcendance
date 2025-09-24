@@ -179,10 +179,8 @@ export function createBabylonScene(canvas: HTMLCanvasElement) {
     playerNumber = num;
 
     if (playerNumber === 1) {
-      console.log("player 1");
       camera.position = new Vector3(0, 12, -15);
     } else if (playerNumber === 2) {
-      console.log("player 2");
       camera.position = new Vector3(0, 12, 15);
       camera.rotation.y = Math.PI;
     }

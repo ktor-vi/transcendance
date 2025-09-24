@@ -13,7 +13,6 @@ export function connectWebSocket(onMessage: (data: any) => void, onOpenMessage?:
 	socket = new WebSocket(`wss://${window.location.host}/ws`);
 
 	socket.addEventListener("open", () => {
-		console.log("[WSS] Connected"); // informational
 		isConnecting = false;
 
 		if (onOpenMessage) {

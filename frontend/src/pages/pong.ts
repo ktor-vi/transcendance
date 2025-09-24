@@ -27,12 +27,7 @@ let currentUserProfile: any = null;
 
 
 export function resetDashboard() {
-  console.log("🧹 resetDashboard appelé", {
-    wsConnection,
-    currentRoomId,
-    currentPlayerNumber,
-    currentPlayerName,
-  });
+
 
   // 1️⃣ Notifier le serveur
   if (wsConnection && currentRoomId && currentPlayerNumber) {
@@ -89,11 +84,6 @@ export function renderPong() {
       .then((user: UserProfile) => {
         currentUserProfile = user;
 
-        console.log("👤 Profil utilisateur chargé:", {
-          name: user.name,
-          email: user.email,
-          id: user.id,
-        });
 
         const welcomeEl = document.getElementById("welcome");
         if (welcomeEl)
@@ -109,7 +99,6 @@ export function renderPong() {
       const chatMatchRoomId = sessionStorage.getItem("chatMatchRoomId");
 
       if (chatMatchRoomId) {
-        console.log(`🎮 Match depuis chat détecté: ${chatMatchRoomId}`);
 
         // Nettoyer le sessionStorage
         sessionStorage.removeItem("chatMatchRoomId");
@@ -142,22 +131,13 @@ export function renderPong() {
       const ws = new WebSocket(`wss://${window.location.hostname}:5173/ws`);
 
       ws.onopen = () => {
-        console.log("🔗 WebSocket dashboard connecté");
 
-        // 🔧 DEBUG: Vérifier le profil utilisateur
-        console.log("🔍 Profil utilisateur disponible:", {
-          currentUserProfile: currentUserProfile,
-          name: currentUserProfile?.name,
-          email: currentUserProfile?.email,
-        });
 
-        // 🔧 IMPORTANT: Utiliser le nom d'utilisateur réel
         const userName =
           currentUserProfile?.name ||
           currentUserProfile?.email ||
           `User${Date.now().toString().slice(-4)}`;
 
-        console.log("🏷️ Nom utilisateur sélectionné:", userName);
 
        /* const joinMessage = {
           type: "joinRoom",
@@ -179,7 +159,6 @@ export function renderPong() {
           joinMessage.matchmaking = true;
         }
 
-        console.log("📤 Envoi message de connexion:", joinMessage);
         ws.send(JSON.stringify(joinMessage));
       };
 
@@ -223,8 +202,6 @@ export function renderPong() {
             case "chatMatch":
               handleChatMatch(data);
               break;
-            default:
-              console.log("🔍 Type de message non géré:", data.type);
           }
         } catch (e) {
           console.error("❌ Erreur parsing message dashboard:", e);
@@ -232,7 +209,6 @@ export function renderPong() {
       };
 
       ws.onclose = () => {
-        console.log("🔌 WebSocket dashboard fermé");
         isJoining = false;
       };
 
@@ -245,14 +221,12 @@ export function renderPong() {
     }
 
     function handleChatMatch(data: any) {
-      console.log("🎮 Chat match reçu:", data.roomId);
       joinRoom(data.roomId);
     }
     // -----------------------
     // HANDLERS (typés en `any` pour éviter TS errors rapides)
     // -----------------------
     function handlePlayerAssignment(data: any) {
-      console.log("🎮 Assignation joueur:", data);
 
       currentPlayerNumber = data.player;
       currentRoomId = data.roomId ||  currentRoomId || "";
@@ -263,7 +237,6 @@ export function renderPong() {
         currentUserProfile?.email ||
         `Joueur${currentPlayerNumber}`;
 
-      console.log("🏷️ Nom joueur assigné:", currentPlayerName);
 
       const info = document.getElementById("roomInfo");
       if (info) {
@@ -275,17 +248,14 @@ export function renderPong() {
 
       try {
         gameInstance = createBabylonScene(canvas);
-        console.log("🎮 Scène Babylon créée:", !!gameInstance);
 
         if (gameInstance) {
           if (gameInstance.setPlayerNumber) {
             gameInstance.setPlayerNumber(currentPlayerNumber);
-            console.log("✅ Numéro de joueur assigné:", currentPlayerNumber);
           }
 
           if (gameInstance.setWebSocket && wsConnection) {
             gameInstance.setWebSocket(wsConnection);
-            console.log("✅ WebSocket assigné à la scène");
           }
         }
       } catch (error) {
@@ -293,9 +263,7 @@ export function renderPong() {
       }
 
       isJoining = false;
-      console.log(
-        `✅ ${currentPlayerName} rejoint room ${currentRoomId} (Joueur ${currentPlayerNumber})`
-      );
+
     }
     function handlePlayerJoined(data: any) {
       if (data.playerName && data.playerName !== currentPlayerName) {
@@ -321,7 +289,6 @@ export function renderPong() {
     function handleGameReady(data: any) {
       if (data.players && typeof data.players === "object") {
         const playerNames = Object.values(data.players);
-        console.log("👥 Noms des joueurs trouvés:", playerNames);
 
         // Trouver l'adversaire (celui qui n'est pas le joueur actuel)
         opponentPlayerName =
@@ -426,7 +393,6 @@ export function renderPong() {
       try {
         // Créer la nouvelle connexion WebSocket
         wsConnection = createWebSocketConnection(roomId);
-        console.log("✅ Nouvelle connexion WebSocket créée", wsConnection);
       } catch (error) {
         console.error("❌ Erreur création WebSocket:", error);
         isJoining = false;
@@ -451,8 +417,6 @@ export function renderPong() {
         console.warn("⚠️ Connexion en cours, veuillez patienter");
         return;
       }
-
-      console.log("🎲 Matchmaking automatique demandé");
       joinRoom("auto");
     });
 
@@ -470,12 +434,10 @@ export function renderPong() {
       });
 
     window.addEventListener("beforeunload", () => {
-      console.log("🧹 Nettoyage avant fermeture de page");
       resetDashboard();
     });
 
     window.addEventListener("popstate", () => {
-      console.log("🧹 Nettoyage lors du changement de route");
       resetDashboard();
     });
   }, 300);

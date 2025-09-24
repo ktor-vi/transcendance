@@ -45,11 +45,6 @@ export function renderTournamentPage(): string {
         currentUserProfile = user;
         profileReady = true;
 
-        console.log("👤 Profil utilisateur chargé:", {
-          name: user.name,
-          email: user.email,
-          id: user.id,
-        });
 
         const welcomeEl = document.getElementById("welcome");
         if (welcomeEl)
@@ -139,8 +134,6 @@ export function renderTournamentPage(): string {
 
     async function getCurrentTournamentUser(): Promise<User | null> {
       try {
-        console.log("🔍 Récupération de l'utilisateur du tournoi...");
-
         const profileResponse = await fetch("/api/profile", {
           credentials: "include",
         });
@@ -166,9 +159,6 @@ export function renderTournamentPage(): string {
           if (tournamentData.exists && tournamentData.players?.length > 0) {
             if (tournamentData.matches?.length > 0) {
               const firstMatch = tournamentData.matches[0];
-              console.log(
-                `🎮 Premier match: ${firstMatch.player1} vs ${firstMatch.player2}`
-              );
 
               const firstPlayer = tournamentData.players.find(
                 (p: any) =>
@@ -184,7 +174,6 @@ export function renderTournamentPage(): string {
             }
 
             const firstPlayer = tournamentData.players[0];
-            console.log(firstPlayer);
             return {
               id: String(firstPlayer.id),
               name: firstPlayer.name,
@@ -200,7 +189,6 @@ export function renderTournamentPage(): string {
     }
 
     async function fetchCurrentUser(): Promise<void> {
-      console.log("🔍 Récupération utilisateur avec matching...");
 
       const user = await getCurrentTournamentUser();
       if (user) {
@@ -212,33 +200,22 @@ export function renderTournamentPage(): string {
           id: String(Date.now()),
           name: `TempUser${Date.now().toString().slice(-4)}`,
         };
-        console.log("🆘 Utilisateur temporaire créé:", currentUser);
         updateUserDebugInfo();
       }
     }
 
     async function debugUser(): Promise<void> {
       try {
-        console.log("📊 État actuel:", {
-          currentUser,
-          pendingConnections: pendingMatchConnections.length,
-          gameConnections: gameConnections.size,
-          lastTournamentData: lastTournamentData?.state,
-        });
+
 
         const response = await fetch("/api/tournament/status", {
           credentials: "include",
         });
         if (response.ok) {
           const data = await response.json();
-          console.log("🏆 Données complètes du tournoi:", data);
 
           if (data.exists && data.matches?.length > 0) {
             const match = data.matches[0];
-            console.log(
-              `🎮 Match actuel: ${match.player1} vs ${match.player2}`
-            );
-            console.log(`🔍 Utilisateur actuel: ${currentUser?.name}`);
 
             const choice = prompt(
               `Choisissez votre joueur:\n1. ${match.player1}\n2. ${match.player2}\n\nTapez 1 ou 2:`
@@ -277,9 +254,6 @@ export function renderTournamentPage(): string {
       }
 
       const match = lastTournamentData.matches[0];
-      console.log(
-        `🚀 FORCE CONNEXION au match ${match.roomId} pour ${currentUser.name}`
-      );
 
       setTimeout(() => {
         connectToMatch(match.roomId, currentUser!.name);
@@ -290,20 +264,13 @@ export function renderTournamentPage(): string {
 
     function processPendingMatchConnections(): void {
       if (!currentUser) {
-        console.log(
-          "⚠️ processPendingMatchConnections appelé mais currentUser est null"
-        );
         return;
       }
 
       if (pendingMatchConnections.length === 0) {
-        console.log("ℹ️ Aucune connexion de match en attente");
         return;
       }
 
-      console.log(
-        `🔄 Traitement de ${pendingMatchConnections.length} connexions en attente pour ${currentUser.name}`
-      );
 
       // Vérifier si le joueur est qualifié automatiquement
       if (lastTournamentData?.qualified) {
@@ -313,9 +280,6 @@ export function renderTournamentPage(): string {
         );
 
         if (isAutoQualified) {
-          console.log(
-            `⭐ ${currentUser.name} est qualifié automatiquement - pas de connexion WebSocket nécessaire`
-          );
           pendingMatchConnections = [];
           return;
         }
@@ -332,10 +296,6 @@ export function renderTournamentPage(): string {
         }
       }
 
-      console.log(
-        `🧹 Après déduplication: ${uniqueMatches.size} matchs uniques`
-      );
-
       for (const match of uniqueMatches.values()) {
         const isInMatch =
           match.player1 === currentUser.name ||
@@ -343,13 +303,7 @@ export function renderTournamentPage(): string {
           match.player1 === currentUser.id ||
           match.player2 === currentUser.id;
 
-        console.log(`🔍 Vérification match ${match.roomId}:`, {
-          player1: match.player1,
-          player2: match.player2,
-          currentUserName: currentUser.name,
-          currentUserId: currentUser.id,
-          isInMatch,
-        });
+
 
         if (isInMatch) {
           if (!gameConnections.has(match.roomId)) {
@@ -357,12 +311,8 @@ export function renderTournamentPage(): string {
               connectToMatch(match.roomId, currentUser!.name);
             }, 200);
           } else {
-            console.log(`⚠️ Déjà connecté au match ${match.roomId}, skip`);
           }
         } else {
-          console.log(
-            `ℹ️ Match ${match.roomId} ne concerne pas ${currentUser.name} (${match.player1} vs ${match.player2})`
-          );
         }
       }
 
@@ -376,8 +326,6 @@ export function renderTournamentPage(): string {
     function createOrGetMatchContainer(match: Match): HTMLDivElement {
       const existingContainer = sceneContainers.get(match.roomId);
       if (existingContainer) {
-        console.log(`♻️ Réutilisation conteneur existant pour ${match.roomId}`);
-
         const scoreElement = existingContainer.querySelector(
           `#score-${match.roomId}`
         );
@@ -388,8 +336,6 @@ export function renderTournamentPage(): string {
         }
         return existingContainer;
       }
-
-      console.log(`🎮 Création nouveau conteneur pour match ${match.roomId}`);
 
       const container = document.createElement("div");
       container.className =
@@ -434,7 +380,6 @@ export function renderTournamentPage(): string {
       // Créer la scène seulement si elle n'existe pas
       if (!scenes.has(match.roomId)) {
         try {
-          console.log(`🎮 Création scène Babylon pour match ${match.roomId}`);
           const scene = createBabylonScene(canvas);
           scenes.set(match.roomId, scene);
           // scene._preventAutoDispose = true;
@@ -442,7 +387,6 @@ export function renderTournamentPage(): string {
           console.error(`❌ Erreur création scène ${match.roomId}:`, error);
         }
       } else {
-        console.log(`♻️ Réutilisation scène existante pour ${match.roomId}`);
       }
 
       return container;
@@ -482,26 +426,15 @@ export function renderTournamentPage(): string {
 
     function renderTournament(data: TournamentData) {
       if (isRenderingInProgress) {
-        console.log("⚠️ Rerender ignoré - rendu en cours");
         return;
       }
 
       isRenderingInProgress = true;
 
-      console.log("🔄 renderTournament appelé avec:", {
-        exists: data.exists,
-        state: data.state,
-        round: data.round,
-        matches: data.matches?.length || 0,
-        players: data.players?.length || 0,
-        currentUser: currentUser?.name || "null",
-      });
-
       lastTournamentData = data;
       updateUserDebugInfo();
 
       if (!data.exists) {
-        console.log("❌ Aucun tournoi actif");
         if (stateText) stateText.innerText = "Aucun tournoi actif.";
         if (playerList) playerList.innerHTML = "";
         if (gameSceneContainer) gameSceneContainer.innerHTML = "";
@@ -550,8 +483,6 @@ export function renderTournamentPage(): string {
       // Nettoyer les conteneurs
       if (gameSceneContainer) gameSceneContainer.innerHTML = "";
       playerList.innerHTML = "";
-
-      console.log("🔄 Rendu état waiting:", data);
 
       const title = document.createElement("h3");
       title.className = "text-lg font-semibold mb-2";
@@ -616,8 +547,6 @@ export function renderTournamentPage(): string {
       if (!data.matches) return;
       if (!playerList) return;
 
-      console.log("🎮 renderRunningState - currentUser:", currentUser);
-
       playerList.innerHTML = "";
 
       const roundTitle = document.createElement("h3");
@@ -670,7 +599,6 @@ export function renderTournamentPage(): string {
         </div>
       `;
         playerList.appendChild(qualifiedMessage);
-        console.log(`⭐ ${currentUserName} est qualifié automatiquement`);
       }
 
       if (isCurrentUserEliminated) {
@@ -693,7 +621,6 @@ export function renderTournamentPage(): string {
         </div>
       `;
         playerList.appendChild(eliminatedMessage);
-        console.log(`💀 ${currentUserName} a été éliminé du tournoi`);
       }
 
       // Vérifier si tous les matchs sont terminés
@@ -728,9 +655,6 @@ export function renderTournamentPage(): string {
       data.matches.forEach((match: Match) => {
         // Vérifier si le match est déjà terminé
         if (match.status === "finished" && match.winner) {
-          console.log(
-            `⏭️ Match ${match.roomId} déjà terminé (${match.winner} gagne)`
-          );
           finishedMatches.set(match.roomId, {
             winner: match.winner,
             loser:
@@ -765,15 +689,10 @@ export function renderTournamentPage(): string {
           );
 
           if (!existingMatchDiv) {
-            console.log(
-              `🆕 Ajout nouveau match ${match.roomId} dans le conteneur persistant`
-            );
+
             const matchContainer = createOrGetMatchContainer(match);
             gameSceneContainer.appendChild(matchContainer);
           } else {
-            console.log(
-              `♻️ Match ${match.roomId} déjà présent dans le conteneur`
-            );
             const scoreElement = existingMatchDiv.querySelector(
               `#score-${match.roomId}`
             );
@@ -784,9 +703,6 @@ export function renderTournamentPage(): string {
             }
           }
         } else {
-          console.log(
-            `⭐ Pas de scène créée pour ${match.roomId} - joueur ${currentUser?.name} non concerné`
-          );
           // Afficher juste un résumé spectateur pour ce match
           showMatchSpectatorView(match);
         }
@@ -797,9 +713,6 @@ export function renderTournamentPage(): string {
           match.status !== "finished"
         ) {
           if (!gameConnections.has(match.roomId)) {
-            console.log(
-              `🔗 Planification connexion ${match.roomId} pour ${currentUser.name}`
-            );
             setTimeout(() => {
               if (!gameConnections.has(match.roomId) && currentUser) {
                 connectToMatch(match.roomId, currentUser.name);
@@ -1277,12 +1190,8 @@ export function renderTournamentPage(): string {
 
     function connectToMatch(roomId: string, playerName: string) {
       if (gameConnections.has(roomId)) {
-        console.log(`⚠️ Déjà connecté à ${roomId}`);
         return;
       }
-
-      console.log(`🔗 Connexion match ${roomId} pour ${playerName}`);
-
       const scene = scenes.get(roomId);
       if (!scene) {
         console.error(`❌ Scène non trouvée pour ${roomId}`);
@@ -1309,8 +1218,6 @@ export function renderTournamentPage(): string {
       gameWs.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
-          console.log(`📨 [${roomId}] Message:`, msg.type);
-
           switch (msg.type) {
             case "assign":
               if (scene?.setPlayerNumber && msg.player) {
@@ -1349,7 +1256,6 @@ export function renderTournamentPage(): string {
       };
 
       gameWs.onclose = () => {
-        console.log(`🔌 WebSocket fermé ${roomId}`);
         gameConnections.delete(roomId);
       };
 
@@ -1367,7 +1273,6 @@ export function renderTournamentPage(): string {
 
         if (response.ok) {
           const result = await response.json();
-          console.log("🚀 Tournoi démarré:", result);
         } else {
           const error = await response.json();
           alert(`Erreur: ${error.error || "Échec du démarrage"}`);
@@ -1387,7 +1292,6 @@ export function renderTournamentPage(): string {
 
         if (response.ok) {
           const result = await response.json();
-          console.log("➡️ Round suivant:", result);
 
           if (result.finished) {
             alert(
@@ -1419,7 +1323,6 @@ export function renderTournamentPage(): string {
       if (!message) return;
 
       socket.onopen = () => {
-        console.log("📡 WebSocket chat tournoi connecté");
         const payload = {
           type: "broadcastMessage",
           content: message,
@@ -1467,16 +1370,9 @@ export function renderTournamentPage(): string {
           const now = Date.now();
 
           if (now - lastUpdateTime < UPDATE_THROTTLE) {
-            console.log("🚫 Update throttlé, trop rapide");
             return;
           }
 
-          console.log("📨 Message WebSocket reçu:", {
-            type: msg.type,
-            exists: msg.data?.exists,
-            state: msg.data?.state,
-            playersCount: msg.data?.players?.length || 0,
-          });
 
           if (msg.type === "update" && msg.data) {
             lastUpdateTime = now;
@@ -1500,8 +1396,6 @@ export function renderTournamentPage(): string {
     const joinBtn = document.getElementById("joinTournamentBtn");
     joinBtn?.addEventListener("click", async () => {
       try {
-        console.log("🔄 Tentative d'inscription au tournoi");
-
         const response = await fetch("/api/tournament/join", {
           method: "POST",
           credentials: "include",
@@ -1597,7 +1491,6 @@ export function renderTournamentPage(): string {
       for (const [roomId, scene] of scenes.entries()) {
         try {
           if (scene && scene.cleanup) {
-            console.log(`🧹 Cleanup scène ${roomId}`);
             scene.cleanup();
           }
         } catch (error) {

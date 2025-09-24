@@ -62,8 +62,7 @@ export async function renderUserProfile(ctx: any) {
 			buttonRequests += `<button id="dmButton" class="button bg-indigo-400 hover:bg-indigo-500 mb-4 mt-4 text-xs h-8">ENVOYER UN MESSAGE</button>`;
 		}
 
-		console.log("La pp du profil est = ");
-		console.log(userData.picture);
+
 			const html = `
 				<script>0</script>
 			 <section class="flex flex-col items-center text-center">

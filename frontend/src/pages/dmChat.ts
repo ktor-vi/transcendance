@@ -65,13 +65,8 @@ export async function initDmChat(receiverId: string, senderId: string) {
     senderId
   )}&receiverId=${encodeURIComponent(receiverId)}`;
 
-  console.log(`[DM] Connecting to: ${dmSocketUrl}`);
   const socket = new WebSocket(dmSocketUrl);
 
-  socket.addEventListener("open", () =>
-    console.log("[DM] Connected to WebSocket")
-  );
-  socket.addEventListener("close", () => console.log("[DM] Disconnected"));
 
   // Receive DM messages or match events
   socket.addEventListener("message", (event) => {
@@ -84,7 +79,7 @@ export async function initDmChat(receiverId: string, senderId: string) {
       }
 
       if (data.type === "tournamentNotification") {
-        addMessage(`${data.content}`);
+        addMessage(`${data.content}`, false);
       }
 
       if (data.type === "matchInvitation") acceptMatch();
@@ -176,7 +171,6 @@ export async function initDmChat(receiverId: string, senderId: string) {
 
     // ⚡ Gestion des clics
     accept.addEventListener("click", () => {
-      console.log("sent match invite");
       socket.send(
         JSON.stringify({ type: "matchInvite", to: receiverId, content: "test" })
       );
@@ -271,7 +265,6 @@ export async function initDmChat(receiverId: string, senderId: string) {
     blockbtn.style.display = "none";
     blockDiv?.appendChild(unblockbtn);
     unblockbtn.style.display = "block";
-    console.log(`[BLOCK DEBUG FRONT] ${senderId}, ${receiverId}, ${blocked}`);
     await fetch("/api/blocking", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -280,7 +273,6 @@ export async function initDmChat(receiverId: string, senderId: string) {
   }
 
   async function unblock() {
-    console.log(`[DEBLOCK DEBUG FRONT] ${senderId}, ${receiverId}, ${blocked}`);
     blocked = false;
     unblockbtn.style.display = "none";
     blockDiv?.appendChild(blockbtn);

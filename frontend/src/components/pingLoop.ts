@@ -4,7 +4,6 @@ let pingInterval: NodeJS.Timeout | null = null;
 export function startPingLoop() {
 	if (pingInterval) return;
 
-	console.log("Ping loop started"); // info only
 	pingInterval = setInterval(async () => {
 		try {
 			await fetch('/api/ping', { method: 'POST', credentials: 'include' });

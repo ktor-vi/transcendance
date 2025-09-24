@@ -103,7 +103,6 @@ export async function renderFriends() {
 						if (!statutRes.ok)
 							throw new Error(`Error with http status`);
 						const data = await statutRes.json();
-						console.log("Réponse statut : ", data);
 
 						if (data.online)
 						{

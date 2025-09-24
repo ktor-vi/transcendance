@@ -24,12 +24,6 @@ export function renderDashboard() {
     .then((user: UserProfile) => {
       currentUserProfile = user;
       profileReady = true;
-
-      console.log("👤 Profil utilisateur chargé:", {
-        name: user.name,
-        email: user.email,
-        id: user.id,
-      });
     })
     .catch(() => {
       profileReady = true;
