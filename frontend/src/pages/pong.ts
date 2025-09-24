@@ -88,7 +88,6 @@ export function renderPong() {
       })
       .then((user: UserProfile) => {
         currentUserProfile = user;
-        profileReady = true;
 
         console.log("👤 Profil utilisateur chargé:", {
           name: user.name,
@@ -104,7 +103,6 @@ export function renderPong() {
         checkChatMatch();
       })
       .catch(() => {
-        profileReady = true;
         window.location.href = "/";
       });
     function checkChatMatch() {
