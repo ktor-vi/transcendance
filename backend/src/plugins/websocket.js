@@ -2,6 +2,7 @@ import websocketPlugin from "@fastify/websocket";
 import fastifyPlugin from "fastify-plugin";
 import crypto from "crypto";
 import { openDb, openDbHistory } from "../utils/db.js";
+import { getActiveResourcesInfo } from "process";
 
 async function websocketHandler(fastify) {
   await fastify.register(websocketPlugin);
@@ -64,6 +65,42 @@ async function websocketHandler(fastify) {
     }
   }
 
+  function handleGameEnd(msg) {
+    const { roomId, winner, scoreP1, scoreP2 } = msg;
+    if (!winner || !roomId) {
+      console.error("❌ Données manquantes pour la fin de jeu:", msg);
+      return;
+    }
+
+    const updated = updateMatchScore(roomId, scoreP1, scoreP2, winner);
+    if (updated) {
+      // Envoyer seulement gameEnd pour victoire normale
+      broadcastToGameRoom(roomId, {
+        type: "gameEnd",
+        winner: winner,
+        scoreP1: parseInt(scoreP1) || 0,
+        scoreP2: parseInt(scoreP2) || 0,
+      });
+
+      // Nettoyer après 3 secondes
+      setTimeout(() => {
+        const connections = gameRoomConnections.get(roomId);
+        if (connections) {
+          for (const conn of connections) {
+            if (conn.readyState === 1) {
+              try {
+                conn.close();
+              } catch (error) {
+                console.error("Erreur fermeture connexion:", error.message);
+              }
+            }
+          }
+          gameRoomConnections.delete(roomId);
+        }
+      }, 3000);
+    }
+  }
+
   async function updateMatchScore(
     roomId,
     P1Name,
@@ -113,7 +150,7 @@ async function websocketHandler(fastify) {
       if (!match) {
         return false;
       }
-      
+
       if (match.status === "finished") {
         return false;
       }
@@ -128,7 +165,7 @@ async function websocketHandler(fastify) {
         let matchType = "tournament match";
 
         const totalPlayers = tournament.players.length;
-        const finalRound = Math.ceil(Math.log2(totalPlayers)); 
+        const finalRound = Math.ceil(Math.log2(totalPlayers));
 
         if (tournament.round >= finalRound) {
           matchType = "tournament final";
@@ -269,7 +306,7 @@ async function websocketHandler(fastify) {
     let joinedRoom = null;
     let playerName = null;
     let playerNumber = 0;
-  
+
     conn.on("message", (message) => {
       let msg;
       try {
@@ -277,37 +314,37 @@ async function websocketHandler(fastify) {
       } catch (e) {
         return;
       }
-  
+
       switch (msg.type) {
         case "joinRoom":
           handleJoinRoom(msg);
           break;
-  
+
         case "scoreUpdate":
           handleScoreUpdate(msg);
           break;
-  
+
         case "gameEnd":
           handleGameEnd(msg);
           break;
-  
+
         case "input":
           handleInput(msg);
           break;
-  
+
         case "chatMatch":
           fastify.createRoom(msg.roomId);
           break;
-  
+
         case "leaveRoom":
           handleLeaveRoom(msg);
           break;
-  
+
         default:
           console.log("Type de message non géré:", msg.type);
       }
     });
-  
+
     function handleLeaveRoom(msg) {
       const room = gameRoomConnections.get(msg.roomId);
       if (!room) {
@@ -320,7 +357,7 @@ async function websocketHandler(fastify) {
         if (c.playerNumber === msg.playerNumber) {
           removed = true;
           leavingPlayerName =
-          c.playerName || msg.playerName || `Joueur${c.playerNumber}`;
+            c.playerName || msg.playerName || `Joueur${c.playerNumber}`;
           room.delete(c);
           try {
             c.close();
@@ -331,23 +368,25 @@ async function websocketHandler(fastify) {
 
       if (room.size === 1) {
         const winnerConn = Array.from(room)[0];
-        fastify.updateMatchScore(
-          msg.roomId,
-          winnerConn.playerName,
-          leavingPlayerName,
-          11,
-          0,
-          winnerConn.playerName
-        );
+        try {
+          fastify.updateMatchScore(
+            msg.roomId,
+            winnerConn.playerName,
+            leavingPlayerName,
+            11,
+            0,
+            winnerConn.playerName
+          );
 
-        winnerConn.send(
-          JSON.stringify({
-            type: "gameEnd",
-            winner: winnerConn.playerName,
-            scoreP1: 11,
-            scoreP2: 0,
-          })
-        );
+          winnerConn.send(
+            JSON.stringify({
+              type: "giveup",
+              message: `Qui va à la chasse perd sa place... ${winnerConn.playerName} gagne, à bon entendeur...`,
+            })
+          );
+        } catch (e) {
+          console.error("❌ Erreur envoi gameEnd:", e.message);
+        }
 
         gameRoomConnections.delete(msg.roomId);
       } else if (room.size === 0) {
@@ -413,7 +452,7 @@ async function websocketHandler(fastify) {
       }
 
       const roomConnections = gameRoomConnections.get(joinedRoom);
-      playerNumber = roomConnections.size + 1; 
+      playerNumber = roomConnections.size + 1;
 
       if (playerNumber > 2) {
         conn.send(
@@ -438,7 +477,7 @@ async function websocketHandler(fastify) {
           type: "assign",
           player: playerNumber,
           roomId: joinedRoom,
-          playerName: playerName, 
+          playerName: playerName,
         })
       );
 
@@ -463,7 +502,7 @@ async function websocketHandler(fastify) {
             message: "Tous les joueurs sont connectés! La partie commence...",
             playersCount: 2,
             maxPlayers: 2,
-            players: playersNames, 
+            players: playersNames,
           });
 
           setTimeout(() => {
@@ -588,42 +627,6 @@ async function websocketHandler(fastify) {
       }
     }
 
-    function handleGameEnd(msg) {
-      const { roomId, winner, scoreP1, scoreP2 } = msg;
-
-      if (!winner || !roomId) {
-        console.error("❌ Données manquantes pour la fin de jeu:", msg);
-        return;
-      }
-
-      const updated = updateMatchScore(roomId, scoreP1, scoreP2, winner);
-
-      if (updated) {
-        broadcastToGameRoom(roomId, {
-          type: "gameEnd",
-          winner: winner,
-          scoreP1: parseInt(scoreP1) || 0,
-          scoreP2: parseInt(scoreP2) || 0,
-        });
-
-        setTimeout(() => {
-          const connections = gameRoomConnections.get(roomId);
-          if (connections) {
-            for (const conn of connections) {
-              if (conn.readyState === 1) {
-                try {
-                  conn.close();
-                } catch (error) {
-                  console.error("Erreur fermeture connexion:", error.message);
-                }
-              }
-            }
-            gameRoomConnections.delete(roomId);
-          }
-        }, 3000);
-      }
-    }
-
     function handleInput(msg) {
       const effectivePlayerNumber =
         msg.playerNumber || conn.playerNumber || playerNumber;
@@ -633,60 +636,54 @@ async function websocketHandler(fastify) {
       }
     }
 
-  function handleDisconnection() {
-    const roomId = conn.roomId;
+    function handleDisconnection() {
+      const roomId = conn.roomId;
 
-    if (!roomId) return;
+      if (!roomId) return;
 
-    const connections = gameRoomConnections.get(roomId);
-    if (!connections) {
-      return;
-    }
-
-    connections.delete(conn);
-
-    if (connections.size === 0) {
-      console.log(`🗑️ Room ${roomId} vide → suppression`);
-      gameRoomConnections.delete(roomId);
-      return;
-    }
-
-    if (connections.size === 1) {
-      const winnerConn = Array.from(connections)[0];
-      console.log(
-        `🏆 Un joueur reste → victoire automatique: ${winnerConn.playerName}`
-      );
-
-      try {
-        fastify.updateMatchScore(
-          roomId,
-          winnerConn.playerName,
-          conn.playerName || "opponent",
-          11,
-          0,
-          winnerConn.playerName
-        );
-        winnerConn.send(
-          JSON.stringify({
-            type: "gameEnd",
-            winner: winnerConn.playerName,
-            scoreP1: 11,
-            scoreP2: 0,
-          })
-        );
-      } catch (e) {
-        console.error("❌ Erreur envoi gameEnd:", e.message);
+      const connections = gameRoomConnections.get(roomId);
+      if (!connections) {
+        return;
       }
-      gameRoomConnections.delete(roomId);
-    }
 
-    if (fastify.handlePlayerDisconnection && conn.playerNumber) {
-      fastify.handlePlayerDisconnection(roomId, conn.playerNumber);
+      connections.delete(conn);
+
+      if (connections.size === 0) {
+        gameRoomConnections.delete(roomId);
+        return;
+      }
+
+      if (connections.size === 1) {
+        const winnerConn = Array.from(connections)[0];
+
+        try {
+          fastify.updateMatchScore(
+            roomId,
+            winnerConn.playerName,
+            conn.playerName || "opponent",
+            11,
+            0,
+            winnerConn.playerName
+          );
+          winnerConn.send(
+            JSON.stringify({
+              type: "giveup",
+              message: `Qui va à la chasse perd sa place... ${winnerConn.playerName} gagne, à bon entendeur...`,
+            })
+          );
+        } catch (e) {
+          console.error("❌ Erreur envoi gameEnd:", e.message);
+        }
+        gameRoomConnections.delete(roomId);
+      }
+
+      if (fastify.handlePlayerDisconnection && conn.playerNumber) {
+        fastify.handlePlayerDisconnection(roomId, conn.playerNumber);
+      }
     }
+    conn.on("close", () => handleDisconnection());
+    conn.on("error", () => handleDisconnection());
   }
-  conn.on("close", () => handleDisconnection());
-  conn.on("error", () => handleDisconnection()); 
-}
 
   fastify.decorate("updateMatchScore", updateMatchScore);
   fastify.decorate("broadcastToGameRoom", broadcastToGameRoom);
